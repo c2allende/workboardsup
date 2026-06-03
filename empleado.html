@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Mi WorkBoard</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0f172a">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Outfit:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #070c17;
+  --surf:    #0e1625;
+  --surf-2:  #152030;
+  --border:  rgba(255,255,255,.08);
+  --text:    #ddeaff;
+  --muted:   #5a7499;
+  --accent:  #00feb2;
+  --royal:   #3b5bff;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;height:100vh;overflow:hidden; -webkit-tap-highlight-color: transparent;}
+
+/* ══ HEADER ══ */
+.app-header{background:var(--surf);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:center;height:56px;flex-shrink:0;position:relative;}
+.brand-name{font-family:'Outfit',sans-serif;font-weight:800;font-size:18px;background:linear-gradient(135deg,#fff,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.btn-logout{position:absolute;right:15px;background:none;border:none;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;}
+
+/* ══ VISTAS ══ */
+.view{display:none;flex:1;overflow-y:auto;padding:20px 15px;flex-direction:column;gap:15px;}
+.view.active{display:flex;}
+
+/* ══ LOGIN ══ */
+#viewLogin{align-items:center;justify-content:center;}
+.login-box{background:var(--surf);border:1px solid var(--border);border-radius:15px;padding:25px;width:100%;max-width:340px;display:flex;flex-direction:column;gap:15px;}
+.login-hdr{text-align:center;font-family:'Outfit',sans-serif;font-size:22px;margin-bottom:10px;}
+.inp{background:var(--surf-2);border:1px solid var(--border);border-radius:8px;padding:12px;color:var(--text);font-family:'Inter',sans-serif;font-size:15px;outline:none;width:100%;color-scheme:dark;}
+.inp:focus{border-color:var(--royal);}
+.btn{background:var(--accent);color:#000;border:none;border-radius:8px;padding:12px;font-size:15px;font-weight:700;width:100%;cursor:pointer;}
+.btn-ghost{background:transparent;color:var(--muted);border:none;padding:10px;font-size:13px;}
+
+/* ══ TARJETAS HORARIO ══ */
+.card{background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:15px;display:flex;flex-direction:column;gap:5px;}
+.card-hdr{display:flex;justify-content:space-between;align-items:flex-end;}
+.c-day{font-size:12px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.05em;}
+.c-date{font-size:20px;font-family:'Outfit',sans-serif;font-weight:700;color:var(--text);margin-top:2px;}
+.c-badge{display:inline-flex;padding:4px 10px;border-radius:8px;font-size:13px;font-weight:700;}
+.c-time{font-size:13px;color:var(--muted);margin-top:5px;display:flex;align-items:center;gap:5px;}
+
+/* ══ PETICIONES ══ */
+.req-form{background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:15px;margin-bottom:10px;}
+.req-item{background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:12px;}
+.req-date{font-size:13px;font-weight:700;}
+.req-note{font-size:13px;color:var(--muted);margin-top:4px;}
+.req-status{font-size:10px;font-weight:700;text-transform:uppercase;padding:3px 8px;border-radius:5px;background:rgba(255,255,255,.05);color:var(--muted);display:inline-block;margin-top:8px;}
+.req-status.pend{background:rgba(251,191,36,.15);color:#fbbf24;}
+
+/* ══ BOTTOM NAV ══ */
+.bottom-nav{background:var(--surf);border-top:1px solid var(--border);display:flex;height:60px;flex-shrink:0;}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);font-size:11px;font-weight:600;gap:4px;cursor:pointer;transition:color .2s;}
+.nav-item.active{color:var(--accent);}
+.nav-icon{font-size:18px;}
+
+#toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--surf-2);border:1px solid var(--border);padding:10px 20px;border-radius:30px;font-size:13px;font-weight:600;z-index:100;display:none;}
+</style>
+</head>
+<body>
+
+<header class="app-header" id="appHeader" style="display:none;">
+  <div class="brand-name">Mi WorkBoard</div>
+  <button class="btn-logout" onclick="logout()">Salir</button>
+</header>
+
+<div id="updateAlert" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.85); z-index:9999; backdrop-filter:blur(8px); flex-direction:column; align-items:center; justify-content:center; padding:20px; text-align:center;">
+  <div style="font-size:50px; margin-bottom:20px;">⚠️</div>
+  <div style="color:#fff; font-family:'Outfit'; font-size:24px; font-weight:700; margin-bottom:10px;">¡Horario Actualizado!</div>
+  <div style="color:var(--muted); font-size:15px; margin-bottom:30px; line-height:1.4;">Se ha publicado una nueva programación o se ha modificado tu horario. Por favor, revisa tus turnos.</div>
+  <button class="btn" style="background:var(--accent); color:#000; width:100%; max-width:300px;" onclick="dismissUpdateAlert()">Entendido</button>
+</div>
+
+<!-- LOGIN -->
+<div id="viewLogin" class="view active">
+  <div class="login-box">
+    <div class="login-hdr" style="color:var(--accent)">WorkBoard</div>
+    <div style="font-size:13px;color:var(--muted);text-align:center;margin-bottom:10px;">Acceso para Empleados</div>
+    <input type="number" id="empId" class="inp" placeholder="Tu Número de Empleado (Ej. 1, 123456)">
+    <input type="password" id="empPass" class="inp" placeholder="Contraseña">
+    <button class="btn" id="btnLogin" onclick="login()">Entrar</button>
+    <button class="btn-ghost" onclick="toggleReg()">¿No tienes cuenta? Regístrate aquí</button>
+
+    <!-- PWA Install Prompt -->
+    <div id="pwaInstallContainer" style="display:none; margin-top:20px; text-align:center; padding:15px; background:rgba(0,254,178,.1); border-radius:12px; border:1px solid var(--accent);">
+      <div style="font-size:14px; font-weight:600; color:var(--text); margin-bottom:5px;">Instala la App Oficial</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">Instala WorkBoard en tu teléfono para entrar rápido desde tu inicio.</div>
+      <button class="btn" id="btnPwaInstall" style="background:var(--accent); color:#000;">Instalar Ahora</button>
+    </div>
+  </div>
+</div>
+
+<div id="viewReg" class="view">
+  <div class="login-box">
+    <div class="login-hdr" style="color:var(--royal)">Registro</div>
+    <div style="font-size:13px;color:var(--muted);text-align:center;margin-bottom:10px;">Crea tu contraseña</div>
+    <input type="number" id="regId" class="inp" placeholder="Tu Número de Empleado (Ej. 1, 123456)">
+    <input type="password" id="regPass" class="inp" placeholder="Crea una contraseña">
+    <button class="btn" style="background:var(--royal);color:#fff;" id="btnReg" onclick="register()">Registrarme</button>
+    <button class="btn-ghost" onclick="toggleReg()">Volver al Login</button>
+  </div>
+</div>
+
+<!-- HORARIO -->
+<div id="viewHorario" class="view">
+  <div id="schHeader" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px; position:sticky; top:-21px; background:var(--bg); z-index:10; padding:20px 0 10px 0; margin-top:-20px; transition:transform 0.3s ease;">
+    <div style="font-family:'Outfit';font-size:20px;">Mi Horario</div>
+    <select id="schFilter" onchange="renderSchedule()" class="inp" style="padding:6px; font-size:12px; width:130px;">
+      <option value="today">Hoy</option>
+      <option value="week">Semana Actual</option>
+      <option value="next_week">Próxima Semana</option>
+      <option value="month" selected>Este Mes</option>
+      <option value="next_month">Próximo Mes</option>
+      <option value="past_month">Mes Pasado</option>
+    </select>
+  </div>
+  <div id="scheduleList" style="display:flex;flex-direction:column;gap:12px;"></div>
+</div>
+
+<!-- PETICIONES -->
+<div id="viewPeticiones" class="view">
+  <div class="req-form">
+    <div style="font-family:'Outfit';font-size:18px;margin-bottom:15px;">Nueva Petición</div>
+    <label style="font-size:12px;color:var(--muted);margin-bottom:5px;display:block;">Fecha que solicitas</label>
+    <input type="date" id="reqDate" class="inp" style="margin-bottom:15px;">
+    <label style="font-size:12px;color:var(--muted);margin-bottom:5px;display:block;">Opciones de Turno/Ausencia</label>
+    <select id="reqNote" class="inp" style="margin-bottom:15px;" onchange="checkOtherOption()"></select>
+    <input type="text" id="reqNoteOther" class="inp" placeholder="Escribe tu petición aquí..." style="display:none; margin-bottom:15px;">
+    <button class="btn" id="btnReq" onclick="saveRequest()">Enviar Petición</button>
+  </div>
+  <div style="font-family:'Outfit';font-size:16px;margin-top:10px;margin-bottom:5px;">Mis Peticiones</div>
+  <div id="reqList" style="display:flex;flex-direction:column;gap:10px;"></div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav" id="bottomNav" style="display:none;">
+  <div class="nav-item active" onclick="nav('viewHorario',this)">
+    <div class="nav-icon">📅</div>
+    <div>Horario</div>
+  </div>
+  <div class="nav-item" onclick="nav('viewPeticiones',this)">
+    <div class="nav-icon">✉️</div>
+    <div>Peticiones</div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, doc, setDoc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const firebaseConfig = {
+  projectId: "workboard-carmelo",
+  appId: "1:45199402595:web:be8cd97cf9a43890cdfa56",
+  storageBucket: "workboard-carmelo.firebasestorage.app",
+  apiKey: "AIzaSyASSpZRHvbj_BeQJ9qOEYCQSKVwjI_7q0E",
+  authDomain: "workboard-carmelo.firebaseapp.com",
+  messagingSenderId: "45199402595"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+/* ══ DATA ══ */
+const SHIFTS = {
+  C1:{ label:'Cocina', time:'4:00am – 12:00pm', color:'#fb923c', bg:'rgba(251,146,60,.18)', bd:'rgba(251,146,60,.32)' },
+  C2:{ label:'Cocina', time:'5:00am – 1:00pm',  color:'#fbbf24', bg:'rgba(251,191,36,.18)', bd:'rgba(251,191,36,.32)' },
+  C3:{ label:'Cocina', time:'6:00am – 2:00pm',  color:'#84cc16', bg:'rgba(132,204,22,.16)', bd:'rgba(132,204,22,.28)' },
+  D1:{ label:'Centro', time:'4:30am – 12:30pm', color:'#38bdf8', bg:'rgba(56,189,248,.18)', bd:'rgba(56,189,248,.32)' },
+  D2:{ label:'Centro', time:'10:00am – 6:00pm', color:'#818cf8', bg:'rgba(129,140,248,.18)', bd:'rgba(129,140,248,.3)' },
+  A1:{ label:'Centro', time:'5:00am – 1:00pm',  color:'#34d399', bg:'rgba(52,211,153,.16)', bd:'rgba(52,211,153,.26)' },
+  E1:{ label:'General', time:'5:30am – 1:30pm', color:'#60a5fa', bg:'rgba(96,165,250,.15)', bd:'rgba(96,165,250,.3)' },
+  L: { label:'Libre', time:'Día Libre',     color:'#3d5070', bg:'rgba(255,255,255,.03)', bd:'rgba(255,255,255,.07)' },
+  V: { label:'Vacaciones', time:'Todo el día',color:'#10b981', bg:'rgba(16,185,129,.13)', bd:'rgba(16,185,129,.22)' },
+  LR:{ label:'Licencia', time:'Regular',    color:'#e879f9', bg:'rgba(232,121,249,.13)', bd:'rgba(232,121,249,.25)' },
+  FSE:{label:'Fondo', time:'Todo el día',   color:'#f59e0b', bg:'rgba(245,158,11,.14)', bd:'rgba(245,158,11,.27)' },
+  PER:{label:'Permiso', time:'Aprobado',    color:'#a78bfa', bg:'rgba(167,139,250,.13)', bd:'rgba(167,139,250,.22)' },
+  F: { label:'Feriado', time:'Todo el día', color:'#ef4444', bg:'rgba(239,68,68,.13)', bd:'rgba(239,68,68,.25)' },
+  ENF:{ label:'Enfermedad', time:'Todo el día', color:'#fb7185', bg:'rgba(251,113,133,.13)', bd:'rgba(251,113,133,.25)' }
+};
+
+window.EMP_NAMES = {};
+window.EMP_AREAS = {};
+onSnapshot(collection(db, 'employees'), snap => {
+  let names = {};
+  let areas = {};
+  snap.forEach(d => {
+    names[d.id] = d.data().name;
+    areas[d.id] = d.data().area;
+  });
+  window.EMP_NAMES = names;
+  window.EMP_AREAS = areas;
+  if (currentUserEid && names[currentUserEid]) {
+    document.querySelector('.brand-name').textContent = names[currentUserEid];
+  }
+});
+
+const DAYS_ES = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+const MONTHS_ES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+function ds(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` }
+
+let currentUserEid = null;
+let unsubSch=null;
+let unsubReq=null;
+let unsubUpdates=null;
+let lastSeenUpdate = parseInt(localStorage.getItem('lastSeenUpdate')) || 0;
+
+window.dismissUpdateAlert = () => {
+  document.getElementById('updateAlert').style.display = 'none';
+  if(window._latestUpdateTimestamp) {
+    lastSeenUpdate = window._latestUpdateTimestamp;
+    localStorage.setItem('lastSeenUpdate', lastSeenUpdate.toString());
+  }
+}
+
+/* ══ AUTH ══ */
+onAuthStateChanged(auth, user => {
+  if(user && user.email.startsWith('emp') && user.email.endsWith('@workboard.local')) {
+    currentUserEid = parseInt(user.email.replace('emp','').replace('@workboard.local',''));
+    document.getElementById('viewLogin').classList.remove('active');
+    document.getElementById('viewReg').classList.remove('active');
+    document.getElementById('viewHorario').classList.add('active');
+    document.getElementById('appHeader').style.display='flex';
+    document.getElementById('bottomNav').style.display='flex';
+    document.querySelector('.brand-name').textContent = window.EMP_NAMES[currentUserEid] || 'Mi Horario';
+    populateReqOpts();
+    loadData();
+    
+    if(unsubUpdates) unsubUpdates();
+    unsubUpdates = onSnapshot(doc(db, 'metadata', 'updates'), snap => {
+      if(snap.exists()){
+        const t = snap.data().lastScheduleUpdate;
+        if(t && t > lastSeenUpdate && lastSeenUpdate !== 0) {
+          document.getElementById('updateAlert').style.display = 'flex';
+        }
+        if(lastSeenUpdate === 0) {
+          lastSeenUpdate = t || Date.now();
+          localStorage.setItem('lastSeenUpdate', lastSeenUpdate.toString());
+        }
+        window._latestUpdateTimestamp = t;
+      }
+    });
+
+  } else {
+    currentUserEid = null;
+    document.querySelectorAll('.view').forEach(e=>e.classList.remove('active'));
+    document.getElementById('viewLogin').classList.add('active');
+    document.getElementById('appHeader').style.display='none';
+    document.getElementById('bottomNav').style.display='none';
+    if(unsubSch) unsubSch();
+    if(unsubReq) unsubReq();
+    if(unsubUpdates) unsubUpdates();
+  }
+});
+
+window.login = async () => {
+  const id=document.getElementById('empId').value;
+  const pass=document.getElementById('empPass').value;
+  if(!id||!pass) return toast('Completa los campos');
+  if(!window.EMP_NAMES[id]) return toast('Número de empleado inválido');
+  const btn=document.getElementById('btnLogin'); btn.textContent='...';
+  try{
+    await signInWithEmailAndPassword(auth, `emp${id}@workboard.local`, pass);
+  } catch(e) { toast('Credenciales incorrectas'); }
+  btn.textContent='Entrar';
+}
+
+window.register = async () => {
+  const id=document.getElementById('regId').value;
+  const pass=document.getElementById('regPass').value;
+  if(!id||!pass) return toast('Completa los campos');
+  if(!window.EMP_NAMES[id]) return toast('Número de empleado inválido');
+  if(pass.length<6) return toast('Mínimo 6 caracteres');
+  const btn=document.getElementById('btnReg'); btn.textContent='...';
+  try{
+    await createUserWithEmailAndPassword(auth, `emp${id}@workboard.local`, pass);
+    toast('¡Registro exitoso!');
+  } catch(e) { toast('El empleado ya está registrado o hay un error'); }
+  btn.textContent='Registrarme';
+}
+
+window.logout = () => signOut(auth);
+
+window.toggleReg = () => {
+  const l=document.getElementById('viewLogin'), r=document.getElementById('viewReg');
+  if(l.classList.contains('active')){ l.classList.remove('active'); r.classList.add('active'); }
+  else { r.classList.remove('active'); l.classList.add('active'); }
+}
+
+/* ══ DATA SYNC ══ */
+function loadData(){
+  if(!currentUserEid) return;
+  
+  // Schedules
+  if(unsubSch) unsubSch();
+  unsubSch = onSnapshot(collection(db, 'schedules'), snap => {
+    let days = [];
+    const today = new Date();
+    const startD = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+    const endD = new Date(today.getFullYear(), today.getMonth() + 2, 0); 
+    
+    for(let d = new Date(startD); d <= endD; d.setDate(d.getDate() + 1)) {
+      days.push({ date: ds(d), sid: 'L' }); // Default Libre
+    }
+
+    snap.forEach(d => {
+      const idx = days.findIndex(day => day.date === d.id);
+      if(idx !== -1 && d.data()[currentUserEid]) {
+        days[idx].sid = d.data()[currentUserEid];
+      }
+    });
+    window.myDays = days;
+    renderSchedule();
+  });
+
+  // Requests
+  if(unsubReq) unsubReq();
+  unsubReq = onSnapshot(collection(db, 'requests'), snap => {
+    let reqs = [];
+    snap.forEach(d => {
+      const data = d.data();
+      if(data.eid === currentUserEid) reqs.push({id: d.id, ...data});
+    });
+    reqs.sort((a,b)=>b.created - a.created);
+    renderRequests(reqs);
+  });
+}
+
+window.renderSchedule = function renderSchedule(){
+  const list = document.getElementById('scheduleList');
+  let days = window.myDays || [];
+  
+  const filter = document.getElementById('schFilter').value;
+  const todayDate = new Date();
+  const todayStr = ds(todayDate);
+  
+  const thisSun = new Date(todayDate);
+  thisSun.setDate(todayDate.getDate() - todayDate.getDay());
+  
+  if(filter === 'today') {
+    days = days.filter(d => d.date === todayStr);
+  } else if(filter === 'week') {
+    const sunIdx = days.findIndex(d => d.date === ds(thisSun));
+    days = days.slice(sunIdx, sunIdx + 7);
+  } else if(filter === 'next_week') {
+    const sunIdx = days.findIndex(d => d.date === ds(thisSun));
+    days = days.slice(sunIdx + 7, sunIdx + 14);
+  } else if(filter === 'month') {
+    days = days.filter(d => parseInt(d.date.split('-')[1], 10) === todayDate.getMonth() + 1);
+  } else if(filter === 'next_month') {
+    const nm = new Date(todayDate.getFullYear(), todayDate.getMonth() + 1, 1);
+    days = days.filter(d => parseInt(d.date.split('-')[1], 10) === nm.getMonth() + 1);
+  } else if(filter === 'past_month') {
+    const pm = new Date(todayDate.getFullYear(), todayDate.getMonth() - 1, 1);
+    days = days.filter(d => parseInt(d.date.split('-')[1], 10) === pm.getMonth() + 1);
+  }
+
+  if(!days.length) { list.innerHTML='<div style="color:var(--muted);text-align:center;padding:20px;">No hay turnos para esta selección.</div>'; return; }
+  
+  let html='';
+  days.forEach(d => {
+    const dt = new Date(d.date+'T12:00:00');
+    const dayName = DAYS_ES[dt.getDay()];
+    const dateFmt = `${dt.getDate()} ${MONTHS_ES[dt.getMonth()]}`;
+    const sh = SHIFTS[d.sid] || { label:d.sid, time:'', bg:'rgba(255,255,255,.05)', bd:'rgba(255,255,255,.1)', color:'#fff' };
+    
+    const isToday = d.date === todayStr;
+    const highlightStyles = isToday ? 'border: 1.5px solid var(--accent); background: rgba(0,254,178,0.06); box-shadow: 0 4px 15px rgba(0,254,178,0.15);' : '';
+    const todayBadge = isToday ? `<div style="font-size:10px; font-weight:800; color:var(--accent); text-transform:uppercase; margin-bottom:4px; letter-spacing:0.05em;">¡Día de Hoy!</div>` : '';
+
+    html += `
+    <div class="card" style="${highlightStyles}">
+      <div class="card-hdr">
+        <div>${todayBadge}<div class="c-day" style="${isToday ? 'color:var(--accent);' : ''}">${dayName}</div><div class="c-date">${dateFmt}</div></div>
+        <div class="c-badge" style="background:${sh.bg};border:1px solid ${sh.bd};color:${sh.color}">${sh.label}</div>
+      </div>
+      <div class="c-time">🕒 ${sh.time}</div>
+    </div>`;
+  });
+  list.innerHTML=html;
+}
+
+function renderRequests(reqs){
+  const list = document.getElementById('reqList');
+  if(!reqs.length) { list.innerHTML='<div style="color:var(--muted);font-size:13px;">No has enviado peticiones recientes.</div>'; return; }
+  
+  let html='';
+  reqs.forEach(r => {
+    html += `
+    <div class="req-item" style="position:relative;">
+      <button onclick="deleteRequest('${r.id}')" style="position:absolute;top:12px;right:12px;background:none;border:none;color:var(--muted);font-size:16px;line-height:1;cursor:pointer;">&times;</button>
+      <div class="req-date">Solicitud: ${r.date}</div>
+      <div class="req-note">${r.note}</div>
+      <div class="req-status ${r.status==='Pendiente'?'pend':''}">${r.status}</div>
+    </div>`;
+  });
+  list.innerHTML=html;
+}
+
+function populateReqOpts() {
+  const sel = document.getElementById('reqNote');
+  let opts = `
+    <option value="Libre">Libre</option>
+    <option value="ENF">ENF</option>
+    <option value="Turno AM Cocina">Turno AM Cocina</option>
+    <option value="Turno AM Centro">Turno AM Centro</option>
+    <option value="Turno PM Centro">Turno PM Centro</option>
+    <option value="Otro">Otro (Escribir)...</option>
+  `;
+  
+  if(sel) {
+    sel.innerHTML = opts;
+    checkOtherOption();
+  }
+}
+
+window.checkOtherOption = () => {
+  const sel = document.getElementById('reqNote').value;
+  document.getElementById('reqNoteOther').style.display = (sel === 'Otro') ? 'block' : 'none';
+}
+
+window.saveRequest = async () => {
+  if(!currentUserEid) return;
+  const d = document.getElementById('reqDate').value;
+  let n = document.getElementById('reqNote').value;
+  if(n === 'Otro') n = document.getElementById('reqNoteOther').value;
+  
+  if(!d || !n) return toast('Completa la fecha y el motivo');
+  
+  const btn = document.getElementById('btnReq'); btn.textContent='...';
+  try {
+    await setDoc(doc(collection(db, 'requests')), { eid: currentUserEid, date: d, note: n, created: Date.now(), status: 'Pendiente' });
+    toast('Petición enviada');
+    document.getElementById('reqDate').value='';
+    document.getElementById('reqNote').value='';
+  } catch(e) { toast('Error al enviar'); }
+  btn.textContent='Enviar Petición';
+}
+
+window.deleteRequest = async (id) => {
+  if(!confirm('¿Seguro que deseas eliminar esta petición?')) return;
+  try {
+    await deleteDoc(doc(db, 'requests', id));
+    toast('Petición eliminada');
+  } catch(e) {
+    toast('Error al eliminar');
+  }
+}
+
+/* ══ UI ══ */
+let lastScrollY = 0;
+const vh = document.getElementById('viewHorario');
+const shdr = document.getElementById('schHeader');
+
+vh.addEventListener('scroll', () => {
+  if(!shdr) return;
+  const currentScrollY = vh.scrollTop;
+  if (currentScrollY > lastScrollY && currentScrollY > 50) {
+    shdr.style.transform = 'translateY(-150%)';
+  } else {
+    shdr.style.transform = 'translateY(0)';
+  }
+  lastScrollY = currentScrollY;
+});
+window.nav = (viewId, btn) => {
+  document.querySelectorAll('.view').forEach(e=>e.classList.remove('active'));
+  document.getElementById(viewId).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.display='block';
+  setTimeout(()=>t.style.display='none', 3000);
+}
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+    .then(reg => console.log('SW registrado', reg))
+    .catch(err => console.error('Error SW', err));
+    
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!refreshing) {
+        refreshing = true;
+        window.location.reload();
+      }
+    });
+  });
+}
+
+// PWA Install Logic
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('pwaInstallContainer').style.display = 'block';
+});
+
+document.getElementById('btnPwaInstall').addEventListener('click', async () => {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    document.getElementById('pwaInstallContainer').style.display = 'none';
+  }
+});
+
+const isIos = () => {
+  const userAgent = window.navigator.userAgent.toLowerCase();
+  return /iphone|ipad|ipod/.test(userAgent);
+};
+const isInStandaloneMode = () => ('standalone' in window.navigator) && (window.navigator.standalone);
+
+if (isIos() && !isInStandaloneMode()) {
+   document.getElementById('pwaInstallContainer').style.display = 'block';
+   document.getElementById('btnPwaInstall').style.display = 'none';
+   document.getElementById('pwaInstallContainer').innerHTML += '<div style="font-size:11.5px; margin-top:5px;">En <b>iPhone</b> o <b>iPad</b>:<br>Toca el botón <b>Compartir</b> (flecha arriba) en la barra de Safari y selecciona <b>"Agregar a inicio"</b>.</div>';
+}
+</script>
+</body>
+</html>

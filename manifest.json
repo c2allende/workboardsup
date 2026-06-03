@@ -1,0 +1,22 @@
+{
+  "name": "WorkBoard Empleado",
+  "short_name": "WorkBoard",
+  "description": "Programación y turnos para el Servicio de Alimentos",
+  "start_url": "/empleado.html",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#00feb2",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}
