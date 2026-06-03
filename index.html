@@ -256,6 +256,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
   .area-section{break-inside:avoid}
 }
 </style>
+<script src="./scheduling-engine.js"></script>
 </head>
 <body>
 
@@ -302,6 +303,8 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
       <span class="dr-days" id="drDays"></span>
     </div>
     <div class="h-controls-right">
+      <button class="btn btn-ghost" id="btnGenAuto" style="border: 1px solid var(--royal); color: var(--royal);">Generar Automático</button>
+      <button class="btn btn-ghost" id="btnDiscardDraft" style="display:none; color: #ef4444;">Descartar Borrador</button>
       <button class="btn btn-ghost" id="btnClear">Limpiar</button>
       <button class="btn btn-ghost" onclick="window.print()">Imprimir</button>
       <button class="btn btn-accent" id="btnPublish">Publicar</button>
@@ -356,6 +359,71 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
       <button class="btn btn-accent" id="btnImportOfficial" onclick="importOfficialSchedule()" style="height:36px;padding:0 20px;">Importar programa oficial</button>
       <span style="font-size:12px;color:var(--muted);">9 empleados · 35 días · Cocina Central / Centro de Distribución</span>
+    </div>
+  </div>
+
+  <!-- Panel de Reglas del Motor -->
+  <div class="box-panel" style="flex:1 1 100%; border-color: var(--royal);">
+    <div class="box-hdr" style="color:var(--royal);">Configuración de Reglas (Motor Automático)</div>
+    <div class="frm-row">
+      <label class="frm-lbl">Seleccionar Empleado</label>
+      <select id="ruleEmpSelect" class="frm-select" onchange="window.loadEmployeeRules()"></select>
+    </div>
+    
+    <div id="rulesContainer" style="display:none; flex-direction:column; gap:15px; margin-top:15px;">
+      <div style="display:flex; flex-wrap:wrap; gap:15px;">
+        <div style="flex:1; min-width:200px;">
+          <label class="frm-lbl">Turnos Permitidos (Múltiples separados por coma, ej: C1,C3)</label>
+          <input type="text" id="ruleAllowedShifts" class="frm-input" placeholder="C1, C2, C3, D1, D2, A1, E1">
+        </div>
+        <div style="flex:1; min-width:200px;">
+          <label class="frm-lbl">Días Fijos (0=Dom... ej: 1,2,5,6,0)</label>
+          <input type="text" id="ruleFixedDays" class="frm-input" placeholder="Ej: 1,2,5,6,0">
+        </div>
+        <div style="flex:1; min-width:200px;">
+          <label class="frm-lbl">Turno Fijo (Ej: D2)</label>
+          <input type="text" id="ruleFixedShift" class="frm-input" placeholder="D2">
+        </div>
+      </div>
+      
+      <div style="display:flex; flex-wrap:wrap; gap:15px;">
+         <div style="flex:1; min-width:200px;">
+          <label class="frm-lbl">Fija Inicia (YYYY-MM-DD)</label>
+          <input type="date" id="ruleFixedStarts" class="frm-input">
+        </div>
+        <div style="flex:1; min-width:200px;">
+          <label class="frm-lbl">Fija Expira (YYYY-MM-DD)</label>
+          <input type="date" id="ruleFixedExpires" class="frm-input">
+        </div>
+      </div>
+
+      <div style="display:flex; flex-wrap:wrap; gap:15px;">
+        <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text); cursor:pointer;">
+          <input type="checkbox" id="ruleWeekendRotation"> Rotación de Fines de Semana (Evita consecutivos)
+        </label>
+        <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text); cursor:pointer;">
+          <input type="checkbox" id="ruleWeekendAlternating"> Preferir alternar fin de semana (1 sí, 1 no)
+        </label>
+      </div>
+
+      <div style="display:flex; flex-wrap:wrap; gap:15px;">
+        <div style="flex:1; min-width:150px;">
+          <label class="frm-lbl">Máx. Fines de Semana Seguidos</label>
+          <input type="number" id="ruleMaxConsecutiveWeekends" class="frm-input" value="2">
+        </div>
+        <div style="flex:1; min-width:150px;">
+          <label class="frm-lbl">Máx. Días por Semana</label>
+          <input type="number" id="ruleMaxWorkDays" class="frm-input" value="5">
+        </div>
+        <div style="flex:1; min-width:150px;">
+          <label class="frm-lbl">Meta Aperturas Mensual</label>
+          <input type="number" id="ruleOpeningTarget" class="frm-input" value="13">
+        </div>
+      </div>
+      
+      <div>
+        <button class="btn btn-accent" style="background:var(--royal); color:#fff; width:auto; padding:0 20px;" onclick="window.saveEmployeeRules()">Guardar Reglas</button>
+      </div>
     </div>
   </div>
   
@@ -560,6 +628,21 @@ window.doc = doc;
 window.deleteField = deleteField;
 window.collection = collection;
 window.deleteDoc = deleteDoc;
+window.onSnapshot = onSnapshot;
+window.rulesByEmployee = window.rulesByEmployee || {};
+window.globalRules = window.globalRules || {};
+
+// Cargar reglas de empleados (desde el modulo)
+onSnapshot(collection(db, 'rules'), snap => {
+  snap.forEach(d => {
+    if (d.id !== '_global') {
+      window.rulesByEmployee[d.id] = d.data();
+    } else {
+      window.globalRules = { ...window.globalRules, ...d.data() };
+    }
+  });
+  if (window.updateRuleEmpSelect) window.updateRuleEmpSelect();
+});
 
 onAuthStateChanged(auth, user => {
   const loginOverlay = document.getElementById('loginOverlay');
@@ -682,6 +765,7 @@ window.listenEmployees = () => {
     snap.forEach(d => emps.push(d.data()));
     emps.sort((a,b)=>a.id - b.id);
     window.EMPLOYEES = emps;
+    if (window.updateRuleEmpSelect) window.updateRuleEmpSelect();
     window.render();
   });
 };
@@ -788,7 +872,16 @@ function resolveShift(sid){ return SHIFTS[sid] || customShifts[sid] || null }
 ══════════════════════════════════════════════════════ */
 window.sched = {};
 function ds(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` }
-function getShift(eid,dateStr){ return window.sched[eid]?.[dateStr] ?? null }
+function getShift(eid,dateStr){
+  if (
+    window.draftSched &&
+    window.draftSched[dateStr] &&
+    Object.prototype.hasOwnProperty.call(window.draftSched[dateStr], String(eid))
+  ) {
+    return window.draftSched[dateStr][String(eid)];
+  }
+  return window.sched[eid]?.[dateStr] ?? null;
+}
 window.setShift = function(eid,dateStr,sid){ if(!window.sched[eid]) window.sched[eid]={}; window.sched[eid][dateStr]=sid }
 
 function thisSunday(){ const d=new Date(); d.setDate(d.getDate()-d.getDay()); return d }
@@ -1474,7 +1567,13 @@ function buildEmpRow(eid,dates,cfg){
 }
 
 function buildChip(eid,dateStr,size){
-  const sid=getShift(eid,dateStr);
+  let isDraft = false;
+  let sid=getShift(eid,dateStr);
+  if (window.draftSched && window.draftSched[dateStr] && window.draftSched[dateStr][eid]) {
+    sid = window.draftSched[dateStr][eid];
+    isDraft = true;
+  }
+  
   const req = window.reqsData?.find(r => r.eid === eid && r.date === dateStr);
   const badgeHTML = req ? `<div style="position:absolute;top:-4px;right:-4px;background:#f59e0b;color:#000;border-radius:50%;width:12px;height:12px;font-size:9px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 4px rgba(0,0,0,0.5);">🔔</div>` : '';
 
@@ -1484,7 +1583,11 @@ function buildChip(eid,dateStr,size){
   if(!sh){ const e=el('div',`chip-empty${size?' '+size:''}`); e.style.position='relative'; e.innerHTML='?'+badgeHTML; return e; }
 
   const chip=el('div',`chip${size?' '+size:''}`);
-  chip.style.cssText=`background:${sh.bg};border-color:${sh.bd};color:${sh.color};position:relative;`;
+  if (isDraft) {
+    chip.style.cssText=`background:rgba(59,91,255,0.1);border-color:var(--royal);color:var(--royal);border-style:dashed;position:relative;`;
+  } else {
+    chip.style.cssText=`background:${sh.bg};border-color:${sh.bd};color:${sh.color};position:relative;`;
+  }
 
   if(WORK_IDS.has(sid)){
     chip.innerHTML=`${badgeHTML}<div class="chip-id">${sid}</div><div class="chip-time">${fmtT(sh.start)}–${fmtT(sh.end)}</div>`;
@@ -1642,6 +1745,15 @@ async function assign(eid,dateStr,sid){
     }
     if(workCount >= 5) return window.toast('❌', `Máximo 5 turnos permitidos por semana`);
   }
+
+  if (window.draftSched) {
+    if (!window.draftSched[dateStr]) window.draftSched[dateStr] = {};
+    window.draftSched[dateStr][String(eid)] = sid;
+    window.toast(sid===null?'🗑️':'✅', sid===null ? `${emp.name} · borrador eliminado` : `${emp.name} · borrador actualizado`);
+    window.render();
+    return;
+  }
+
   const docRef = window.doc(window.db, 'schedules', dateStr);
   try {
     if(sid===null){
@@ -1697,8 +1809,169 @@ document.getElementById('btnClear').onclick=async ()=>{
   window.notifyScheduleUpdate();
   window.toast('🗑️',`${count} días limpiados`);
 };
-document.getElementById('btnPublish').onclick=()=>{
+/* ══════════════════════════════════════════════════════
+   MOTOR AUTOMATICO (SCHEDULING ENGINE)
+══════════════════════════════════════════════════════ */
+window.draftSched = null;
+window.rulesByEmployee = window.rulesByEmployee || {};
+const DEFAULT_GLOBAL_RULES = {
+  coverage: {
+    cocina: { required: { C1: 1, C3: 1 }, optional: { C2: 0 } },
+    centro: { alternatives: [ { D1: 2, D2: 1 }, { A1: 1, D1: 1, D2: 1 } ] }
+  },
+  workShiftIds: ["C1", "C2", "C3", "D1", "D2", "A1", "E1"],
+  absenceShiftIds: ["L", "V", "LR", "FSE", "PER", "F", "ENF"],
+  openingShiftIds: ["C1", "D1"],
+  defaultMaxWorkDaysPerWeek: 5,
+  draftEnabled: true
+};
+window.globalRules = { ...DEFAULT_GLOBAL_RULES, ...(window.globalRules || {}) };
+
+// Cargar reglas de empleados
+// (Movido al bloque module para evitar errores de orden de ejecución)
+
+window.updateRuleEmpSelect = function() {
+  const sel = document.getElementById('ruleEmpSelect');
+  if(!sel) return;
+  const curr = sel.value;
+  sel.innerHTML = '<option value="">-- Seleccionar --</option>';
+  if (window.EMPLOYEES) {
+    window.EMPLOYEES.forEach(e => {
+      sel.innerHTML += `<option value="${e.id}">${e.name}</option>`;
+    });
+  }
+  if (curr) sel.value = curr;
+};
+
+window.loadEmployeeRules = () => {
+  const eid = document.getElementById('ruleEmpSelect').value;
+  const container = document.getElementById('rulesContainer');
+  if (!eid) { container.style.display = 'none'; return; }
+  
+  container.style.display = 'flex';
+  const rules = window.rulesByEmployee[eid] || {};
+  
+  document.getElementById('ruleAllowedShifts').value = rules.allowedShifts ? rules.allowedShifts.join(', ') : '';
+  
+  const fa = (rules.fixedAssignments && rules.fixedAssignments.length > 0) ? rules.fixedAssignments[0] : null;
+  document.getElementById('ruleFixedDays').value = fa ? fa.weekdays.join(',') : '';
+  document.getElementById('ruleFixedShift').value = fa ? fa.shift : '';
+  document.getElementById('ruleFixedStarts').value = fa ? (fa.startsOn || '') : '';
+  document.getElementById('ruleFixedExpires').value = fa ? (fa.expiresOn || '') : '';
+  
+  document.getElementById('ruleWeekendRotation').checked = !!rules.weekendRotationEnabled;
+  document.getElementById('ruleWeekendAlternating').checked = !!rules.preferAlternatingWeekends;
+  document.getElementById('ruleMaxConsecutiveWeekends').value = rules.maxConsecutiveWeekends || 2;
+  document.getElementById('ruleMaxWorkDays').value = rules.maxWorkDaysPerWeek || 5;
+  document.getElementById('ruleOpeningTarget').value = rules.openingTargetPerMonth || 13;
+};
+
+window.saveEmployeeRules = async () => {
+  if (!window.isAdmin) return window.toast('🔒', 'Solo administradores');
+  const eid = document.getElementById('ruleEmpSelect').value;
+  if (!eid) return;
+  
+  const rules = {
+    employeeId: parseInt(eid),
+    weekendRotationEnabled: document.getElementById('ruleWeekendRotation').checked,
+    preferAlternatingWeekends: document.getElementById('ruleWeekendAlternating').checked,
+    maxConsecutiveWeekends: parseInt(document.getElementById('ruleMaxConsecutiveWeekends').value) || 2,
+    maxWorkDaysPerWeek: parseInt(document.getElementById('ruleMaxWorkDays').value) || 5,
+    openingTargetPerMonth: parseInt(document.getElementById('ruleOpeningTarget').value) || 13,
+    active: true,
+    updatedAt: Date.now()
+  };
+  
+  const al = document.getElementById('ruleAllowedShifts').value.trim();
+  if (al) rules.allowedShifts = al.split(',').map(s => s.trim().toUpperCase());
+  
+  const fd = document.getElementById('ruleFixedDays').value.trim();
+  const fs = document.getElementById('ruleFixedShift').value.trim().toUpperCase();
+  if (fd && fs) {
+    rules.fixedAssignments = [{
+      weekdays: fd.split(',').map(n => parseInt(n.trim())),
+      shift: fs,
+      startsOn: document.getElementById('ruleFixedStarts').value || null,
+      expiresOn: document.getElementById('ruleFixedExpires').value || null
+    }];
+  } else {
+    rules.fixedAssignments = [];
+  }
+  
+  try {
+    await window.setDoc(window.doc(window.db, 'rules', eid), rules);
+    window.toast('✅', 'Reglas guardadas');
+  } catch(e) {
+    window.toast('❌', 'Error al guardar reglas');
+  }
+};
+
+function buildExistingScheduleByDate() {
+  const byDate = {};
+  Object.entries(window.sched || {}).forEach(([eid, days]) => {
+    Object.entries(days || {}).forEach(([dateStr, sid]) => {
+      if (!byDate[dateStr]) byDate[dateStr] = {};
+      byDate[dateStr][eid] = sid;
+    });
+  });
+  return byDate;
+}
+
+document.getElementById('btnGenAuto').onclick = () => {
+  if (!window.isAdmin) return window.toast('🔒', 'Acceso denegado');
+  if (!window.SchedulingEngine) return window.toast('❌', 'Motor no cargado');
+  
+  const res = window.SchedulingEngine.generate({
+    employees: window.EMPLOYEES,
+    existingSchedule: buildExistingScheduleByDate(),
+    requests: window.reqsData,
+    rulesByEmployee: window.rulesByEmployee,
+    globalRules: window.globalRules,
+    dateFrom: dateFrom,
+    dateTo: dateTo
+  });
+  
+  window.draftSched = res.draftSchedule;
+  
+  document.getElementById('btnDiscardDraft').style.display = 'inline-block';
+  document.getElementById('btnPublish').textContent = 'Aprobar y Publicar';
+  
+  window.render();
+  window.toast('✨', 'Borrador generado. Revisa y publica.');
+  
+  if (res.diagnostics.hardViolations.length || res.diagnostics.warnings.length) {
+    console.warn("Diagnostics", res.diagnostics);
+    window.toast('⚠️', `Advertencias: ${res.diagnostics.warnings.length}`);
+  }
+};
+
+document.getElementById('btnDiscardDraft').onclick = () => {
+  window.draftSched = null;
+  document.getElementById('btnDiscardDraft').style.display = 'none';
+  document.getElementById('btnPublish').textContent = 'Publicar';
+  window.render();
+  window.toast('🗑️', 'Borrador descartado');
+};
+
+document.getElementById('btnPublish').onclick=async ()=>{
   if(!window.isAdmin) return window.toast('🔒', 'Acceso denegado');
+  
+  if (window.draftSched) {
+    const dates = Object.keys(window.draftSched);
+    let count = 0;
+    for (const dStr of dates) {
+      const updates = window.draftSched[dStr];
+      try { await window.setDoc(window.doc(window.db, 'schedules', dStr), updates, { merge: true }); } catch(e){}
+      count++;
+    }
+    window.draftSched = null;
+    document.getElementById('btnDiscardDraft').style.display = 'none';
+    document.getElementById('btnPublish').textContent = 'Publicar';
+    window.render();
+    window.notifyScheduleUpdate();
+    return window.toast('🚀', `Borrador publicado con éxito.`);
+  }
+
   const dates=getDates();
   const bad=dates.filter(d=>{ const s=getDayStatus(ds(d)); return !s.allOk&&s.unscheduled<window.EMPLOYEES.length; });
   if(bad.length) return window.toast('❌',`${bad.length} día(s) incompletos`);

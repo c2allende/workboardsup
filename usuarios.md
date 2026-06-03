@@ -35,7 +35,7 @@ Password: 891260
 Asistente
 Angel Baez Rivera
 user: 01abr3
-Password: 89232
+Password: 890232
 
 Secretaria
 Jacqueline Marrero Saez
@@ -56,10 +56,12 @@ Password: 890062
 
 Melinda Chapman Nartinez
 user: 01mcm4
+Password: 890816
 
 Gerente
 Carmelo II Allende Martinez
 user: 01cam1
+Password: 890900
 
 Gerente Asociada
 Mayte Quiñones Cruz
