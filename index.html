@@ -118,9 +118,9 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .complete-cell{display:flex;align-items:center;justify-content:center;height:32px;border-bottom:1px solid var(--border-2);border-right:1px solid var(--border-2);padding:2px;}
 .complete-total{height:32px;border-bottom:1px solid var(--border-2);border-left:1px solid var(--border)}
 .cmp-badge{display:inline-flex;align-items:center;gap:3px;padding:2px 6px;border-radius:5px;font-size:9px;font-weight:700;white-space:nowrap;cursor:default;max-width:100%;overflow:hidden;text-overflow:ellipsis;}
-.cmp-ok{background:rgba(74,222,128,.14);color:#4ade80}
-.cmp-warn{background:rgba(251,191,36,.14);color:#fbbf24}
-.cmp-err{background:rgba(248,113,113,.14);color:#f87171}
+.cmp-ok{background:transparent;color:#059669}
+.cmp-warn{background:transparent;color:#d97706}
+.cmp-err{background:transparent;color:#dc2626}
 .cmp-none{background:var(--border-2);color:var(--dim)}
 
 .area-divider{display:contents}
@@ -169,13 +169,13 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .cov-cell{display:flex;align-items:center;justify-content:center;height:34px;border-bottom:1px solid var(--border-2);border-right:1px solid var(--border-2);background:rgba(0,0,0,.01);gap:2px;}
 .cov-cell-total{height:34px;border-bottom:1px solid var(--border-2);border-left:1px solid var(--border);background:rgba(0,0,0,.01)}
 .cov-mini{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;border-radius:5px;font-size:10.5px;font-weight:700;padding:0 3px}
-.cov-hi{background:rgba(74,222,128,.2);color:#4ade80}
-.cov-ok{background:rgba(251,191,36,.2);color:#fbbf24}
-.cov-lo{background:rgba(248,113,113,.2);color:#f87171}
+.cov-hi{background:transparent;color:#059669}
+.cov-ok{background:transparent;color:#d97706}
+.cov-lo{background:transparent;color:#dc2626}
 .cov-zero{background:var(--border-2);color:var(--dim)}
 .shift-pill{display:inline-flex;align-items:center;gap:1px;font-size:8px;font-weight:700;padding:1px 4px;border-radius:4px;white-space:nowrap}
-.sp-ok{background:rgba(74,222,128,.18);color:#4ade80}
-.sp-lo{background:rgba(248,113,113,.18);color:#f87171}
+.sp-ok{background:transparent;color:#059669}
+.sp-lo{background:transparent;color:#dc2626}
 .sp-na{background:var(--border-2);color:var(--dim)}
 
 /* ══ POPOVER ══ */
@@ -848,15 +848,15 @@ const SHIFTS = {
 };
 
 const EMPLOYEES_DEFAULT = [
-  { id:1, name:'Victor Vazquez', role:'Supervisor', area:'cocina', av:'VV', avColor:'#c2410c', tag:'Cocina',     tagBg:'rgba(249,115,22,.18)', tagColor:'#fb923c' },
-  { id:2, name:'Andres Rivera',  role:'Supervisor', area:'cocina', av:'AR', avColor:'#92400e', tag:'Cocina',     tagBg:'rgba(249,115,22,.18)', tagColor:'#fb923c' },
-  { id:3, name:'Ernix Yace',     role:'Supervisor', area:'cocina', av:'EY', avColor:'#78350f', tag:'Cocina',     tagBg:'rgba(249,115,22,.18)', tagColor:'#fb923c' },
-  { id:4, name:'Alvin Nieves',   role:'Supervisor', area:'centro', av:'AN', avColor:'#0e7490', tag:'Centro',    tagBg:'rgba(34,211,238,.16)', tagColor:'#22d3ee' },
-  { id:5, name:'Carlos Rivera',  role:'Supervisor', area:'centro', av:'CR', avColor:'#1e40af', tag:'Centro',    tagBg:'rgba(34,211,238,.16)', tagColor:'#22d3ee' },
-  { id:6, name:'Lillian Diaz',   role:'Supervisor', area:'centro', av:'LD', avColor:'#5b21b6', tag:'Centro',    tagBg:'rgba(34,211,238,.16)', tagColor:'#22d3ee' },
-  { id:7, name:'Angel Baez',     role:'Asistente',  area:'centro', av:'AB', avColor:'#065f46', tag:'Asistente', tagBg:'rgba(52,211,153,.16)', tagColor:'#34d399', shiftLock:'A1', lockNote:'Turno fijo: A1 (5am–1pm)' },
-  { id:8, name:'Carolyn Betancourt', role:'Supervisor', area:'flex', av:'CB', avColor:'#6d28d9', tag:'Flexible', tagBg:'rgba(192,132,252,.16)', tagColor:'#c084fc' },
-  { id:9, name:'Sisto Sierra',   role:'Supervisor', area:'flex',   av:'SS', avColor:'#9d174d', tag:'Flexible',  tagBg:'rgba(192,132,252,.16)', tagColor:'#c084fc' },
+  { id:1, name:'Victor Vazquez', role:'Supervisor', area:'cocina', av:'VV', avColor:'#c2410c', tag:'Cocina',     tagBg:'transparent', tagColor:'#ea580c' },
+  { id:2, name:'Andres Rivera',  role:'Supervisor', area:'cocina', av:'AR', avColor:'#92400e', tag:'Cocina',     tagBg:'transparent', tagColor:'#ea580c' },
+  { id:3, name:'Ernix Yace',     role:'Supervisor', area:'cocina', av:'EY', avColor:'#78350f', tag:'Cocina',     tagBg:'transparent', tagColor:'#ea580c' },
+  { id:4, name:'Alvin Nieves',   role:'Supervisor', area:'centro', av:'AN', avColor:'#0e7490', tag:'Centro',    tagBg:'transparent', tagColor:'#0284c7' },
+  { id:5, name:'Carlos Rivera',  role:'Supervisor', area:'centro', av:'CR', avColor:'#1e40af', tag:'Centro',    tagBg:'transparent', tagColor:'#0284c7' },
+  { id:6, name:'Lillian Diaz',   role:'Supervisor', area:'centro', av:'LD', avColor:'#5b21b6', tag:'Centro',    tagBg:'transparent', tagColor:'#0284c7' },
+  { id:7, name:'Angel Baez',     role:'Asistente',  area:'centro', av:'AB', avColor:'#065f46', tag:'Asistente', tagBg:'transparent', tagColor:'#059669', shiftLock:'A1', lockNote:'Turno fijo: A1 (5am–1pm)' },
+  { id:8, name:'Carolyn Betancourt', role:'Supervisor', area:'flex', av:'CB', avColor:'#6d28d9', tag:'Flexible', tagBg:'transparent', tagColor:'#7c3aed' },
+  { id:9, name:'Sisto Sierra',   role:'Supervisor', area:'flex',   av:'SS', avColor:'#9d174d', tag:'Flexible',  tagBg:'transparent', tagColor:'#7c3aed' },
   { id:123456, name:'Empleado Prueba', role:'Empleado', area:'centro', av:'EP', avColor:'#10b981', tag:'Prueba', tagBg:'rgba(16,185,129,.16)', tagColor:'#34d399' }
 ];
 window.EMPLOYEES = [];
@@ -1087,8 +1087,8 @@ window.registerEmployee = async () => {
       av: av,
       avColor: '#334155',
       tag: area === 'cocina' ? 'Cocina' : (area === 'centro' ? 'Centro' : 'Flexible'),
-      tagBg: 'var(--border-2)',
-      tagColor: '#94a3b8'
+      tagBg: 'transparent',
+      tagColor: '#64748b'
     };
     
     await window.setDoc(window.doc(db, 'employees', String(id)), newEmp);
