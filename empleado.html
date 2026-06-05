@@ -25,7 +25,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 
 /* ══ HEADER ══ */
 .app-header{background:var(--surf);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:center;height:56px;flex-shrink:0;position:relative;}
-.brand-name{font-family:'Outfit',sans-serif;font-weight:800;font-size:18px;background:linear-gradient(135deg,#fff,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.brand-name{font-family:'Outfit',sans-serif;font-weight:800;font-size:18px;background:linear-gradient(135deg,var(--text),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
 .btn-logout{position:absolute;right:15px;background:none;border:none;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;}
 
 /* ══ VISTAS ══ */
@@ -54,8 +54,8 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .req-item{background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:12px;}
 .req-date{font-size:13px;font-weight:700;}
 .req-note{font-size:13px;color:var(--muted);margin-top:4px;}
-.req-status{font-size:10px;font-weight:700;text-transform:uppercase;padding:3px 8px;border-radius:5px;background:rgba(255,255,255,.05);color:var(--muted);display:inline-block;margin-top:8px;}
-.req-status.pend{background:rgba(251,191,36,.15);color:#fbbf24;}
+.req-status{font-size:10px;font-weight:700;text-transform:uppercase;padding:3px 8px;border-radius:5px;background:var(--border-2);color:var(--muted);display:inline-block;margin-top:8px;}
+.req-status.pend{background:rgba(251,191,36,.15);color:#d97706;}
 
 /* ══ BOTTOM NAV ══ */
 .bottom-nav{background:var(--surf);border-top:1px solid var(--border);display:flex;height:60px;flex-shrink:0;}
@@ -75,7 +75,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 
 <div id="updateAlert" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.85); z-index:9999; backdrop-filter:blur(8px); flex-direction:column; align-items:center; justify-content:center; padding:20px; text-align:center;">
   <div style="font-size:50px; margin-bottom:20px;">⚠️</div>
-  <div style="color:#fff; font-family:'Outfit'; font-size:24px; font-weight:700; margin-bottom:10px;">¡Horario Actualizado!</div>
+  <div style="color:var(--text); font-family:'Outfit'; font-size:24px; font-weight:700; margin-bottom:10px;">¡Horario Actualizado!</div>
   <div style="color:var(--muted); font-size:15px; margin-bottom:30px; line-height:1.4;">Se ha publicado una nueva programación o se ha modificado tu horario. Por favor, revisa tus turnos.</div>
   <button class="btn" style="background:var(--accent); color:#000; width:100%; max-width:300px;" onclick="dismissUpdateAlert()">Entendido</button>
 </div>
@@ -175,20 +175,20 @@ const auth = getAuth(app);
 
 /* ══ DATA ══ */
 const SHIFTS = {
-  C1:{ label:'Cocina', time:'4:00am – 12:00pm', color:'#fb923c', bg:'rgba(251,146,60,.18)', bd:'rgba(251,146,60,.32)' },
-  C2:{ label:'Cocina', time:'5:00am – 1:00pm',  color:'#fbbf24', bg:'rgba(251,191,36,.18)', bd:'rgba(251,191,36,.32)' },
-  C3:{ label:'Cocina', time:'6:00am – 2:00pm',  color:'#84cc16', bg:'rgba(132,204,22,.16)', bd:'rgba(132,204,22,.28)' },
-  D1:{ label:'Centro', time:'4:30am – 12:30pm', color:'#38bdf8', bg:'rgba(56,189,248,.18)', bd:'rgba(56,189,248,.32)' },
-  D2:{ label:'Centro', time:'10:00am – 6:00pm', color:'#818cf8', bg:'rgba(129,140,248,.18)', bd:'rgba(129,140,248,.3)' },
-  A1:{ label:'Centro', time:'5:00am – 1:00pm',  color:'#34d399', bg:'rgba(52,211,153,.16)', bd:'rgba(52,211,153,.26)' },
-  E1:{ label:'General', time:'5:30am – 1:30pm', color:'#60a5fa', bg:'rgba(96,165,250,.15)', bd:'rgba(96,165,250,.3)' },
-  L: { label:'Libre', time:'Día Libre',     color:'#3d5070', bg:'rgba(255,255,255,.03)', bd:'rgba(255,255,255,.07)' },
-  V: { label:'Vacaciones', time:'Todo el día',color:'#10b981', bg:'rgba(16,185,129,.13)', bd:'rgba(16,185,129,.22)' },
-  LR:{ label:'Licencia', time:'Regular',    color:'#e879f9', bg:'rgba(232,121,249,.13)', bd:'rgba(232,121,249,.25)' },
-  FSE:{label:'Fondo', time:'Todo el día',   color:'#f59e0b', bg:'rgba(245,158,11,.14)', bd:'rgba(245,158,11,.27)' },
-  PER:{label:'Permiso', time:'Aprobado',    color:'#a78bfa', bg:'rgba(167,139,250,.13)', bd:'rgba(167,139,250,.22)' },
-  F: { label:'Feriado', time:'Todo el día', color:'#ef4444', bg:'rgba(239,68,68,.13)', bd:'rgba(239,68,68,.25)' },
-  ENF:{ label:'Enfermedad', time:'Todo el día', color:'#fb7185', bg:'rgba(251,113,133,.13)', bd:'rgba(251,113,133,.25)' }
+  C1:{ label:'Cocina', time:'4:00am – 12:00pm', color:'#ea580c', bg:'rgba(234,88,12,.1)', bd:'rgba(234,88,12,.3)' },
+  C2:{ label:'Cocina', time:'5:00am – 1:00pm',  color:'#d97706', bg:'rgba(217,119,6,.1)', bd:'rgba(217,119,6,.3)' },
+  C3:{ label:'Cocina', time:'6:00am – 2:00pm',  color:'#65a30d', bg:'rgba(101,163,13,.1)', bd:'rgba(101,163,13,.3)' },
+  D1:{ label:'Centro', time:'4:30am – 12:30pm', color:'#0284c7', bg:'rgba(2,132,199,.1)', bd:'rgba(2,132,199,.3)' },
+  D2:{ label:'Centro', time:'10:00am – 6:00pm', color:'#4f46e5', bg:'rgba(79,70,229,.1)', bd:'rgba(79,70,229,.3)' },
+  A1:{ label:'Centro', time:'5:00am – 1:00pm',  color:'#059669', bg:'rgba(5,150,105,.1)', bd:'rgba(5,150,105,.3)' },
+  E1:{ label:'General', time:'5:30am – 1:30pm', color:'#2563eb', bg:'rgba(37,99,235,.1)', bd:'rgba(37,99,235,.3)' },
+  L: { label:'Libre', time:'Día Libre',     color:'#475569', bg:'rgba(71,85,105,.05)', bd:'rgba(71,85,105,.2)' },
+  V: { label:'Vacaciones', time:'Todo el día',color:'#059669', bg:'rgba(5,150,105,.1)', bd:'rgba(5,150,105,.3)' },
+  LR:{ label:'Licencia', time:'Regular',    color:'#c026d3', bg:'rgba(192,38,211,.1)', bd:'rgba(192,38,211,.3)' },
+  FSE:{label:'Fondo', time:'Todo el día',   color:'#d97706', bg:'rgba(217,119,6,.1)', bd:'rgba(217,119,6,.3)' },
+  PER:{label:'Permiso', time:'Aprobado',    color:'#7c3aed', bg:'rgba(124,58,237,.1)', bd:'rgba(124,58,237,.3)' },
+  F: { label:'Feriado', time:'Todo el día', color:'#dc2626', bg:'rgba(220,38,38,.1)', bd:'rgba(220,38,38,.3)' },
+  ENF:{ label:'Enfermedad', time:'Todo el día', color:'#e11d48', bg:'rgba(225,29,72,.1)', bd:'rgba(225,29,72,.3)' }
 };
 
 window.EMP_NAMES = {};
@@ -375,7 +375,7 @@ window.renderSchedule = function renderSchedule(){
     const dt = new Date(d.date+'T12:00:00');
     const dayName = DAYS_ES[dt.getDay()];
     const dateFmt = `${dt.getDate()} ${MONTHS_ES[dt.getMonth()]}`;
-    const sh = SHIFTS[d.sid] || { label:d.sid, time:'', bg:'rgba(255,255,255,.05)', bd:'rgba(255,255,255,.1)', color:'#fff' };
+    const sh = SHIFTS[d.sid] || { label:d.sid, time:'', bg:'var(--surf-2)', bd:'var(--border)', color:'var(--text)' };
     
     const isToday = d.date === todayStr;
     const highlightStyles = isToday ? 'border: 1.5px solid var(--accent); background: rgba(0,254,178,0.06); box-shadow: 0 4px 15px rgba(0,254,178,0.15);' : '';
