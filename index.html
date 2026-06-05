@@ -1536,7 +1536,7 @@ function buildEmpRow(eid,dates,cfg){
   const nc=el('div','cell-name');
   nc.innerHTML=`<div class="emp-av" style="background:${emp.avColor}">${emp.av}</div>
     <div class="cell-name-info"><div class="emp-n" title="${emp.name}">${emp.name}</div>
-    <div class="emp-r" style="background:${emp.tagBg};color:${emp.tagColor}">${emp.role}</div>
+    <div class="emp-r" style="background:transparent;color:${emp.role === 'Asistente' ? '#059669' : (emp.area === 'cocina' ? '#ea580c' : (emp.area === 'flex' ? '#7c3aed' : '#0284c7'))}">${emp.role}</div>
     ${emp.lockNote?`<div class="emp-lk">${emp.lockNote}</div>`:''}</div>`;
   row.appendChild(nc);
   dates.forEach(d=>{
