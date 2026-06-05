@@ -8,32 +8,32 @@
 <style>
 /* ══════════════ TOKENS ══════════════ */
 :root {
-  --bg:      #070c17;
-  --surf:    #0e1625;
-  --surf-2:  #152030;
-  --surf-3:  #1c2d42;
-  --border:  rgba(255,255,255,.08);
-  --border-2:rgba(255,255,255,.04);
-  --text:    #ddeaff;
-  --muted:   #5a7499;
-  --dim:     #253548;
+  --bg:      #f3f4f6;
+  --surf:    #ffffff;
+  --surf-2:  #f9fafb;
+  --surf-3:  #f3f4f6;
+  --border:  rgba(0,0,0,.1);
+  --border-2:rgba(0,0,0,.05);
+  --text:    #111827;
+  --muted:   #6b7280;
+  --dim:     #e5e7eb;
 
-  --c1-c:#fb923c; --c1-bg:rgba(251,146,60,.18);  --c1-bd:rgba(251,146,60,.32);
-  --c2-c:#fbbf24; --c2-bg:rgba(251,191,36,.18);  --c2-bd:rgba(251,191,36,.32);
-  --c3-c:#84cc16; --c3-bg:rgba(132,204,22,.16);  --c3-bd:rgba(132,204,22,.28);
-  --d1-c:#38bdf8; --d1-bg:rgba(56,189,248,.18);  --d1-bd:rgba(56,189,248,.32);
-  --d2-c:#818cf8; --d2-bg:rgba(129,140,248,.18); --d2-bd:rgba(129,140,248,.3);
-  --a1-c:#34d399; --a1-bg:rgba(52,211,153,.16);  --a1-bd:rgba(52,211,153,.26);
+  --c1-c:#ea580c; --c1-bg:rgba(234,88,12,.1);  --c1-bd:rgba(234,88,12,.3);
+  --c2-c:#d97706; --c2-bg:rgba(217,119,6,.1);  --c2-bd:rgba(217,119,6,.3);
+  --c3-c:#65a30d; --c3-bg:rgba(101,163,13,.1); --c3-bd:rgba(101,163,13,.3);
+  --d1-c:#0284c7; --d1-bg:rgba(2,132,199,.1);  --d1-bd:rgba(2,132,199,.3);
+  --d2-c:#4f46e5; --d2-bg:rgba(79,70,229,.1);  --d2-bd:rgba(79,70,229,.3);
+  --a1-c:#059669; --a1-bg:rgba(5,150,105,.1);  --a1-bd:rgba(5,150,105,.3);
 
   /* Ausencias */
-  --l-c:#3d5070;  --l-bg:rgba(255,255,255,.03);  --l-bd:rgba(255,255,255,.07);
-  --v-c:#10b981;  --v-bg:rgba(16,185,129,.13);   --v-bd:rgba(16,185,129,.22);
-  --lr-c:#e879f9; --lr-bg:rgba(232,121,249,.13); --lr-bd:rgba(232,121,249,.25);
-  --fse-c:#f59e0b;--fse-bg:rgba(245,158,11,.14); --fse-bd:rgba(245,158,11,.27);
-  --per-c:#a78bfa;--per-bg:rgba(167,139,250,.13);--per-bd:rgba(167,139,250,.22);
-  --f-c:#ef4444;  --f-bg:rgba(239,68,68,.13);    --f-bd:rgba(239,68,68,.25);
+  --l-c:#475569;  --l-bg:rgba(71,85,105,.05);  --l-bd:rgba(71,85,105,.2);
+  --v-c:#059669;  --v-bg:rgba(5,150,105,.1);   --v-bd:rgba(5,150,105,.3);
+  --lr-c:#c026d3; --lr-bg:rgba(192,38,211,.1); --lr-bd:rgba(192,38,211,.3);
+  --fse-c:#d97706;--fse-bg:rgba(217,119,6,.1);  --fse-bd:rgba(217,119,6,.3);
+  --per-c:#7c3aed;--per-bg:rgba(124,58,237,.1); --per-bd:rgba(124,58,237,.3);
+  --f-c:#dc2626;  --f-bg:rgba(220,38,38,.1);    --f-bd:rgba(220,38,38,.3);
 
-  --royal:#3b5bff; --royal-glow:rgba(59,91,255,.3); --accent:#00feb2;
+  --royal:#2563eb; --royal-glow:rgba(37,99,235,.2); --accent:#10b981;
 }
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -71,7 +71,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .date-range{display:flex;align-items:center;gap:7px;background:var(--surf-3);border:1px solid var(--border);border-radius:10px;padding:5px 12px;flex-shrink:0;}
 .dr-lbl{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);white-space:nowrap}
 .dr-sep{color:var(--muted);font-size:13px}
-.date-input{background:transparent;border:none;outline:none;color:var(--text);font-size:12px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;color-scheme:dark;}
+.date-input{background:transparent;border:none;outline:none;color:var(--text);font-size:12px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;color-scheme:light;}
 .date-input::-webkit-calendar-picker-indicator{filter:invert(.6);cursor:pointer;opacity:.7}
 .dr-days{font-size:10px;color:var(--muted);font-weight:500;background:rgba(255,255,255,.06);border-radius:5px;padding:2px 6px;white-space:nowrap}
 .h-controls-right{margin-left:auto;display:flex;gap:6px;}
@@ -222,7 +222,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .rep-table tr:hover td{background:rgba(255,255,255,.015);}
 .frm-row{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;}
 .frm-lbl{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
-.frm-select,.frm-input{background:var(--surf-2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 10px;font-family:'Inter',sans-serif;font-size:13px;outline:none;width:100%;color-scheme:dark;}
+.frm-select,.frm-input{background:var(--surf-2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 10px;font-family:'Inter',sans-serif;font-size:13px;outline:none;width:100%;color-scheme:light;}
 .frm-select:focus,.frm-input:focus{border-color:var(--royal);}
 
 .req-list{display:flex;flex-direction:column;gap:10px;}
