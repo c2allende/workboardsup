@@ -348,10 +348,14 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 </div>
 
 <!-- ════════ VISTA 3: GESTIÓN ════════ -->
-<div id="viewGestion" class="view-section" style="padding:24px;">
-  <div style="display:flex; flex-direction:row; flex-wrap:wrap; gap:24px; align-items:flex-start;">
+<div id="viewGestion" class="view-section" style="padding:32px; max-width:1400px; margin:0 auto; width:100%;">
+  <div style="margin-bottom: 24px;">
+    <h2 style="font-family:'Outfit', sans-serif; font-weight:800; font-size:24px; color:var(--text); margin-bottom:8px;">Gestión de Personal y Sistema</h2>
+    <p style="color:var(--muted); font-size:14px;">Administra configuraciones, vacaciones, peticiones y cuentas de acceso de forma centralizada.</p>
+  </div>
+  <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap:24px; align-items:start;">
 
-  <div class="box-panel" style="flex:1 1 100%;">
+  <div class="box-panel">
     <div class="box-hdr">Programa oficial de turnos</div>
     <p style="font-size:12px;color:var(--muted);margin-bottom:15px;line-height:1.4;">
       Carga los turnos asignados del programa oficial desde el 31 de mayo de 2026 hasta el 4 de julio de 2026. Esto actualiza empleados y turnos existentes para ese periodo.
@@ -363,7 +367,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
   </div>
 
   <!-- Panel de Reglas del Motor -->
-  <div class="box-panel" style="flex:1 1 100%; border-color: var(--royal);">
+  <div class="box-panel" style="border-color: var(--royal);">
     <div class="box-hdr" style="color:var(--royal);">Configuración de Reglas (Motor Automático)</div>
     <div class="frm-row">
       <label class="frm-lbl">Seleccionar Empleado</label>
@@ -428,7 +432,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
   </div>
   
   <!-- Columna 1: Vacaciones -->
-  <div class="box-panel" style="flex:1;">
+  <div class="box-panel">
     <div class="box-hdr">Asignación de Vacaciones / Ausencias</div>
     <p style="font-size:12px;color:var(--muted);margin-bottom:15px;line-height:1.4;">
       Selecciona un rango de fechas para asignar automáticamente el código de ausencia. Este reemplazará cualquier turno existente en esas fechas, pero podrá ser modificado manualmente en el Horario si es necesario.
@@ -462,7 +466,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
   </div>
 
   <!-- Columna 2: Peticiones -->
-  <div class="box-panel" style="flex:1;display:flex;flex-direction:column;max-height:80vh;">
+  <div class="box-panel" style="display:flex;flex-direction:column;max-height:80vh;">
     <div class="box-hdr">Registro de Peticiones</div>
     
     <div style="background:var(--surf-3);padding:15px;border-radius:10px;margin-bottom:20px;border:1px solid var(--border-2);">
@@ -486,7 +490,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
   </div>
 
   <!-- Columna 3: Inscripción de Empleados -->
-  <div class="box-panel" style="flex:1;">
+  <div class="box-panel">
     <div class="box-hdr">Inscripción de Empleado</div>
     <p style="font-size:12px;color:var(--muted);margin-bottom:15px;line-height:1.4;">
       Crea un nuevo empleado. Se asignará una cuenta de acceso automáticamente para la App Móvil.
@@ -529,7 +533,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
   </div>
   
   <!-- Columna 4: Inscripción de Supervisora -->
-  <div class="box-panel" style="flex:1; min-width:300px;">
+  <div class="box-panel">
     <div class="box-hdr">Inscripción de Supervisora (Solo Lectura)</div>
     <p style="font-size:12px;color:var(--muted);margin-bottom:15px;line-height:1.4;">
       Registra una cuenta de Solo Lectura. Solo podrá ver la programación.
@@ -546,7 +550,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
   </div>
 
   <!-- Columna 5: Inscripción de Secretaria -->
-  <div class="box-panel" style="flex:1; min-width:300px; margin-top:24px;">
+  <div class="box-panel">
     <div class="box-hdr">Inscripción de Secretaria (Edición)</div>
     <p style="font-size:12px;color:var(--muted);margin-bottom:15px;line-height:1.4;">
       Registra una cuenta para Secretaria. Podrá editar y publicar el horario, pero no verá reportes ni gestión.
@@ -563,7 +567,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
   </div>
 
   <!-- Columna 6: Inicialización de Usuarios -->
-  <div class="box-panel" style="flex:1; min-width:300px; margin-top:24px;">
+  <div class="box-panel">
     <div class="box-hdr">Inicialización de Usuarios</div>
     <p style="font-size:12px;color:var(--muted);margin-bottom:15px;line-height:1.4;">
       Registra masivamente los usuarios del archivo <b>usuarios.md</b> en el sistema de autenticación. Utilizar solo una vez.
