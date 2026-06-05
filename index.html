@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>WorkBoard — Programación</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
 /* ══════════════ TOKENS ══════════════ */
 :root {
@@ -340,6 +341,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
         <input type="date" id="repDateTo" class="frm-input">
       </div>
       <button class="btn btn-accent" onclick="generateReport()" style="height:36px;padding:0 20px;">Generar Reporte</button>
+      <button class="btn" onclick="downloadReportPDF()" id="btnDownloadPDF" style="height:36px;padding:0 20px;display:none;background:var(--royal);color:#fff;border:none;">Descargar PDF</button>
     </div>
     <div id="reportResult">
       <div style="color:var(--muted);text-align:center;padding:40px;font-size:12px;">Selecciona el periodo y presiona "Generar Reporte"</div>
@@ -917,8 +919,16 @@ window.generateReport = function(){
   let c = new Date(f);
   while(c<=t) { rDates.push(ds(c)); c.setDate(c.getDate()+1); }
   
-  let html = `<table class="rep-table"><thead><tr>
-    <th>Empleado</th><th>Total Trabajado</th><th>C1</th><th>D1</th><th>C2/A1</th><th>E1</th><th>C3</th><th>D2</th>
+  let html = `<table class="rep-table" style="width:100%; border-collapse:collapse; font-size:12px;"><thead>
+    <tr style="background:var(--surf-2); text-align:left;">
+    <th style="padding:10px;">Empleado</th>
+    <th style="padding:10px;">Total Trabajado</th>
+    <th style="padding:10px;">C1<br><span style="font-weight:normal;font-size:10px;color:var(--muted)">(4am-12pm)</span></th>
+    <th style="padding:10px;">D1<br><span style="font-weight:normal;font-size:10px;color:var(--muted)">(4:30am-12:30pm)</span></th>
+    <th style="padding:10px;">C2/A1<br><span style="font-weight:normal;font-size:10px;color:var(--muted)">(5am-1pm)</span></th>
+    <th style="padding:10px;">E1<br><span style="font-weight:normal;font-size:10px;color:var(--muted)">(5:30am-1:30pm)</span></th>
+    <th style="padding:10px;">C3<br><span style="font-weight:normal;font-size:10px;color:var(--muted)">(6am-2pm)</span></th>
+    <th style="padding:10px;">D2<br><span style="font-weight:normal;font-size:10px;color:var(--muted)">(10am-6pm)</span></th>
   </tr></thead><tbody>`;
   
   window.EMPLOYEES.forEach(emp => {
@@ -933,14 +943,29 @@ window.generateReport = function(){
       if(sid==='C3') c3++;
       if(sid==='D2') d2++;
     });
-    html += `<tr>
-      <td><div style="font-weight:600;color:var(--text);">${emp.name}</div><div style="font-size:10px;color:var(--muted)">${emp.role}</div></td>
-      <td style="font-size:14px;"><b>${tot}</b></td>
-      <td>${c1}</td><td>${d1}</td><td>${c2a1}</td><td>${e1}</td><td>${c3}</td><td>${d2}</td>
+    html += `<tr style="border-bottom:1px solid var(--border);">
+      <td style="padding:10px;"><div style="font-weight:600;color:var(--text);">${emp.name}</div><div style="font-size:10px;color:var(--muted)">${emp.role}</div></td>
+      <td style="font-size:14px;padding:10px;"><b>${tot}</b></td>
+      <td style="padding:10px;">${c1}</td><td style="padding:10px;">${d1}</td><td style="padding:10px;">${c2a1}</td><td style="padding:10px;">${e1}</td><td style="padding:10px;">${c3}</td><td style="padding:10px;">${d2}</td>
     </tr>`;
   });
   html += `</tbody></table>`;
   document.getElementById('reportResult').innerHTML = html;
+  document.getElementById('btnDownloadPDF').style.display = 'block';
+}
+
+window.downloadReportPDF = function() {
+  const element = document.getElementById('reportResult');
+  const from = document.getElementById('repDateFrom').value;
+  const to = document.getElementById('repDateTo').value;
+  const opt = {
+    margin:       0.5,
+    filename:     `Reporte_Workboard_${from}_al_${to}.pdf`,
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2 },
+    jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' }
+  };
+  html2pdf().set(opt).from(element).save();
 }
 
 /* ══════════════════════════════════════════════════════
