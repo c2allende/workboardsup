@@ -185,22 +185,22 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .pop-hdr{padding:12px 14px 9px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .p-name{font-size:13px;font-weight:700}
 .p-day{font-size:10px;color:var(--muted);margin-top:2px}
-.pop-x{width:20px;height:20px;border-radius:5px;background:rgba(255,255,255,.08);border:none;display:grid;place-items:center;cursor:pointer;color:var(--muted);font-size:12px}
-.pop-x:hover{background:rgba(255,255,255,.15);color:var(--text)}
+.pop-x{width:20px;height:20px;border-radius:5px;background:var(--border-2);border:none;display:grid;place-items:center;cursor:pointer;color:var(--muted);font-size:12px}
+.pop-x:hover{background:var(--border);color:var(--text)}
 .pop-body{padding:9px 11px 11px;display:flex;flex-direction:column;gap:2px;overflow-y:auto;max-height:70vh;}
 .pop-sec{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:5px 3px 3px}
 .pop-sep{height:1px;background:var(--border);margin:3px 0}
 .pop-opt{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:8px;cursor:pointer;transition:background .12s;border:1px solid transparent}
-.pop-opt:hover{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.08)}
+.pop-opt:hover{background:var(--border-2);border-color:var(--border)}
 .pop-opt.current{background:rgba(59,91,255,.12);border-color:rgba(59,91,255,.35)}
 .pop-badge{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;font-size:10.5px;font-weight:700;flex-shrink:0;letter-spacing:.01em}
 .p-lbl{font-size:12px;font-weight:600}
 .p-time{font-size:10px;color:var(--muted)}
 .pop-delete{display:flex;align-items:center;gap:7px;padding:7px 9px;border-radius:7px;cursor:pointer;background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.14);color:#f87171;font-size:11px;font-weight:600;transition:all .15s;margin-bottom:3px;}
 .pop-delete:hover{background:rgba(248,113,113,.15);border-color:rgba(248,113,113,.3)}
-.pop-create-toggle{display:flex;align-items:center;gap:6px;padding:7px 9px;border-radius:7px;cursor:pointer;border:1.5px dashed rgba(255,255,255,.1);color:var(--muted);font-size:11px;font-weight:600;transition:all .15s;background:transparent;width:100%;font-family:'Inter',sans-serif;margin-top:2px;}
-.pop-create-toggle:hover{border-color:rgba(59,91,255,.4);color:#818cf8;background:rgba(59,91,255,.05)}
-.pop-create-form{display:none;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:9px;padding:10px;margin-top:5px;}
+.pop-create-toggle{display:flex;align-items:center;gap:6px;padding:7px 9px;border-radius:7px;cursor:pointer;border:1.5px dashed var(--border);color:var(--muted);font-size:11px;font-weight:600;transition:all .15s;background:transparent;width:100%;font-family:'Inter',sans-serif;margin-top:2px;}
+.pop-create-toggle:hover{border-color:var(--text);color:var(--text);background:var(--border-2)}
+.pop-create-form{display:none;background:var(--surf-3);border:1px solid var(--border);border-radius:9px;padding:10px;margin-top:5px;}
 .pop-create-form.open{display:block}
 .create-row{display:flex;gap:5px;margin-bottom:7px}
 .create-code{width:62px;flex-shrink:0;background:var(--surf);border:1px solid var(--border);border-radius:6px;padding:5px 6px;color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;outline:none;text-transform:uppercase;text-align:center;letter-spacing:.04em;}
@@ -209,7 +209,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .color-picker{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;padding:2px 0}
 .color-dot{width:17px;height:17px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .12s;flex-shrink:0}
 .color-dot:hover{transform:scale(1.15)}
-.color-dot.sel{border-color:#fff;transform:scale(1.2);box-shadow:0 0 7px rgba(255,255,255,.4)}
+.color-dot.sel{border-color:var(--text);transform:scale(1.2);box-shadow:0 0 7px rgba(0,0,0,.2)}
 .btn-save-type{width:100%;padding:7px;border-radius:7px;background:var(--royal);color:#fff;border:none;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;}
 .btn-save-type:hover{background:#2a46ee}
 
@@ -217,9 +217,9 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .box-panel{background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:20px;}
 .box-hdr{font-family:'Outfit',sans-serif;font-size:16px;font-weight:700;margin-bottom:15px;color:var(--text);display:flex;align-items:center;justify-content:space-between;}
 .rep-table{width:100%;border-collapse:collapse;font-size:12px;text-align:left;}
-.rep-table th{background:rgba(255,255,255,.03);padding:10px;color:var(--muted);font-weight:600;text-transform:uppercase;font-size:10px;letter-spacing:.05em;border-bottom:1px solid var(--border);}
+.rep-table th{background:var(--surf-3);padding:10px;color:var(--muted);font-weight:600;text-transform:uppercase;font-size:10px;letter-spacing:.05em;border-bottom:1px solid var(--border);}
 .rep-table td{padding:10px;border-bottom:1px solid var(--border-2);}
-.rep-table tr:hover td{background:rgba(255,255,255,.015);}
+.rep-table tr:hover td{background:rgba(0,0,0,.02);}
 .frm-row{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;}
 .frm-lbl{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
 .frm-select,.frm-input{background:var(--surf-2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 10px;font-family:'Inter',sans-serif;font-size:13px;outline:none;width:100%;color-scheme:light;}
@@ -229,13 +229,13 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .req-card{background:var(--surf-2);border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:6px;}
 .req-hdr{font-size:12px;color:var(--muted);}
 .req-hdr b{color:var(--text);font-size:13px;}
-.req-note{font-size:13px;background:rgba(255,255,255,.02);padding:8px;border-radius:6px;color:var(--text);}
-.req-status{font-size:10px;font-weight:700;text-transform:uppercase;padding:3px 8px;border-radius:5px;align-self:flex-start;background:rgba(255,255,255,.05);color:var(--muted);}
+.req-note{font-size:13px;background:var(--surf-3);padding:8px;border-radius:6px;color:var(--text);}
+.req-status{font-size:10px;font-weight:700;text-transform:uppercase;padding:3px 8px;border-radius:5px;align-self:flex-start;background:var(--border-2);color:var(--muted);}
 .req-status.pend{background:rgba(251,191,36,.15);color:#fbbf24;}
 
 /* ══ TOAST ══ */
 .toast-wrap{position:fixed;bottom:16px;right:16px;z-index:400;display:flex;flex-direction:column;gap:5px}
-.toast{background:var(--surf-2);border:1px solid rgba(255,255,255,.12);border-radius:9px;padding:9px 13px;font-size:12px;display:flex;gap:7px;align-items:center;box-shadow:0 8px 24px rgba(0,0,0,.5);animation:tin .2s ease,tout .3s ease 2.7s forwards}
+.toast{background:var(--surf-2);border:1px solid var(--border);border-radius:9px;padding:9px 13px;font-size:12px;display:flex;gap:7px;align-items:center;box-shadow:0 8px 24px rgba(0,0,0,.5);animation:tin .2s ease,tout .3s ease 2.7s forwards}
 @keyframes tin{from{transform:translateX(14px);opacity:0}to{transform:translateX(0);opacity:1}}
 @keyframes tout{to{opacity:0;transform:translateX(10px)}}
 
@@ -246,7 +246,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:3px}
+::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);border-radius:3px}
 
 @media print{
   body{height:auto;overflow:auto}
@@ -465,7 +465,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
   <div class="box-panel" style="flex:1;display:flex;flex-direction:column;max-height:80vh;">
     <div class="box-hdr">Registro de Peticiones</div>
     
-    <div style="background:rgba(255,255,255,.02);padding:15px;border-radius:10px;margin-bottom:20px;border:1px solid var(--border-2);">
+    <div style="background:var(--surf-3);padding:15px;border-radius:10px;margin-bottom:20px;border:1px solid var(--border-2);">
       <div class="frm-row">
         <label class="frm-lbl">Empleado</label>
         <select id="reqEmp" class="frm-select"></select>
@@ -1087,7 +1087,7 @@ window.registerEmployee = async () => {
       av: av,
       avColor: '#334155',
       tag: area === 'cocina' ? 'Cocina' : (area === 'centro' ? 'Centro' : 'Flexible'),
-      tagBg: 'rgba(255,255,255,.05)',
+      tagBg: 'var(--border-2)',
       tagColor: '#94a3b8'
     };
     
@@ -1404,7 +1404,7 @@ window.renderEmpList = function(){
   }
   let html = '';
   window.EMPLOYEES.forEach(e => {
-    html += `<div style="display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,.02);padding:10px;margin-bottom:5px;border-radius:6px;border:1px solid var(--border-2);">
+    html += `<div style="display:flex;justify-content:space-between;align-items:center;background:var(--surf-3);padding:10px;margin-bottom:5px;border-radius:6px;border:1px solid var(--border-2);">
       <div>
         <div style="font-weight:600;font-size:14px;">${e.name} <span style="font-size:12px;color:var(--muted);">(ID: ${e.id})</span></div>
         <div style="font-size:12px;color:var(--muted);">${e.role} · ${e.area === 'cocina' ? 'Cocina' : (e.area === 'centro' ? 'Centro' : 'Flexible')}</div>
@@ -1420,7 +1420,7 @@ function buildGrid(dates){
   const total=window.EMPLOYEES.reduce((a,e)=>a+empDays(e.id,dates),0);
 
   const wrap=el('div','area-section');
-  wrap.innerHTML=`<div class="area-hdr" style="background:rgba(255,255,255,.02)">
+  wrap.innerHTML=`<div class="area-hdr" style="background:var(--surf-3)">
     <div class="area-icon">WB</div>
     <div>
       <div class="area-hdr-name" style="color:var(--text)">Programación · Todos los Empleados</div>
@@ -1478,9 +1478,9 @@ function buildGrid(dates){
   ];
   GROUPS.forEach((grp,gi)=>{
     const dRow=el('div','area-divider');
-    const dLbl=el('div','area-div-label'); dLbl.style.cssText=`color:${grp.color};background:${grp.bg};border-top:${gi>0?'2px solid rgba(255,255,255,.055)':'none'}`; dLbl.textContent=grp.label; dRow.appendChild(dLbl);
-    for(let i=0;i<dates.length;i++){ const c=el('div','area-div-cell'); c.style.cssText=`background:${grp.bg};border-top:${gi>0?'2px solid rgba(255,255,255,.055)':'none'}`; dRow.appendChild(c); }
-    for(let k=0; k<7; k++){ const dt=el('div','area-div-total'); dt.style.cssText=`background:${grp.bg};border-top:${gi>0?'2px solid rgba(255,255,255,.055)':'none'}`; dRow.appendChild(dt); }
+    const dLbl=el('div','area-div-label'); dLbl.style.cssText=`color:${grp.color};background:${grp.bg};border-top:${gi>0?'2px solid rgba(0,0,0,.05)':'none'}`; dLbl.textContent=grp.label; dRow.appendChild(dLbl);
+    for(let i=0;i<dates.length;i++){ const c=el('div','area-div-cell'); c.style.cssText=`background:${grp.bg};border-top:${gi>0?'2px solid rgba(0,0,0,.05)':'none'}`; dRow.appendChild(c); }
+    for(let k=0; k<7; k++){ const dt=el('div','area-div-total'); dt.style.cssText=`background:${grp.bg};border-top:${gi>0?'2px solid rgba(0,0,0,.05)':'none'}`; dRow.appendChild(dt); }
     grid.appendChild(dRow);
     grp.empIds.forEach(eid=>grid.appendChild(buildEmpRow(eid,dates,cfg)));
   });
