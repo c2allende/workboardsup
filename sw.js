@@ -1,4 +1,4 @@
-const CACHE_NAME = 'workboard-cache-v8';
+const CACHE_NAME = 'workboard-cache-v9';
 const urlsToCache = [
   '/',
   '/empleado.html',
@@ -21,36 +21,21 @@ self.addEventListener('install', event => {
 
 self.addEventListener('fetch', event => {
   event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        if (response) {
-          return response; // Return from cache
-        }
-        return fetch(event.request).then(
-          function(response) {
-            // Check if we received a valid response
-            if(!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
-            }
-
-            // IMPORTANT: Clone the response. A response is a stream
-            // and because we want the browser to consume the response
-            // as well as the cache consuming the response, we need
-            // to clone it so we have two streams.
-            var responseToCache = response.clone();
-
-            caches.open(CACHE_NAME)
-              .then(function(cache) {
-                // Don't cache API requests or external resources aggressively unless intended
-                if (event.request.url.startsWith(self.location.origin)) {
-                   cache.put(event.request, responseToCache);
-                }
-              });
-
-            return response;
+    fetch(event.request).then(response => {
+      // Network succeeded: update the cache and return the fresh response
+      if (response && response.status === 200 && response.type === 'basic') {
+        const responseClone = response.clone();
+        caches.open(CACHE_NAME).then(cache => {
+          if (event.request.url.startsWith(self.location.origin)) {
+            cache.put(event.request, responseClone);
           }
-        );
-      })
+        });
+      }
+      return response;
+    }).catch(() => {
+      // Network failed (offline): fallback to cache
+      return caches.match(event.request);
+    })
   );
 });
 
