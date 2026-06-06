@@ -1,4 +1,4 @@
-const CACHE_NAME = 'workboard-cache-v9';
+const CACHE_NAME = 'workboard-cache-v10';
 const urlsToCache = [
   '/',
   '/empleado.html',
