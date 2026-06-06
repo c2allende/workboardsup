@@ -2,7 +2,7 @@
   "name": "Programa de Trabajo de Supervisores CC y CD",
   "short_name": "Turnos Sup",
   "description": "Programación y turnos para el Servicio de Alimentos",
-  "start_url": "/empleado",
+  "start_url": "/TurnosSup",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#00feb2",
