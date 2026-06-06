@@ -481,18 +481,19 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
       </div>
       <div class="frm-row">
         <label class="frm-lbl">Motivo / Horario especial</label>
-        <input type="text" id="reqNote" class="frm-input" list="reqReasonsList" placeholder="Selecciona o escribe el motivo" autocomplete="off">
-        <datalist id="reqReasonsList">
-          <option value="Dia Libre (L)"></option>
-          <option value="Feriado(F)"></option>
-          <option value="Licencia Regular (LR)"></option>
-          <option value="Turno AM Cocina(AM-C)"></option>
-          <option value="Turno AM Centro Distribucion(AM-CD)"></option>
-          <option value="Turno PM Cocina(PM-C)"></option>
-          <option value="Turno PM Centro Distribucion(PM-CD)"></option>
-          <option value="Enfermedad(ENF)"></option>
-          <option value="Tarea Especial(TEsp)"></option>
-        </datalist>
+        <select id="reqNote" class="frm-select" onchange="if(this.value==='other'){ const custom = prompt('Ingresa el nuevo motivo o petición:'); if(custom){ const opt = document.createElement('option'); opt.value=custom; opt.text=custom; this.add(opt); this.value=custom; } else { this.selectedIndex=0; } }">
+          <option value="">-- Selecciona --</option>
+          <option value="Dia Libre (L)">Dia Libre (L)</option>
+          <option value="Feriado(F)">Feriado(F)</option>
+          <option value="Licencia Regular (LR)">Licencia Regular (LR)</option>
+          <option value="Turno AM Cocina(AM-C)">Turno AM Cocina(AM-C)</option>
+          <option value="Turno AM Centro Distribucion(AM-CD)">Turno AM Centro Distribucion(AM-CD)</option>
+          <option value="Turno PM Cocina(PM-C)">Turno PM Cocina(PM-C)</option>
+          <option value="Turno PM Centro Distribucion(PM-CD)">Turno PM Centro Distribucion(PM-CD)</option>
+          <option value="Enfermedad(ENF)">Enfermedad(ENF)</option>
+          <option value="Tarea Especial(TEsp)">Tarea Especial(TEsp)</option>
+          <option value="other">Otro / Añadir nuevo...</option>
+        </select>
       </div>
       <button class="btn btn-ghost" id="btnReqSave" onclick="saveRequest()" style="width:100%;justify-content:center;margin-top:5px;height:36px;">Guardar Petición</button>
     </div>
