@@ -95,7 +95,10 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
     <input type="number" id="empId" class="inp" placeholder="Tu Número de Empleado (Ej. 1, 123456)">
     <input type="password" id="empPass" class="inp" placeholder="Contraseña">
     <button class="btn" id="btnLogin" onclick="login()">Entrar</button>
-    <button class="btn-ghost" onclick="toggleReg()">¿No tienes cuenta? Regístrate aquí</button>
+    <div style="display:flex; flex-direction:column; gap:5px; margin-top:5px;">
+      <button class="btn-ghost" onclick="forgotPassword()">¿Olvidaste tu contraseña?</button>
+      <button class="btn-ghost" onclick="toggleReg()">¿No tienes cuenta? Regístrate aquí</button>
+    </div>
 
     <!-- PWA Install Prompt -->
     <div id="pwaInstallContainer" style="display:none; margin-top:20px; text-align:center; padding:15px; background:rgba(0,254,178,.1); border-radius:12px; border:1px solid var(--accent);">
@@ -109,8 +112,9 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 <div id="viewReg" class="view">
   <div class="login-box">
     <div class="login-hdr" style="color:var(--royal)">Registro</div>
-    <div style="font-size:13px;color:var(--muted);text-align:center;margin-bottom:10px;">Crea tu contraseña</div>
-    <input type="number" id="regId" class="inp" placeholder="Tu Número de Empleado (Ej. 1, 123456)">
+    <div style="font-size:13px;color:var(--muted);text-align:center;margin-bottom:10px;">Crea tu cuenta de acceso</div>
+    <input type="number" id="regId" class="inp" placeholder="Tu Número ID (Ej. 123456)">
+    <input type="email" id="regEmail" class="inp" placeholder="Tu Correo Personal">
     <input type="password" id="regPass" class="inp" placeholder="Crea una contraseña">
     <button class="btn" style="background:var(--royal);color:#fff;" id="btnReg" onclick="register()">Registrarme</button>
     <button class="btn-ghost" onclick="toggleReg()">Volver al Login</button>
@@ -165,7 +169,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, doc, setDoc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
   projectId: "workboard-carmelo",
@@ -200,15 +204,19 @@ const SHIFTS = {
 
 window.EMP_NAMES = {};
 window.EMP_AREAS = {};
+window.EMP_EMAILS = {};
 onSnapshot(collection(db, 'employees'), snap => {
   let names = {};
   let areas = {};
+  let emails = {};
   snap.forEach(d => {
     names[d.id] = d.data().name;
     areas[d.id] = d.data().area;
+    emails[d.id] = d.data().email || `emp${d.id}@workboard.local`;
   });
   window.EMP_NAMES = names;
   window.EMP_AREAS = areas;
+  window.EMP_EMAILS = emails;
   if (currentUserEid && names[currentUserEid]) {
     document.querySelector('.brand-name').textContent = names[currentUserEid];
   }
@@ -235,8 +243,17 @@ window.dismissUpdateAlert = () => {
 
 /* ══ AUTH ══ */
 onAuthStateChanged(auth, user => {
-  if(user && user.email.startsWith('emp') && user.email.endsWith('@workboard.local')) {
-    currentUserEid = parseInt(user.email.replace('emp','').replace('@workboard.local',''));
+  let validUser = false;
+  if(user) {
+    let idStr = Object.keys(window.EMP_EMAILS || {}).find(k => window.EMP_EMAILS[k].toLowerCase() === user.email.toLowerCase());
+    if(idStr) currentUserEid = parseInt(idStr);
+    else if(user.email.startsWith('emp') && user.email.endsWith('@workboard.local')) currentUserEid = parseInt(user.email.replace('emp','').replace('@workboard.local',''));
+    
+    if(currentUserEid) validUser = true;
+    else signOut(auth); // Fallback: cerrar sesión si no se encuentra el ID
+  }
+  
+  if(validUser) {
     document.getElementById('viewLogin').classList.remove('active');
     document.getElementById('viewReg').classList.remove('active');
     document.getElementById('viewHorario').classList.add('active');
@@ -278,25 +295,46 @@ window.login = async () => {
   const pass=document.getElementById('empPass').value;
   if(!id||!pass) return toast('Completa los campos');
   if(!window.EMP_NAMES[id]) return toast('Número de empleado inválido');
+  const email = window.EMP_EMAILS[id] || `emp${id}@workboard.local`;
   const btn=document.getElementById('btnLogin'); btn.textContent='...';
   try{
-    await signInWithEmailAndPassword(auth, `emp${id}@workboard.local`, pass);
+    await signInWithEmailAndPassword(auth, email, pass);
   } catch(e) { toast('Credenciales incorrectas'); }
   btn.textContent='Entrar';
 }
 
 window.register = async () => {
   const id=document.getElementById('regId').value;
+  const email=document.getElementById('regEmail').value;
   const pass=document.getElementById('regPass').value;
-  if(!id||!pass) return toast('Completa los campos');
+  if(!id||!pass||!email) return toast('Completa todos los campos');
   if(!window.EMP_NAMES[id]) return toast('Número de empleado inválido');
   if(pass.length<6) return toast('Mínimo 6 caracteres');
   const btn=document.getElementById('btnReg'); btn.textContent='...';
   try{
-    await createUserWithEmailAndPassword(auth, `emp${id}@workboard.local`, pass);
+    await createUserWithEmailAndPassword(auth, email, pass);
+    await setDoc(doc(db, 'employees', String(id)), { email: email.toLowerCase() }, { merge: true });
     toast('¡Registro exitoso!');
-  } catch(e) { toast('El empleado ya está registrado o hay un error'); }
+  } catch(e) { toast('El empleado/correo ya está registrado o hay un error'); }
   btn.textContent='Registrarme';
+}
+
+window.forgotPassword = async () => {
+  const id = prompt("Ingresa tu Número de Empleado para recuperar la contraseña:");
+  if(!id) return;
+  if(!window.EMP_NAMES[id]) return toast('Número de empleado inválido');
+  
+  const email = window.EMP_EMAILS[id];
+  if(!email || email.includes('@workboard.local')) {
+    return toast('No tienes un correo personal registrado. Contacta al administrador.');
+  }
+  
+  try {
+    await sendPasswordResetEmail(auth, email);
+    toast('Se ha enviado un enlace a tu correo para restablecer la contraseña.');
+  } catch(e) {
+    toast('Ocurrió un error al enviar el correo.');
+  }
 }
 
 window.logout = () => signOut(auth);
