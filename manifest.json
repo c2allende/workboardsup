@@ -1,6 +1,6 @@
 {
-  "name": "WorkBoard Empleado",
-  "short_name": "WorkBoard",
+  "name": "Programa de Trabajo de Supervisores CC y CD",
+  "short_name": "Turnos Sup",
   "description": "Programación y turnos para el Servicio de Alimentos",
   "start_url": "/empleado",
   "display": "standalone",
