@@ -2,6 +2,7 @@ const CACHE_NAME = 'workboard-cache-v11';
 
 const APP_ASSETS = [
   '/',
+  '/empleado',
   '/empleado.html',
   '/programa-oficial-jun-2026.js',
   '/manifest.json',
@@ -44,7 +45,7 @@ self.addEventListener('fetch', event => {
           caches.open(CACHE_NAME).then(cache => cache.put('/', copy));
           return response;
         })
-        .catch(() => caches.match('/') || caches.match('/empleado.html'))
+        .catch(() => caches.match('/') || caches.match('/empleado') || caches.match('/empleado.html'))
     );
     return;
   }
