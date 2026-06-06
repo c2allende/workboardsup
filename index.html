@@ -435,7 +435,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
   
   <!-- Columna 1: Vacaciones -->
   <div class="box-panel">
-    <div class="box-hdr">Asignación de Vacaciones / Ausencias</div>
+    <div class="box-hdr">Asignación de Vacaciones / Licencia Programada</div>
     <p style="font-size:12px;color:var(--muted);margin-bottom:15px;line-height:1.4;">
       Selecciona un rango de fechas para asignar automáticamente el código de ausencia. Este reemplazará cualquier turno existente en esas fechas, pero podrá ser modificado manualmente en el Horario si es necesario.
     </p>
@@ -455,13 +455,12 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
     </div>
     <div class="frm-row">
       <label class="frm-lbl">Código de Ausencia</label>
-      <select id="vacType" class="frm-select">
-        <option value="V">V - Vacaciones</option>
-        <option value="L">L - Libre</option>
-        <option value="LR">LR - Licencia Regular</option>
-        <option value="FSE">FSE - Fondo</option>
-        <option value="PER">PER - Permiso</option>
-        <option value="F">F - Feriado</option>
+      <select id="vacType" class="frm-select" onchange="if(this.value==='other'){ const custom = prompt('Ingresa la nueva licencia/código:'); if(custom){ const opt = document.createElement('option'); opt.value=custom; opt.text=custom; this.add(opt); this.value=custom; } else { this.selectedIndex=0; } }">
+        <option value="Vac">Vacaciones(Vac)</option>
+        <option value="EnfCC">Enfermedad con Certificado (EnfCC)</option>
+        <option value="FSE">Fondo(FSE)</option>
+        <option value="LR">Licencia Regular(LR)</option>
+        <option value="other">Otro / Añadir nueva...</option>
       </select>
     </div>
     <button class="btn btn-accent" id="btnVacSave" onclick="assignVacations()" style="width:100%;justify-content:center;margin-top:5px;height:36px;">Asignar en Horario</button>
@@ -482,7 +481,18 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
       </div>
       <div class="frm-row">
         <label class="frm-lbl">Motivo / Horario especial</label>
-        <input type="text" id="reqNote" class="frm-input" placeholder="Ej. Cita médica en la mañana">
+        <input type="text" id="reqNote" class="frm-input" list="reqReasonsList" placeholder="Selecciona o escribe el motivo" autocomplete="off">
+        <datalist id="reqReasonsList">
+          <option value="Dia Libre (L)"></option>
+          <option value="Feriado(F)"></option>
+          <option value="Licencia Regular (LR)"></option>
+          <option value="Turno AM Cocina(AM-C)"></option>
+          <option value="Turno AM Centro Distribucion(AM-CD)"></option>
+          <option value="Turno PM Cocina(PM-C)"></option>
+          <option value="Turno PM Centro Distribucion(PM-CD)"></option>
+          <option value="Enfermedad(ENF)"></option>
+          <option value="Tarea Especial(TEsp)"></option>
+        </datalist>
       </div>
       <button class="btn btn-ghost" id="btnReqSave" onclick="saveRequest()" style="width:100%;justify-content:center;margin-top:5px;height:36px;">Guardar Petición</button>
     </div>
@@ -772,6 +782,7 @@ window.listenEmployees = () => {
     emps.sort((a,b)=>a.id - b.id);
     window.EMPLOYEES = emps;
     if (window.updateRuleEmpSelect) window.updateRuleEmpSelect();
+    if (typeof initGestionForms === 'function') initGestionForms();
     window.render();
   });
 };
