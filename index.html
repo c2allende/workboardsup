@@ -427,8 +427,9 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
         </div>
       </div>
       
-      <div>
+      <div style="display:flex; gap:10px;">
         <button class="btn btn-accent" style="background:var(--royal); color:#fff; width:auto; padding:0 20px;" onclick="window.saveEmployeeRules()">Guardar Reglas</button>
+        <button class="btn btn-ghost" style="color:var(--muted); width:auto; padding:0 20px; border:1px solid var(--border);" onclick="window.deleteEmployeeRules()">Borrar Reglas</button>
       </div>
     </div>
   </div>
@@ -1944,6 +1945,22 @@ window.saveEmployeeRules = async () => {
     window.toast('✅', 'Reglas guardadas');
   } catch(e) {
     window.toast('❌', 'Error al guardar reglas');
+  }
+};
+
+window.deleteEmployeeRules = async () => {
+  if (!window.isAdmin) return window.toast('🔒', 'Solo administradores');
+  const eid = document.getElementById('ruleEmpSelect').value;
+  if (!eid) return;
+  
+  if(!confirm('¿Estás seguro de que deseas borrar todas las reglas automáticas de este empleado?')) return;
+  
+  try {
+    await window.deleteDoc(window.doc(window.db, 'rules', eid));
+    window.toast('🗑️', 'Reglas eliminadas exitosamente');
+    window.loadEmployeeRules(); // Recargar el formulario en blanco
+  } catch(e) {
+    window.toast('❌', 'Error al borrar reglas');
   }
 };
 
