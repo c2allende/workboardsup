@@ -954,7 +954,7 @@ window.listenRequests = () => {
 window.listenEmployees();
 window.listenSchedule();
 window.listenRequests();
-if (window.listenConfig) window.listenConfig();
+if(window.listenConfig) window.listenConfig();
 </script>
 
 <script>
@@ -1172,6 +1172,51 @@ window.saveRequest = async function(){
   btn.textContent='Guardar Petición';
 }
 
+window.deleteReq = async function(id) {
+  if(!window.isAdmin) return window.toast('🔒','Acceso denegado');
+  if(confirm('¿Eliminar petición definitivamente?')) {
+    try {
+      await window.deleteDoc(window.doc(window.db, 'requests', id));
+      window.toast('🗑️','Eliminada');
+    } catch(e) {}
+  }
+}
+
+
+window.importOfficialSchedule = async function(){
+  if(!window.isAdmin) return window.toast('🔒','Acceso denegado');
+  const data = window.PROGRAMA_OFICIAL_JUN_2026;
+  if(!data) return window.toast('❌','No se encontró el programa oficial');
+  const dates = Object.keys(data.schedules || {}).sort();
+  if(!dates.length) return window.toast('❌','El programa oficial no tiene fechas');
+  if(!confirm('Importar programa oficial del 31 de mayo de 2026 al 4 de julio de 2026? Esto reemplazará los turnos de esos empleados en ese periodo.')) return;
+
+  const btn = document.getElementById('btnImportOfficial');
+  const previous = btn?.textContent;
+  if(btn) btn.textContent = 'Importando...';
+
+  try {
+    for (const emp of data.employees) {
+      await window.setDoc(window.doc(window.db, 'employees', String(emp.id)), emp, { merge: true });
+    }
+    for (const dateStr of dates) {
+      await window.setDoc(window.doc(window.db, 'schedules', dateStr), data.schedules[dateStr], { merge: true });
+    }
+    window.notifyScheduleUpdate();
+    dateFrom = data.range.from;
+    dateTo = data.range.to;
+    document.getElementById('dateFrom').value = dateFrom;
+    document.getElementById('dateTo').value = dateTo;
+    window.toast('✅', data.employees.length + ' empleados y ' + dates.length + ' días importados');
+    window.render();
+  } catch(e) {
+    console.error(e);
+    window.toast('❌','Error al importar el programa oficial');
+  } finally {
+    if(btn) btn.textContent = previous || 'Importar programa oficial';
+  }
+}
+
 window.approveReq = async (reqId, isApproved) => {
   if(!window.isAdmin) return window.toast('🔒', 'Solo administradores');
   const req = window.reqsData.find(r => r.id === reqId);
@@ -1200,10 +1245,15 @@ window.approveReq = async (reqId, isApproved) => {
     updateData[req.eid] = code;
   }
   
-  await window.setDoc(schedDocRef, updateData, { merge: true });
-  await window.setDoc(window.doc(window.db, 'requests', reqId), { status: 'Aprobada' }, { merge: true });
-  window.notifyScheduleUpdate();
-  window.toast('✅', 'Petición aprobada y asignada al horario');
+  try {
+    await window.setDoc(schedDocRef, updateData, { merge: true });
+    await window.setDoc(window.doc(window.db, 'requests', reqId), { status: 'Aprobada' }, { merge: true });
+    window.toast('✅', 'Petición aprobada y asignada');
+    window.notifyScheduleUpdate();
+  } catch(e) {
+    console.error(e);
+    window.toast('❌', 'Error al procesar');
+  }
 };
 
 window.toggleRequestsLock = async (locked) => {
@@ -1220,61 +1270,6 @@ window.listenConfig = () => {
       if(el) el.checked = !!data.requestsLocked;
     }
   });
-};t;
-  if(btn) btn.textContent = 'Importando...';
-
-  try {
-    for (const emp of data.employees) {
-      await window.setDoc(window.doc(window.db, 'employees', String(emp.id)), emp, { merge: true });
-    }
-    for (const dateStr of dates) {
-      await window.setDoc(window.doc(window.db, 'schedules', dateStr), data.schedules[dateStr], { merge: true });
-    }
-    window.notifyScheduleUpdate();
-    dateFrom = data.range.from;
-    dateTo = data.range.to;
-    document.getElementById('dateFrom').value = dateFrom;
-    document.getElementById('dateTo').value = dateTo;
-    window.toast('✅', data.employees.length + ' empleados y ' + dates.length + ' días importados');
-    window.render();
-  } catch(e) {
-    console.error(e);
-    window.toast('❌','Error al importar el programa oficial');
-  } finally {
-    if(btn) btn.textContent = previous || 'Importar programa oficial';
-  }
-}
-
-window.approveSwap = async (reqId, isApproved) => {
-  if(!window.isAdmin) return window.toast('🔒', 'Solo administradores');
-  const req = window.reqsData.find(r => r.id === reqId);
-  if(!req) return;
-  
-  if(!isApproved) {
-    await window.setDoc(window.doc(window.db, 'requests', reqId), { status: 'Denegado' }, { merge: true });
-    return window.toast('❌', 'Intercambio denegado');
-  }
-  
-  const dateStr = req.date;
-  const schedDocRef = window.doc(window.db, 'schedules', dateStr);
-  
-  const daySched = window.sched[dateStr] || {};
-  const currentSelfShift = daySched[req.eid] || 'L';
-  const currentTargetShift = daySched[req.targetEid] || 'L';
-  
-  const updateData = {};
-  updateData[req.eid] = currentTargetShift;
-  updateData[req.targetEid] = currentSelfShift;
-  
-  try {
-    await window.setDoc(schedDocRef, updateData, { merge: true });
-    await window.setDoc(window.doc(window.db, 'requests', reqId), { status: 'Aprobado' }, { merge: true });
-    window.toast('✅', 'Intercambio aprobado y aplicado');
-    window.notifyScheduleUpdate();
-  } catch(e) {
-    console.error(e);
-    window.toast('❌', 'Error al procesar');
-  }
 };
 
 window.registerEmployee = async () => {
@@ -2258,7 +2253,6 @@ window.toast = function(icon,msg){
 buildLegend();
 setupDatePicker();
 initGestionForms();
-if (window.listenConfig) window.listenConfig();
 window.render();
 </script>
 </body>
