@@ -882,12 +882,13 @@ window.listenRequests();
 const DAYS_ES   = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
 const MONTHS_ES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 const PALETTE   = ['#e879f9','#f97316','#fbbf24','#84cc16','#34d399','#38bdf8','#818cf8','#f87171','#a78bfa','#60a5fa','#ec4899','#14b8a6'];
-const WORK_IDS  = new Set(['C1','C2','C3','D1','D2','A1','E1']);
+const WORK_IDS  = new Set(['C1','C2','C3','CE','D1','D2','A1','E1']);
 
 const SHIFTS = {
   C1:{ id:'C1', label:'Turno 4am–12pm',       area:'cocina', start:'04:00', end:'12:00', color:'var(--c1-c)', bg:'var(--c1-bg)', bd:'var(--c1-bd)' },
   C2:{ id:'C2', label:'Turno 5am–1pm',        area:'cocina', start:'05:00', end:'13:00', color:'var(--c2-c)', bg:'var(--c2-bg)', bd:'var(--c2-bd)' },
   C3:{ id:'C3', label:'Turno 6am–2pm',        area:'cocina', start:'06:00', end:'14:00', color:'var(--c3-c)', bg:'var(--c3-bg)', bd:'var(--c3-bd)' },
+  CE:{ id:'CE', label:'Turno 4am–2pm',        area:'cocina', start:'04:00', end:'14:00', color:'#dc2626', bg:'rgba(220,38,38,.1)', bd:'rgba(220,38,38,.4)' },
   D1:{ id:'D1', label:'Turno 4:30am–12:30pm', area:'centro', start:'04:30', end:'12:30', color:'var(--d1-c)', bg:'var(--d1-bg)', bd:'var(--d1-bd)' },
   D2:{ id:'D2', label:'Turno 10am–6pm',       area:'centro', start:'10:00', end:'18:00', color:'var(--d2-c)', bg:'var(--d2-bg)', bd:'var(--d2-bd)' },
   A1:{ id:'A1', label:'Asistente 5am–1pm',    area:'centro', start:'05:00', end:'13:00', color:'var(--a1-c)', bg:'var(--a1-bg)', bd:'var(--a1-bd)', locked:true },

@@ -216,6 +216,7 @@ const SHIFTS = {
   C1:{ label:'Cocina', time:'4:00am – 12:00pm', color:'#ea580c', bg:'rgba(234,88,12,.1)', bd:'rgba(234,88,12,.3)' },
   C2:{ label:'Cocina', time:'5:00am – 1:00pm',  color:'#d97706', bg:'rgba(217,119,6,.1)', bd:'rgba(217,119,6,.3)' },
   C3:{ label:'Cocina', time:'6:00am – 2:00pm',  color:'#65a30d', bg:'rgba(101,163,13,.1)', bd:'rgba(101,163,13,.3)' },
+  CE:{ label:'Cocina Ext.', time:'4:00am – 2:00pm', color:'#dc2626', bg:'rgba(220,38,38,.1)', bd:'rgba(220,38,38,.4)' },
   D1:{ label:'Centro', time:'4:30am – 12:30pm', color:'#0284c7', bg:'rgba(2,132,199,.1)', bd:'rgba(2,132,199,.3)' },
   D2:{ label:'Centro', time:'10:00am – 6:00pm', color:'#4f46e5', bg:'rgba(79,70,229,.1)', bd:'rgba(79,70,229,.3)' },
   A1:{ label:'Centro', time:'5:00am – 1:00pm',  color:'#059669', bg:'rgba(5,150,105,.1)', bd:'rgba(5,150,105,.3)' },
@@ -582,7 +583,7 @@ window.renderGlobalSchedule = () => {
     
     let eids = Object.keys(dayData).filter(k => k !== 'note' && dayData[k] !== 'L' && dayData[k] !== 'OFF' && !["V", "LR", "FSE", "PER", "F", "ENF"].includes(dayData[k]));
     
-    const sortOrder = { 'C1': 1, 'C2': 2, 'C3': 3, 'D1': 4, 'A1': 5, 'E1': 6, 'D2': 7 };
+    const sortOrder = { 'C1': 1, 'CE': 2, 'C2': 3, 'C3': 4, 'D1': 5, 'A1': 6, 'E1': 7, 'D2': 8 };
     eids.sort((a,b) => {
       const oA = sortOrder[dayData[a]] || 99;
       const oB = sortOrder[dayData[b]] || 99;
