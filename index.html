@@ -6,6 +6,7 @@
 <title>WorkBoard — Programación</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 <style>
 /* ══════════════ TOKENS ══════════════ */
 :root {
@@ -365,7 +366,8 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
       Carga los turnos asignados del programa oficial desde el 31 de mayo de 2026 hasta el 4 de julio de 2026. Esto actualiza empleados y turnos existentes para ese periodo.
     </p>
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-      <button class="btn btn-accent" id="btnImportOfficial" onclick="importOfficialSchedule()" style="height:36px;padding:0 20px;">Importar programa oficial</button>
+      <label for="excelInput" class="btn btn-accent" id="btnImportOfficial" style="height:36px;padding:0 20px;cursor:pointer;display:inline-flex;align-items:center;">Subir Horario (Excel)</label>
+      <input type="file" id="excelInput" accept=".xlsx, .xls, .xlsm, .csv" style="display:none;" onchange="handleExcelUpload(event)">
       <span style="font-size:12px;color:var(--muted);">9 empleados · 35 días · Cocina Central / Centro de Distribución</span>
     </div>
   </div>
@@ -1185,77 +1187,117 @@ window.deleteReq = async function(id) {
 }
 
 
-window.importOfficialSchedule = async function(){
+window.handleExcelUpload = async function(event) {
   if(!window.isAdmin) return window.toast('🔒','Acceso denegado');
-  const data = window.PROGRAMA_OFICIAL_JUN_2026;
-  if(!data) return window.toast('❌','No se encontró el programa oficial');
-  const dates = Object.keys(data.schedules || {}).sort();
-  if(!dates.length) return window.toast('❌','El programa oficial no tiene fechas');
-  if(!confirm('Importar programa oficial del 31 de mayo de 2026 al 4 de julio de 2026? Esto limpiará los duplicados falsos y asignará los turnos oficiales a tus perfiles actuales.')) return;
+  const file = event.target.files[0];
+  if(!file) return;
+
+  if(!confirm('¿Importar este archivo Excel? Esto asignará los turnos usando el Número de Empleado especificado.')) {
+    event.target.value = ''; // Reset
+    return;
+  }
 
   const btn = document.getElementById('btnImportOfficial');
-  const previous = btn?.textContent;
-  if(btn) btn.textContent = 'Importando...';
+  const previous = btn.textContent;
+  btn.textContent = 'Importando...';
 
   try {
-    // 1. LIMPIEZA: Eliminar los perfiles falsos (1 al 9) generados por error.
-    for (let i = 1; i <= 9; i++) {
-      try { await window.deleteDoc(window.doc(window.db, 'employees', String(i))); } catch(e){}
+    const data = await file.arrayBuffer();
+    const workbook = XLSX.read(data, { type: 'array' });
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const json = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, dateNF: 'YYYY-MM-DD' });
+
+    const monthMap = {
+      'jan': '01', 'feb': '02', 'mar': '03', 'apr': '04', 'may': '05', 'jun': '06',
+      'jul': '07', 'aug': '08', 'sep': '09', 'oct': '10', 'nov': '11', 'dec': '12',
+      'ene': '01', 'abr': '04', 'ago': '08', 'dic': '12'
+    };
+    function parseDate(str) {
+      if(!str) return null;
+      const m = String(str).match(/^(\d{1,2})-([a-zA-Z]{3})-(\d{2})$/);
+      if(m) {
+        const d = m[1].padStart(2, '0');
+        const mon = monthMap[m[2].toLowerCase()] || '01';
+        let y = parseInt(m[3]);
+        y = y < 50 ? 2000 + y : 1900 + y;
+        return `${y}-${mon}-${d}`;
+      }
+      if(String(str).match(/^\d{4}-\d{2}-\d{2}$/)) return String(str);
+      return null;
     }
 
-    // Diccionario de traducción de IDs del archivo a IDs Reales.
-    const idMap = {
-      1: 889961, // Victor
-      2: 889553, // Andres
-      3: 890987, // Ernix
-      4: 889982, // Alvin
-      5: 891945, // Carlos
-      6: 890791, // Lillian
-      7: 890232, // Angel
-      8: 891149, // Carolyn
-      9: 891260  // Sixto
-    };
-
-    // 2. LIMPIEZA Y TRADUCCIÓN de los Turnos.
-    for (const dateStr of dates) {
-      // a) Borrar del documento de la fecha los campos viejos (1 al 9)
-      const updates = {
-        "1": window.deleteField(), "2": window.deleteField(), "3": window.deleteField(),
-        "4": window.deleteField(), "5": window.deleteField(), "6": window.deleteField(),
-        "7": window.deleteField(), "8": window.deleteField(), "9": window.deleteField()
-      };
-      // Insertar las actualizaciones de borrado primero (esto limpia la fecha)
-      await window.setDoc(window.doc(window.db, 'schedules', dateStr), updates, { merge: true });
-
-      // b) Traducir el horario del día y subirlo
-      const oldSchedule = data.schedules[dateStr];
-      const newSchedule = {};
-      for (const oldId in oldSchedule) {
-        const realId = idMap[oldId];
-        if (realId) {
-          newSchedule[String(realId)] = oldSchedule[oldId];
+    let dateRowIndex = -1;
+    let dates = [];
+    for(let i=0; i<json.length; i++) {
+      const row = json[i] || [];
+      const parsed = parseDate(row[1]);
+      if (parsed) {
+        dateRowIndex = i;
+        for(let c=1; c<row.length; c++) {
+           dates[c] = parseDate(row[c]);
         }
+        break;
       }
+    }
+
+    if(dateRowIndex === -1) {
+       event.target.value = '';
+       return window.toast('❌', 'No se encontró la fila de fechas');
+    }
+
+    const schedules = {};
+    for(let c=1; c<dates.length; c++) {
+       if(dates[c]) schedules[dates[c]] = {};
+    }
+
+    for(let i = dateRowIndex + 1; i < json.length - 1; i++) {
+      const row1 = json[i] || [];
+      const row2 = json[i+1] || [];
       
-      // Inyectar el horario con los IDs correctos
-      await window.setDoc(window.doc(window.db, 'schedules', dateStr), newSchedule, { merge: true });
+      const name = String(row1[0] || '').trim();
+      const empIdStr = String(row2[0] || '').trim();
+      
+      if (name && name.length > 3 && !name.match(/^\d+$/) && name !== '***' && name !== 'ALM') {
+         if (empIdStr && empIdStr.match(/^\d+$/)) {
+            const empId = empIdStr;
+            for(let c=1; c<dates.length; c++) {
+               const dateStr = dates[c];
+               let shift = String(row1[c] || '').trim();
+               if(dateStr && shift && shift !== '***' && shift !== 'ALM' && shift !== 'null' && shift !== 'undefined') {
+                  schedules[dateStr][empId] = shift;
+               }
+            }
+         }
+      }
+    }
+
+    let updatedDays = 0;
+    const datesKeys = Object.keys(schedules);
+    for (const dateStr of datesKeys) {
+       const dayData = schedules[dateStr];
+       if (Object.keys(dayData).length > 0) {
+          await window.setDoc(window.doc(window.db, 'schedules', dateStr), dayData, { merge: true });
+          updatedDays++;
+       }
     }
 
     window.notifyScheduleUpdate();
-    dateFrom = data.range.from;
-    dateTo = data.range.to;
-    document.getElementById('dateFrom').value = dateFrom;
-    document.getElementById('dateTo').value = dateTo;
+    window.toast('✅', 'Horario importado: ' + updatedDays + ' días actualizados');
     
-    window.toast('✅', 'Limpieza y traducción completadas. ' + dates.length + ' días actualizados');
+    // Configurar fechas de vista si corresponde
+    if(datesKeys.length > 0) {
+      document.getElementById('dateFrom').value = datesKeys[0];
+      document.getElementById('dateTo').value = datesKeys[datesKeys.length - 1];
+    }
     
-    // Dar un momento a Firebase para sincronizar los cambios de UI
-    setTimeout(() => { window.render(); }, 1500);
+    setTimeout(() => { window.render(); }, 1000);
   } catch(e) {
     console.error(e);
-    window.toast('❌','Error al importar el programa oficial');
+    window.toast('❌','Error al importar el Excel');
   } finally {
-    if(btn) btn.textContent = previous || 'Importar programa oficial';
+    btn.textContent = previous;
+    event.target.value = ''; // Reset input file
   }
 }
 
