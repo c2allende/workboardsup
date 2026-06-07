@@ -555,11 +555,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
         </select>
       </div>
     </div>
-    <div class="frm-row">
-      <label class="frm-lbl">Contraseña de App</label>
-      <input type="password" id="regEmpPass" class="frm-input" placeholder="Mínimo 6 caracteres">
-    </div>
-    <button class="btn btn-accent" id="btnRegSave" onclick="registerEmployee()" style="width:100%;justify-content:center;margin-top:5px;height:36px;">Inscribir Empleado</button>
+    <button class="btn btn-accent" id="btnRegSave" onclick="registerEmployee()" style="width:100%;justify-content:center;margin-top:15px;height:36px;">Inscribir Empleado</button>
     
     <div class="box-hdr" style="font-size:14px;border-top:1px solid var(--border);padding-top:15px;margin-top:15px;">Listado de Empleados</div>
     <div style="flex:1;overflow-y:auto;padding-right:5px;max-height:200px;" id="empList"></div>
@@ -1220,10 +1216,8 @@ window.registerEmployee = async () => {
   const name = document.getElementById('regEmpName').value;
   const area = document.getElementById('regEmpArea').value;
   const role = document.getElementById('regEmpRole').value;
-  const pass = document.getElementById('regEmpPass').value;
   
-  if (!idStr || !name || !pass) return window.toast('⚠️', 'Completa ID, Nombre y Contraseña');
-  if (pass.length < 6) return window.toast('⚠️', 'Contraseña: min 6 caracteres');
+  if (!idStr || !name) return window.toast('⚠️', 'Completa ID y Nombre');
   
   const id = parseInt(idStr);
   if (window.EMPLOYEES.some(e => e.id === id)) return window.toast('⚠️', 'Ese Número ID ya existe');
@@ -1232,9 +1226,6 @@ window.registerEmployee = async () => {
   btn.textContent = 'Guardando...';
   
   try {
-    const email = `emp${id}@workboard.local`;
-    await window.createUserWithEmailAndPassword(window.secondaryAuth, email, pass);
-    
     const av = name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
     const newEmp = {
       id: id,
@@ -1253,7 +1244,6 @@ window.registerEmployee = async () => {
     window.toast('✅', 'Empleado inscrito con éxito');
     document.getElementById('regEmpId').value = '';
     document.getElementById('regEmpName').value = '';
-    document.getElementById('regEmpPass').value = '';
   } catch(e) {
     window.toast('❌', 'Error: ' + e.message);
   }
