@@ -568,21 +568,25 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
     <div style="flex:1;overflow-y:auto;padding-right:5px;max-height:200px;" id="empList"></div>
   </div>
   
-  <!-- Columna 4: Inscripción de Supervisora -->
+  <!-- Columna 4: Inscripción de Dietista Supervisor(a) -->
   <div class="box-panel">
-    <div class="box-hdr">Inscripción de Supervisora (Solo Lectura)</div>
+    <div class="box-hdr">Inscripción de Dietista Supervisor(a) (Solo Lectura)</div>
     <p style="font-size:12px;color:var(--muted);margin-bottom:15px;line-height:1.4;">
       Registra una cuenta de Solo Lectura. Solo podrá ver la programación.
     </p>
     <div class="frm-row">
-      <label class="frm-lbl">Nombre / Identificador</label>
-      <input type="text" id="regSupName" class="frm-input" placeholder="Ej. maria (será sup_maria@workboard.local)">
+      <label class="frm-lbl">Nombre del Dietista Supervisor(a)</label>
+      <input type="text" id="regSupFullName" class="frm-input" placeholder="Ej. Maria Martinez">
+    </div>
+    <div class="frm-row">
+      <label class="frm-lbl">Nombre identificador (user)</label>
+      <input type="text" id="regSupName" class="frm-input" placeholder="Ej. 01cam1 (será dietsup_01cam1@workboard.local)">
     </div>
     <div class="frm-row">
       <label class="frm-lbl">Número de Empleado (Contraseña)</label>
       <input type="password" id="regSupPass" class="frm-input" placeholder="Ej. 890000 (Mínimo 6 dígitos)">
     </div>
-    <button class="btn btn-accent" id="btnSupSave" onclick="registerSupervisor()" style="width:100%;justify-content:center;margin-top:5px;height:36px;background:var(--royal);">Inscribir Supervisora</button>
+    <button class="btn btn-accent" id="btnSupSave" onclick="registerSupervisor()" style="width:100%;justify-content:center;margin-top:5px;height:36px;background:var(--royal);">Inscribir Dietista</button>
   </div>
 
   <!-- Columna 5: Inscripción de Secretaria -->
@@ -598,12 +602,16 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
       Registra una cuenta para Secretaria. Podrá editar y publicar el horario, pero no verá reportes ni gestión.
     </p>
     <div class="frm-row">
-      <label class="frm-lbl">Identificador</label>
-      <input type="text" id="regSecName" class="frm-input" placeholder="Ej. ana (será sec_ana@workboard.local)">
+      <label class="frm-lbl">Nombre de Secretaria</label>
+      <input type="text" id="regSecFullName" class="frm-input" placeholder="Ej. Ana Lopez">
     </div>
     <div class="frm-row">
-      <label class="frm-lbl">Contraseña</label>
-      <input type="password" id="regSecPass" class="frm-input" placeholder="Mínimo 6 caracteres">
+      <label class="frm-lbl">Nombre identificador (user)</label>
+      <input type="text" id="regSecName" class="frm-input" placeholder="Ej. 01jms3 (será sec_01jms3@workboard.local)">
+    </div>
+    <div class="frm-row">
+      <label class="frm-lbl">Número de Empleado (Contraseña)</label>
+      <input type="password" id="regSecPass" class="frm-input" placeholder="Ej. 890000 (Mínimo 6 dígitos)">
     </div>
     <button class="btn btn-accent" id="btnSecSave" onclick="registerSecretary()" style="width:100%;justify-content:center;margin-top:5px;height:36px;background:var(--accent);color:#000;">Inscribir Secretaria</button>
   </div>
@@ -672,7 +680,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
         <p><b>Crear Usuario:</b> Cuando se añade a un empleado nuevo desde la sección "Añadir Nuevo Supervisor", se le asignara su numero de empleado como número ID (ej. 890000).</p>
         <p><b>Primer Ingreso:</b> Para entrar a la app de Supervisores por primera vez, el empleado debe usar la opción "Regístrate aquí", ingresar su número de ID, <b>su correo electrónico personal</b> y crear una contraseña nueva.</p>
         <p><b>Recuperación:</b> Como el registro usa sus correos electrónicos reales, si olvidan la clave pueden recuperarla ellos mismos desde el app sin tener que pedirte ayuda a ti para resetearla.</p>
-        <p><b>Supervisora (Solo Lectura):</b> Al crear una cuenta de Solo Lectura (para ver el calendario sin editar), se utilizará el número de empleado de la supervisora (ej. 890000) como su contraseña. Para entrar, utilizarán el enlace web del panel y el correo asignado (ej. sup_maria@workboard.local).</p>
+        <p><b>Dietista Supervisor(a) (Solo Lectura):</b> Al crear una cuenta de Solo Lectura (para ver el calendario sin editar), se utilizará el nombre identificador (ej. 01cam1) y el número de empleado como contraseña. Para entrar, utilizarán el enlace web del panel y el correo asignado (ej. dietsup_01cam1@workboard.local).</p>
         <p><b>Secretaria (Borradores y Bloqueo):</b> La cuenta de Secretaria permite editar el calendario, pero no publicarlo directamente. Cuando ella guarda, el sistema crea un "Borrador" que te aparecerá a ti (Administrador) como un botón de revisión en la parte superior. Una vez lo revises, tú eres quien lo publica. Además, puedes habilitar o deshabilitar el acceso de la Secretaria usando el interruptor en la pestaña de Gestión de Personal.</p>
       </div>
     </div>
@@ -784,7 +792,7 @@ onAuthStateChanged(auth, async user => {
     const tabs = document.querySelectorAll('.tab-btn');
     if (tabs.length > 0) window.switchView('viewHorario', tabs[0]);
     window.toast('✅', 'Sesión de Secretaria (Edición de Horario)');
-  } else if (role === 'supervisor' || role === 'asistente' || (user.email.startsWith('sup') && user.email.endsWith('@workboard.local'))) {
+  } else if (role === 'supervisor' || role === 'asistente' || (user.email.startsWith('sup_') && user.email.endsWith('@workboard.local')) || (user.email.startsWith('dietsup_') && user.email.endsWith('@workboard.local'))) {
     window.isViewer = true;
     loginOverlay.style.display = 'none';
     document.querySelectorAll('.tab-btn').forEach(b => {
@@ -1348,30 +1356,36 @@ window.registerEmployee = async () => {
 
 window.registerSupervisor = async () => {
   if(!window.isAdmin) return window.toast('🔒', 'Inicia sesión como admin primero');
+  const fullName = document.getElementById('regSupFullName').value;
   const nameStr = document.getElementById('regSupName').value;
   const pass = document.getElementById('regSupPass').value;
   
-  if (!nameStr || !pass) return window.toast('⚠️', 'Completa el Nombre y Contraseña');
+  if (!nameStr || !pass || !fullName) return window.toast('⚠️', 'Completa todos los campos');
   if (pass.length < 6) return window.toast('⚠️', 'Contraseña: min 6 caracteres');
   
   // Clean name string to form email
   const cleanName = nameStr.toLowerCase().replace(/[^a-z0-9]/g, '');
-  if(!cleanName) return window.toast('⚠️', 'Nombre inválido');
+  if(!cleanName) return window.toast('⚠️', 'Nombre identificador inválido');
   
   const btn = document.getElementById('btnSupSave');
   btn.textContent = 'Guardando...';
   
   try {
-    const email = `sup_${cleanName}@workboard.local`;
+    const email = `dietsup_${cleanName}@workboard.local`;
     await window.createUserWithEmailAndPassword(window.secondaryAuth, email, pass);
     
-    window.toast('✅', `Supervisora registrada. Correo: ${email}`);
+    window.toast('✅', `Dietista registrado. Correo: ${email}`);
+    document.getElementById('regSupFullName').value = '';
     document.getElementById('regSupName').value = '';
     document.getElementById('regSupPass').value = '';
   } catch(e) {
-    window.toast('❌', 'Error al registrar (quizás ya existe)');
+    if(e.code === 'auth/email-already-in-use') {
+       window.toast('❌', 'Ese dietista ya existe');
+    } else {
+       window.toast('❌', 'Error: ' + e.message);
+    }
   }
-  btn.textContent = 'Inscribir Supervisora';
+  btn.textContent = 'Inscribir Dietista';
 };
 
 window.initializeUsers = async () => {
@@ -1433,10 +1447,11 @@ window.initializeUsers = async () => {
 
 window.registerSecretary = async () => {
   if(!window.isAdmin) return window.toast('🔒', 'Inicia sesión como admin primero');
+  const fullName = document.getElementById('regSecFullName').value;
   const nameStr = document.getElementById('regSecName').value;
   const pass = document.getElementById('regSecPass').value;
   
-  if (!nameStr || !pass) return window.toast('⚠️', 'Completa el Identificador y Contraseña');
+  if (!nameStr || !pass || !fullName) return window.toast('⚠️', 'Completa todos los campos');
   if (pass.length < 6) return window.toast('⚠️', 'Contraseña: min 6 caracteres');
   
   // Clean name string to form email
@@ -1451,6 +1466,7 @@ window.registerSecretary = async () => {
     await window.createUserWithEmailAndPassword(window.secondaryAuth, email, pass);
     
     window.toast('✅', `Secretaria registrada. Correo de acceso: ${email}`);
+    document.getElementById('regSecFullName').value = '';
     document.getElementById('regSecName').value = '';
     document.getElementById('regSecPass').value = '';
   } catch(e) {
@@ -1469,38 +1485,6 @@ window.deleteEmployee = async function(id) {
       window.toast('❌', 'Error al eliminar');
     }
   }
-}
-
-window.registerSupervisor = async () => {
-  if(!window.isAdmin) return window.toast('🔒', 'Inicia sesión como admin primero');
-  const nameStr = document.getElementById('regSupName').value;
-  const pass = document.getElementById('regSupPass').value;
-  
-  if (!nameStr || !pass) return window.toast('⚠️', 'Completa el Nombre y Contraseña');
-  if (pass.length < 6) return window.toast('⚠️', 'Contraseña: min 6 caracteres');
-  
-  // Clean name string to form email
-  const cleanName = nameStr.toLowerCase().replace(/[^a-z0-9]/g, '');
-  if(!cleanName) return window.toast('⚠️', 'Nombre inválido');
-  
-  const btn = document.getElementById('btnSupSave');
-  btn.textContent = 'Guardando...';
-  
-  try {
-    const email = `sup_${cleanName}@workboard.local`;
-    await window.createUserWithEmailAndPassword(window.secondaryAuth, email, pass);
-    
-    window.toast('✅', `Supervisora registrada. Correo: ${email}`);
-    document.getElementById('regSupName').value = '';
-    document.getElementById('regSupPass').value = '';
-  } catch(e) {
-    if(e.code === 'auth/email-already-in-use') {
-       window.toast('❌', 'Esa supervisora ya existe');
-    } else {
-       window.toast('❌', 'Error: ' + e.message);
-    }
-  }
-  btn.textContent = 'Inscribir Supervisora';
 }
 
 /* ══════════════════════════════════════════════════════
