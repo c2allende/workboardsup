@@ -370,44 +370,61 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 
   <!-- Panel de Reglas del Motor -->
   <div class="box-panel" style="border-color: var(--royal);">
-    <div class="box-hdr" style="color:var(--royal);">Configuración de Reglas (Motor Automático)</div>
-    <div class="frm-row">
-      <label class="frm-lbl">Seleccionar Empleado</label>
-      <select id="ruleEmpSelect" class="frm-select" onchange="window.loadEmployeeRules()"></select>
+    <div class="box-hdr" style="color:var(--royal); margin-bottom:5px;">Reglas de Motor Automático</div>
+    
+    <!-- Vista Principal: Seleccionador y Lista -->
+    <div id="rulesMainView">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:15px;line-height:1.4;">
+        Selecciona un empleado para crear nuevas reglas o edita las existentes en la lista inferior.
+      </div>
+      <div class="frm-row">
+        <select id="ruleEmpSelect" class="frm-select" onchange="if(this.value) window.loadEmployeeRules()"></select>
+      </div>
+      <div style="margin-top:15px; border-top:1px solid var(--border); padding-top:15px;">
+        <div style="font-size:13px; font-weight:700; color:var(--text); margin-bottom:10px;">Reglas Activas en Sistema:</div>
+        <div id="activeRulesList" style="display:flex; flex-direction:column; gap:8px;">
+          <div style="font-size:13px; color:var(--muted);">Cargando...</div>
+        </div>
+      </div>
     </div>
     
-    <div id="rulesContainer" style="display:none; flex-direction:column; gap:15px; margin-top:15px;">
+    <!-- Vista Edición: Formulario -->
+    <div id="rulesContainer" style="display:none; flex-direction:column; gap:15px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(37,99,235,.1); padding:10px 15px; border-radius:8px;">
+        <div style="font-size:14px; font-weight:600; color:var(--royal);">Editando a: <span id="ruleEditName"></span></div>
+      </div>
+      
       <div style="display:flex; flex-wrap:wrap; gap:15px;">
         <div style="flex:1; min-width:200px;">
-          <label class="frm-lbl">Turnos Permitidos (Múltiples separados por coma, ej: C1,C3)</label>
+          <label class="frm-lbl">Turnos Permitidos (ej: C1,C3)</label>
           <input type="text" id="ruleAllowedShifts" class="frm-input" placeholder="C1, C2, C3, D1, D2, A1, E1">
         </div>
         <div style="flex:1; min-width:200px;">
-          <label class="frm-lbl">Días Fijos (0=Dom... ej: 1,2,5,6,0)</label>
+          <label class="frm-lbl">Días Fijos (0=Dom... ej: 1,2,5)</label>
           <input type="text" id="ruleFixedDays" class="frm-input" placeholder="Ej: 1,2,5,6,0">
         </div>
-        <div style="flex:1; min-width:200px;">
-          <label class="frm-lbl">Turno Fijo (Ej: D2)</label>
-          <input type="text" id="ruleFixedShift" class="frm-input" placeholder="D2">
+        <div style="flex:1; min-width:150px;">
+          <label class="frm-lbl">Turno Fijo</label>
+          <input type="text" id="ruleFixedShift" class="frm-input" placeholder="Ej: D2">
         </div>
       </div>
       
       <div style="display:flex; flex-wrap:wrap; gap:15px;">
          <div style="flex:1; min-width:200px;">
-          <label class="frm-lbl">Fija Inicia (YYYY-MM-DD)</label>
+          <label class="frm-lbl">Días Fijos - Inicia (Opcional)</label>
           <input type="date" id="ruleFixedStarts" class="frm-input">
         </div>
         <div style="flex:1; min-width:200px;">
-          <label class="frm-lbl">Fija Expira (YYYY-MM-DD)</label>
+          <label class="frm-lbl">Días Fijos - Expira (Opcional)</label>
           <input type="date" id="ruleFixedExpires" class="frm-input">
         </div>
       </div>
 
-      <div style="display:flex; flex-wrap:wrap; gap:15px;">
-        <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text); cursor:pointer;">
-          <input type="checkbox" id="ruleWeekendRotation"> Rotación de Fines de Semana (Evita consecutivos)
+      <div style="display:flex; flex-wrap:wrap; gap:15px; background:var(--surf-2); padding:10px 15px; border-radius:8px; border:1px solid var(--border);">
+        <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text); cursor:pointer; flex:1; min-width:200px;">
+          <input type="checkbox" id="ruleWeekendRotation"> Rotar Fines de Semana (Evitar consecutivos)
         </label>
-        <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text); cursor:pointer;">
+        <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text); cursor:pointer; flex:1; min-width:200px;">
           <input type="checkbox" id="ruleWeekendAlternating"> Preferir alternar fin de semana (1 sí, 1 no)
         </label>
       </div>
@@ -422,24 +439,16 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
           <input type="number" id="ruleMaxWorkDays" class="frm-input" value="5">
         </div>
         <div style="flex:1; min-width:150px;">
-          <label class="frm-lbl">Meta Aperturas Mensual</label>
+          <label class="frm-lbl">Meta de Aperturas Mensual</label>
           <input type="number" id="ruleOpeningTarget" class="frm-input" value="13">
         </div>
       </div>
       
-      <div style="display:flex; gap:10px;">
+      <div style="display:flex; gap:10px; margin-top:5px; border-top:1px solid var(--border); padding-top:15px;">
         <button class="btn btn-accent" style="background:var(--royal); color:#fff; width:auto; padding:0 20px;" onclick="window.saveEmployeeRules()">Guardar Reglas</button>
-        <button class="btn btn-ghost" style="color:var(--muted); width:auto; padding:0 20px; border:1px solid var(--border);" onclick="window.deleteEmployeeRules()">Borrar Reglas</button>
+        <button class="btn btn-ghost" style="color:#dc2626; width:auto; padding:0 20px; border:1px solid rgba(220,38,38,0.3); background:rgba(220,38,38,0.05);" onclick="window.deleteEmployeeRules()">Borrar</button>
+        <button class="btn btn-ghost" style="color:var(--muted); width:auto; padding:0 20px; border:1px solid var(--border); margin-left:auto;" onclick="window.closeEmployeeRules()">Cerrar</button>
       </div>
-    </div>
-    
-    <!-- Lista de empleados con reglas -->
-    <div id="activeRulesSummary" style="margin-top:20px; border-top:1px solid var(--border); padding-top:15px;">
-      <div style="font-size:14px; font-weight:600; color:var(--text); margin-bottom:10px;">Empleados con Reglas Configurados:</div>
-      <div id="activeRulesList" style="display:flex; flex-direction:column; gap:8px;">
-        <div style="font-size:13px; color:var(--muted);">Cargando...</div>
-      </div>
-    </div>
     </div>
   </div>
   
@@ -1919,8 +1928,19 @@ window.updateRuleEmpSelect = function() {
 window.loadEmployeeRules = () => {
   const eid = document.getElementById('ruleEmpSelect').value;
   const container = document.getElementById('rulesContainer');
-  if (!eid) { container.style.display = 'none'; return; }
+  const mainView = document.getElementById('rulesMainView');
+  const nameSpan = document.getElementById('ruleEditName');
   
+  if (!eid) { 
+    container.style.display = 'none'; 
+    mainView.style.display = 'block';
+    return; 
+  }
+  
+  const emp = (window.EMPLOYEES || []).find(e => e.id == eid);
+  nameSpan.textContent = emp ? emp.name : `ID: ${eid}`;
+  
+  mainView.style.display = 'none';
   container.style.display = 'flex';
   const rules = window.rulesByEmployee[eid] || {};
   
@@ -1979,6 +1999,12 @@ window.saveEmployeeRules = async () => {
   }
 };
 
+window.closeEmployeeRules = () => {
+  document.getElementById('ruleEmpSelect').value = '';
+  document.getElementById('rulesContainer').style.display = 'none';
+  document.getElementById('rulesMainView').style.display = 'block';
+};
+
 window.deleteEmployeeRules = async () => {
   if (!window.isAdmin) return window.toast('🔒', 'Solo administradores');
   const eid = document.getElementById('ruleEmpSelect').value;
@@ -1989,7 +2015,7 @@ window.deleteEmployeeRules = async () => {
   try {
     await window.deleteDoc(window.doc(window.db, 'rules', eid));
     window.toast('🗑️', 'Reglas eliminadas exitosamente');
-    window.loadEmployeeRules(); // Recargar el formulario en blanco
+    window.closeEmployeeRules();
   } catch(e) {
     window.toast('❌', 'Error al borrar reglas');
   }
