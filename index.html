@@ -578,8 +578,8 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
       <input type="text" id="regSupName" class="frm-input" placeholder="Ej. maria (será sup_maria@workboard.local)">
     </div>
     <div class="frm-row">
-      <label class="frm-lbl">Contraseña</label>
-      <input type="password" id="regSupPass" class="frm-input" placeholder="Mínimo 6 caracteres">
+      <label class="frm-lbl">Número de Empleado (Contraseña)</label>
+      <input type="password" id="regSupPass" class="frm-input" placeholder="Ej. 890000 (Mínimo 6 dígitos)">
     </div>
     <button class="btn btn-accent" id="btnSupSave" onclick="registerSupervisor()" style="width:100%;justify-content:center;margin-top:5px;height:36px;background:var(--royal);">Inscribir Supervisora</button>
   </div>
@@ -665,6 +665,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
         <p><b>Crear Usuario:</b> Cuando se añade a un empleado nuevo desde la sección "Añadir Nuevo Supervisor", se le asignara su numero de empleado como número ID (ej. 890000).</p>
         <p><b>Primer Ingreso:</b> Para entrar a la app de Supervisores por primera vez, el empleado debe usar la opción "Regístrate aquí", ingresar su número de ID, <b>su correo electrónico personal</b> y crear una contraseña nueva.</p>
         <p><b>Recuperación:</b> Como el registro usa sus correos electrónicos reales, si olvidan la clave pueden recuperarla ellos mismos desde el app sin tener que pedirte ayuda a ti para resetearla.</p>
+        <p><b>Supervisora (Solo Lectura):</b> Al crear una cuenta de Solo Lectura (para ver el calendario sin editar), se utilizará el número de empleado de la supervisora (ej. 890000) como su contraseña. Para entrar, utilizarán el enlace web del panel y el correo asignado (ej. sup_maria@workboard.local).</p>
       </div>
     </div>
 
