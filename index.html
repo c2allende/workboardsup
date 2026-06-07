@@ -272,6 +272,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
     <button class="tab-btn active" onclick="switchView('viewHorario',this)">Horario</button>
     <button class="tab-btn" onclick="switchView('viewReportes',this)">Reportes</button>
     <button class="tab-btn" onclick="switchView('viewGestion',this)">Gestión de Personal</button>
+    <button class="tab-btn" onclick="switchView('viewGuia',this)">📘 Guía y Reglas</button>
   </div>
   <div class="header-right">
     <button class="btn btn-ghost" id="btnLoginHeader">
@@ -618,6 +619,52 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
     <button class="pop-x" onclick="closePop()">✕</button>
   </div>
   <div class="pop-body" id="popBody"></div>
+</div>
+
+<!-- ════════ VISTA 4: GUIA Y REGLAS ════════ -->
+<div id="viewGuia" class="view-section" style="display:none; padding:32px; max-width:1400px; margin:0 auto; width:100%;">
+  <h2 style="font-family:'Outfit', sans-serif; font-weight:800; font-size:24px; color:var(--text); margin-bottom:8px;">📘 Guía y Reglas del Sistema</h2>
+  <div style="font-size:14px; color:var(--muted); margin-bottom:30px;">Manual de usuario para administradores de WorkBoard.</div>
+
+  <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap:24px; align-items:start;">
+    
+    <!-- Motor Automático -->
+    <div style="background:var(--surf-2); border:1px solid var(--border); border-radius:12px; padding:24px; box-shadow:0 8px 30px rgba(0,0,0,0.3);">
+      <div style="font-family:'Outfit'; font-size:18px; color:var(--royal); margin-bottom:15px; display:flex; align-items:center; gap:8px;">
+        ⚙️ Motor Automático (Scheduling Engine)
+      </div>
+      <div style="font-size:13px; color:var(--text); line-height:1.6; display:flex; flex-direction:column; gap:10px;">
+        <p><b>¿Qué hace?</b> El botón "Generar Automático" (en la sección Horario) acomoda los turnos de todos los empleados en segundos, garantizando la cobertura mínima de Cocina y Centro de Distribución.</p>
+        <p><b>Cobertura Global:</b> El sistema sabe que Cocina necesita 1 turno C1 y 1 turno C3 mínimo; y el Centro necesita combinaciones específicas de D1, D2 y A1.</p>
+        <p><b>Reglas por Empleado:</b> Para que el motor funcione bien, debes configurarle reglas a cada supervisor en la pestaña de <i>Gestión de Personal > Reglas de Motor Automático</i>. Puedes restringirles qué días no trabajan (Ej. "Libre todos los domingos"), limitar el máximo de días que trabajan a la semana, o prohibirles turnos específicos (Ej. "Prohibido turno C1").</p>
+      </div>
+    </div>
+
+    <!-- Intercambios y Peticiones -->
+    <div style="background:var(--surf-2); border:1px solid var(--border); border-radius:12px; padding:24px; box-shadow:0 8px 30px rgba(0,0,0,0.3);">
+      <div style="font-family:'Outfit'; font-size:18px; color:var(--royal); margin-bottom:15px; display:flex; align-items:center; gap:8px;">
+        🤝 Intercambios y Peticiones
+      </div>
+      <div style="font-size:13px; color:var(--text); line-height:1.6; display:flex; flex-direction:column; gap:10px;">
+        <p><b>Peticiones Normales:</b> Los empleados usan la app móvil para pedir vacaciones, días libres, licencias o fondo. Estas llegan a tu "Registro de Peticiones" para ser aprobadas.</p>
+        <p><b>Intercambios (Marketplace):</b> Los supervisores pueden tocar el turno de un compañero en la sección "En Turno" de su app para proponerle un cambio. La petición llegará marcada con la etiqueta azul <b>[INTERCAMBIO]</b> en tu panel. Al aprobarla, el sistema cruzará sus turnos automáticamente sin que tú tengas que editar el calendario a mano.</p>
+        <p><b>Turno CE (Cocina Extendido):</b> Un intercambio en el mismo día no altera la cantidad de personal. Sin embargo, si falta personal (alguien se enferma), puedes asignar manualmente el turno rojo <b>CE (4am - 2pm)</b> a otro supervisor para cubrir una jornada de 10 horas.</p>
+      </div>
+    </div>
+
+    <!-- Cuentas y Accesos -->
+    <div style="background:var(--surf-2); border:1px solid var(--border); border-radius:12px; padding:24px; box-shadow:0 8px 30px rgba(0,0,0,0.3);">
+      <div style="font-family:'Outfit'; font-size:18px; color:var(--royal); margin-bottom:15px; display:flex; align-items:center; gap:8px;">
+        🔐 Cuentas y Accesos de Supervisores
+      </div>
+      <div style="font-size:13px; color:var(--text); line-height:1.6; display:flex; flex-direction:column; gap:10px;">
+        <p><b>Crear Usuario:</b> Cuando añades a un empleado nuevo desde la sección "Añadir Nuevo Supervisor", el sistema le asigna un número ID (ej. 123456).</p>
+        <p><b>Primer Ingreso:</b> Para entrar a la app de Supervisores por primera vez, el empleado debe usar la opción "Regístrate aquí", ingresar su número de ID, <b>su correo electrónico personal</b> y crear una contraseña nueva.</p>
+        <p><b>Recuperación:</b> Como el registro usa sus correos electrónicos reales, si olvidan la clave pueden recuperarla ellos mismos desde el app sin tener que pedirte ayuda a ti para resetearla.</p>
+      </div>
+    </div>
+
+  </div>
 </div>
 <div class="toast-wrap" id="toastWrap"></div>
 
