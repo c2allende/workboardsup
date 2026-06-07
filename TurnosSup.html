@@ -580,7 +580,14 @@ window.renderGlobalSchedule = () => {
     
     html += `<div style="display:flex; flex-direction:column; gap:6px;">`;
     
-    const eids = Object.keys(dayData).filter(k => k !== 'note' && dayData[k] !== 'L' && dayData[k] !== 'OFF' && !["V", "LR", "FSE", "PER", "F", "ENF"].includes(dayData[k]));
+    let eids = Object.keys(dayData).filter(k => k !== 'note' && dayData[k] !== 'L' && dayData[k] !== 'OFF' && !["V", "LR", "FSE", "PER", "F", "ENF"].includes(dayData[k]));
+    
+    const sortOrder = { 'C1': 1, 'C2': 2, 'C3': 3, 'D1': 4, 'A1': 5, 'E1': 6, 'D2': 7 };
+    eids.sort((a,b) => {
+      const oA = sortOrder[dayData[a]] || 99;
+      const oB = sortOrder[dayData[b]] || 99;
+      return oA - oB;
+    });
     
     if(eids.length === 0) {
       html += `<div style="font-size:13px; color:var(--muted); text-align:center; padding:10px;">Sin turnos asignados</div>`;
