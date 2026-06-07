@@ -139,7 +139,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 
 <!-- PETICIONES -->
 <div id="viewPeticiones" class="view">
-  <div class="req-form">
+  <div class="req-form" id="reqFormContainer">
     <div style="font-family:'Outfit';font-size:18px;margin-bottom:15px;">Nueva Petición</div>
     <label style="font-size:12px;color:var(--muted);margin-bottom:5px;display:block;">Fecha que solicitas</label>
     <input type="date" id="reqDate" class="inp" style="margin-bottom:15px;">
@@ -147,6 +147,9 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
     <select id="reqNote" class="inp" style="margin-bottom:15px;" onchange="checkOtherOption()"></select>
     <input type="text" id="reqNoteOther" class="inp" placeholder="Escribe tu petición aquí..." style="display:none; margin-bottom:15px;">
     <button class="btn" id="btnReq" onclick="saveRequest()">Enviar Petición</button>
+  </div>
+  <div id="reqLockedMsg" style="display:none; background:rgba(239,68,68,0.1); border:1px solid #ef4444; color:#ef4444; padding:15px; border-radius:12px; text-align:center; font-size:14px; margin-bottom:20px; line-height:1.5;">
+    <b>🚫 Peticiones Cerradas</b><br>El periodo de peticiones está cerrado temporalmente debido a programación de turnos. Diríjase al administrador.
   </div>
   <div style="font-family:'Outfit';font-size:16px;margin-top:10px;margin-bottom:5px;">Mis Peticiones</div>
   <div id="reqList" style="display:flex;flex-direction:column;gap:10px;"></div>
@@ -254,6 +257,19 @@ const DAYS_ES = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
 const MONTHS_ES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 
 function ds(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` }
+
+window.requestsLocked = false;
+onSnapshot(doc(db, 'config', 'system'), snap => {
+  if(snap.exists()) {
+    window.requestsLocked = !!snap.data().requestsLocked;
+    const reqForm = document.getElementById('reqFormContainer');
+    const reqLock = document.getElementById('reqLockedMsg');
+    if(reqForm && reqLock) {
+      reqForm.style.display = window.requestsLocked ? 'none' : 'block';
+      reqLock.style.display = window.requestsLocked ? 'block' : 'none';
+    }
+  }
+});
 
 let currentUserEid = null;
 let unsubSch=null;
@@ -512,6 +528,7 @@ window.checkOtherOption = () => {
 
 window.saveRequest = async () => {
   if(!currentUserEid) return;
+  if(window.requestsLocked) return toast('Las peticiones están bloqueadas actualmente');
   const d = document.getElementById('reqDate').value;
   let n = document.getElementById('reqNote').value;
   if(n === 'Otro') n = document.getElementById('reqNoteOther').value;
@@ -639,6 +656,10 @@ window.proposeSwap = (dateStr, targetEid, targetName, targetShift) => {
 
 window.submitSwap = async () => {
   if(!swapTarget) return;
+  if(window.requestsLocked) {
+    document.getElementById('modalSwap').style.display='none';
+    return toast('Las peticiones están cerradas temporalmente');
+  }
   const reason = document.getElementById('swapReason').value.trim();
   const id = Date.now().toString();
   

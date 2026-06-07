@@ -488,7 +488,13 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 
   <!-- Columna 2: Peticiones -->
   <div class="box-panel" style="display:flex;flex-direction:column;max-height:80vh;">
-    <div class="box-hdr">Registro de Peticiones</div>
+    <div class="box-hdr" style="display:flex; justify-content:space-between; align-items:center;">
+      <span>Registro de Peticiones</span>
+      <label class="toggle-switch" style="display:flex; align-items:center; gap:5px; font-size:12px; font-weight:normal; cursor:pointer;">
+        <input type="checkbox" id="lockRequestsToggle" onchange="toggleRequestsLock(this.checked)">
+        <span style="color:var(--royal); font-weight:bold;">🔒 Bloquear</span>
+      </label>
+    </div>
     
     <div style="background:var(--surf-3);padding:15px;border-radius:10px;margin-bottom:20px;border:1px solid var(--border-2);">
       <div class="frm-row">
@@ -918,12 +924,13 @@ window.listenRequests = () => {
       
       if(r.type === 'swap') {
         badgeHtml = `<span style="background:var(--royal); color:#fff; font-size:10px; padding:2px 6px; border-radius:4px; margin-left:5px;">INTERCAMBIO</span>`;
-        if(r.status === 'pending' || r.status === 'Pendiente') {
-          actionsHtml = `<div style="display:flex; gap:5px; margin-top:10px;">
-            <button class="btn btn-accent" style="flex:1; height:28px; font-size:12px; padding:0;" onclick="approveSwap('${r.id}', true)">Aprobar</button>
-            <button class="btn btn-ghost" style="flex:1; height:28px; font-size:12px; border:1px solid var(--border); padding:0;" onclick="approveSwap('${r.id}', false)">Denegar</button>
-          </div>`;
-        }
+      }
+      
+      if(r.status === 'pending' || r.status === 'Pendiente') {
+        actionsHtml = `<div style="display:flex; gap:5px; margin-top:10px;">
+          <button class="btn btn-accent" style="flex:1; height:28px; font-size:12px; padding:0;" onclick="approveReq('${r.id}', true)">Aprobar</button>
+          <button class="btn btn-ghost" style="flex:1; height:28px; font-size:12px; border:1px solid var(--border); padding:0;" onclick="approveReq('${r.id}', false)">Denegar</button>
+        </div>`;
       }
 
       html += `<div class="req-card">
@@ -947,6 +954,7 @@ window.listenRequests = () => {
 window.listenEmployees();
 window.listenSchedule();
 window.listenRequests();
+if (window.listenConfig) window.listenConfig();
 </script>
 
 <script>
@@ -1164,27 +1172,55 @@ window.saveRequest = async function(){
   btn.textContent='Guardar Petición';
 }
 
-window.deleteReq = async function(id) {
-  if(!window.isAdmin) return window.toast('🔒','Acceso denegado');
-  if(confirm('¿Eliminar petición definitivamente?')) {
-    try {
-      await window.deleteDoc(window.doc(window.db, 'requests', id));
-      window.toast('🗑️','Eliminada');
-    } catch(e) {}
+window.approveReq = async (reqId, isApproved) => {
+  if(!window.isAdmin) return window.toast('🔒', 'Solo administradores');
+  const req = window.reqsData.find(r => r.id === reqId);
+  if(!req) return;
+  
+  if(!isApproved) {
+    await window.setDoc(window.doc(window.db, 'requests', reqId), { status: 'Denegada' }, { merge: true });
+    return window.toast('❌', 'Petición denegada');
   }
-}
+  
+  const dateStr = req.date;
+  const schedDocRef = window.doc(window.db, 'schedules', dateStr);
+  const daySched = window.sched[dateStr] || {};
+  const updateData = {};
+  
+  if(req.type === 'swap') {
+    const currentSelfShift = daySched[req.eid] || 'L';
+    const currentTargetShift = daySched[req.targetEid] || 'L';
+    updateData[req.eid] = currentTargetShift;
+    updateData[req.targetEid] = currentSelfShift;
+  } else {
+    let code = req.note;
+    if(code.includes('(') && code.includes(')')) {
+      code = code.split('(')[1].split(')')[0];
+    }
+    updateData[req.eid] = code;
+  }
+  
+  await window.setDoc(schedDocRef, updateData, { merge: true });
+  await window.setDoc(window.doc(window.db, 'requests', reqId), { status: 'Aprobada' }, { merge: true });
+  window.notifyScheduleUpdate();
+  window.toast('✅', 'Petición aprobada y asignada al horario');
+};
 
+window.toggleRequestsLock = async (locked) => {
+  if(!window.isAdmin) return;
+  await window.setDoc(window.doc(window.db, 'config', 'system'), { requestsLocked: locked }, { merge: true });
+  window.toast(locked ? '🔒' : '🔓', locked ? 'Peticiones bloqueadas' : 'Peticiones abiertas');
+};
 
-window.importOfficialSchedule = async function(){
-  if(!window.isAdmin) return window.toast('🔒','Acceso denegado');
-  const data = window.PROGRAMA_OFICIAL_JUN_2026;
-  if(!data) return window.toast('❌','No se encontró el programa oficial');
-  const dates = Object.keys(data.schedules || {}).sort();
-  if(!dates.length) return window.toast('❌','El programa oficial no tiene fechas');
-  if(!confirm('Importar programa oficial del 31 de mayo de 2026 al 4 de julio de 2026? Esto reemplazará los turnos de esos empleados en ese periodo.')) return;
-
-  const btn = document.getElementById('btnImportOfficial');
-  const previous = btn?.textContent;
+window.listenConfig = () => {
+  onSnapshot(window.doc(window.db, 'config', 'system'), (snap) => {
+    if(snap.exists()) {
+      const data = snap.data();
+      const el = document.getElementById('lockRequestsToggle');
+      if(el) el.checked = !!data.requestsLocked;
+    }
+  });
+};t;
   if(btn) btn.textContent = 'Importando...';
 
   try {
@@ -2222,6 +2258,7 @@ window.toast = function(icon,msg){
 buildLegend();
 setupDatePicker();
 initGestionForms();
+if (window.listenConfig) window.listenConfig();
 window.render();
 </script>
 </body>
