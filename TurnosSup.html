@@ -152,14 +152,41 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
   <div id="reqList" style="display:flex;flex-direction:column;gap:10px;"></div>
 </div>
 
+<!-- EN TURNO (GLOBAL) -->
+<div id="viewEnTurno" class="view">
+  <div style="font-family:'Outfit';font-size:20px;margin-bottom:5px; position:sticky; top:-21px; background:var(--bg); z-index:10; padding:20px 0 10px 0; margin-top:-20px;">Equipo En Turno</div>
+  <div style="font-size:13px;color:var(--muted);margin-bottom:15px;line-height:1.4;">Horario de los próximos 14 días. Toca un turno para proponer un intercambio.</div>
+  <div id="globalScheduleList" style="display:flex;flex-direction:column;gap:15px;padding-bottom:20px;"></div>
+</div>
+
+<!-- Modal Intercambio -->
+<div id="modalSwap" style="display:none; position:fixed; top:0;left:0;right:0;bottom:0; background:rgba(0,0,0,0.5); z-index:999; align-items:center; justify-content:center; padding:20px;">
+  <div class="card" style="width:100%; max-width:400px; padding:20px; box-shadow:0 10px 25px rgba(0,0,0,0.5);">
+    <div style="font-family:'Outfit';font-size:18px;margin-bottom:10px; color:var(--royal);">Proponer Intercambio de Turno</div>
+    <div id="swapDetails" style="font-size:14px; color:var(--text); line-height:1.4; margin-bottom:15px; padding:10px; background:var(--surf-2); border-radius:8px;"></div>
+    
+    <label style="font-size:12px;color:var(--muted);margin-bottom:5px;display:block;">Motivo del intercambio (Opcional)</label>
+    <input type="text" id="swapReason" class="inp" placeholder="Ej: Necesito relevarme ese día por una cita médica" style="margin-bottom:15px;">
+    
+    <div style="display:flex; gap:10px;">
+      <button class="btn" style="flex:1; background:var(--royal); color:#fff;" onclick="submitSwap()">Enviar Petición</button>
+      <button class="btn-ghost" style="flex:1;" onclick="document.getElementById('modalSwap').style.display='none'">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <!-- BOTTOM NAV -->
 <div class="bottom-nav" id="bottomNav" style="display:none;">
   <div class="nav-item active" onclick="nav('viewHorario',this)">
     <div class="nav-icon">📅</div>
     <div>Horario</div>
   </div>
+  <div class="nav-item" onclick="nav('viewEnTurno',this); renderGlobalSchedule();">
+    <div class="nav-icon">🌍</div>
+    <div>En Turno</div>
+  </div>
   <div class="nav-item" onclick="nav('viewPeticiones',this)">
-    <div class="nav-icon">✉️</div>
+    <div class="nav-icon">✍️</div>
     <div>Peticiones</div>
   </div>
 </div>
@@ -352,6 +379,11 @@ function loadData(){
   // Schedules
   if(unsubSch) unsubSch();
   unsubSch = onSnapshot(collection(db, 'schedules'), snap => {
+    window.globalSchedules = {};
+    snap.forEach(d => {
+      window.globalSchedules[d.id] = d.data();
+    });
+    
     let days = [];
     const today = new Date();
     const startD = new Date(today.getFullYear(), today.getMonth() - 1, 1);
@@ -361,14 +393,14 @@ function loadData(){
       days.push({ date: ds(d), sid: 'L' }); // Default Libre
     }
 
-    snap.forEach(d => {
-      const idx = days.findIndex(day => day.date === d.id);
-      if(idx !== -1 && d.data()[currentUserEid]) {
-        days[idx].sid = d.data()[currentUserEid];
+    days.forEach(day => {
+      if(window.globalSchedules[day.date] && window.globalSchedules[day.date][currentUserEid]) {
+        day.sid = window.globalSchedules[day.date][currentUserEid];
       }
     });
     window.myDays = days;
     renderSchedule();
+    if(document.getElementById('viewEnTurno').classList.contains('active')) renderGlobalSchedule();
   });
 
   // Requests
@@ -520,6 +552,112 @@ vh.addEventListener('scroll', () => {
   }
   lastScrollY = currentScrollY;
 });
+
+/* ══ GLOBAL SCHEDULE ══ */
+window.renderGlobalSchedule = () => {
+  const list = document.getElementById('globalScheduleList');
+  if(!window.globalSchedules || !window.EMP_NAMES) { list.innerHTML = '<div style="text-align:center;color:var(--muted);padding:20px;">Cargando...</div>'; return; }
+  
+  let html = '';
+  const today = new Date();
+  
+  for(let i=0; i<14; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() + i);
+    const dateStr = ds(d);
+    
+    const dayName = DAYS_ES[d.getDay()];
+    const dateFmt = `${d.getDate()} ${MONTHS_ES[d.getMonth()]}`;
+    const isToday = i === 0;
+    const highlightStyles = isToday ? 'border: 1.5px solid var(--accent); background: rgba(0,254,178,0.06);' : '';
+    
+    let dayData = window.globalSchedules[dateStr] || {};
+    
+    html += `<div class="card" style="${highlightStyles} margin-bottom:15px; padding:15px;">`;
+    html += `<div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:10px;">
+        <div style="font-weight:700; font-size:18px; color:var(--royal);">${dateFmt} <span style="font-size:13px; color:var(--muted); text-transform:uppercase;">${dayName}</span></div>
+      </div>`;
+    
+    html += `<div style="display:flex; flex-direction:column; gap:6px;">`;
+    
+    const eids = Object.keys(dayData).filter(k => k !== 'note' && dayData[k] !== 'L' && dayData[k] !== 'OFF' && !["V", "LR", "FSE", "PER", "F", "ENF"].includes(dayData[k]));
+    
+    if(eids.length === 0) {
+      html += `<div style="font-size:13px; color:var(--muted); text-align:center; padding:10px;">Sin turnos asignados</div>`;
+    } else {
+      eids.forEach(eid => {
+        const sid = dayData[eid];
+        const sh = SHIFTS[sid] || { label: sid, time:'', bg:'var(--surf-2)', bd:'var(--border)', color:'var(--text)' };
+        const name = window.EMP_NAMES[eid] || `Emp #${eid}`;
+        
+        // Modal trigger only if not self
+        const isSelf = parseInt(eid) === currentUserEid;
+        const onclickAttr = isSelf ? '' : `onclick="proposeSwap('${dateStr}', ${eid}, '${name}', '${sh.label}')" style="cursor:pointer;"`;
+        const badge = isSelf ? `<span style="font-size:10px; background:var(--royal); color:#fff; padding:2px 6px; border-radius:10px; margin-left:8px;">TÚ</span>` : '';
+        
+        html += `
+        <div ${onclickAttr} class="card" style="padding:10px; background:${sh.bg}; border:1px solid ${sh.bd}; color:${sh.color}; display:flex; justify-content:space-between; align-items:center; margin-bottom:0; transition: transform 0.2s;">
+          <div style="font-weight:600; font-size:14px;">${name} ${badge}</div>
+          <div style="text-align:right;">
+            <div style="font-weight:800; font-size:14px;">${sh.label}</div>
+            <div style="font-size:10px; opacity:0.8;">${sh.time}</div>
+          </div>
+        </div>
+        `;
+      });
+    }
+    
+    html += `</div></div>`;
+  }
+  list.innerHTML = html;
+};
+
+let swapTarget = null;
+window.proposeSwap = (dateStr, targetEid, targetName, targetShift) => {
+  if(!currentUserEid) return;
+  const d = new Date(dateStr+'T12:00:00');
+  const dateFmt = `${d.getDate()} de ${MONTHS_ES[d.getMonth()]}`;
+  
+  swapTarget = { date: dateStr, eid: targetEid, name: targetName, shift: targetShift };
+  
+  document.getElementById('swapDetails').innerHTML = `
+    <b>Fecha:</b> ${dateFmt}<br>
+    <b>Compañero:</b> ${targetName}<br>
+    <b>Turno de ${targetName}:</b> ${targetShift}
+  `;
+  document.getElementById('swapReason').value = '';
+  document.getElementById('modalSwap').style.display = 'flex';
+};
+
+window.submitSwap = async () => {
+  if(!swapTarget) return;
+  const reason = document.getElementById('swapReason').value.trim();
+  const id = Date.now().toString();
+  
+  const req = {
+    id: id,
+    eid: currentUserEid,
+    name: window.EMP_NAMES[currentUserEid] || '',
+    date: swapTarget.date,
+    type: 'swap',
+    note: 'Intercambio con ' + swapTarget.name + ' (Turno: ' + swapTarget.shift + ')' + (reason ? ' - Motivo: ' + reason : ''),
+    targetEid: swapTarget.eid,
+    targetName: swapTarget.name,
+    targetShift: swapTarget.shift,
+    status: 'pending',
+    created: Date.now()
+  };
+  
+  try {
+    await setDoc(doc(db, 'requests', id), req);
+    toast('✅ Petición de Intercambio enviada');
+    document.getElementById('modalSwap').style.display = 'none';
+    swapTarget = null;
+  } catch(e) {
+    toast('❌ Error al enviar petición');
+  }
+};
+
 window.nav = (viewId, btn) => {
   document.querySelectorAll('.view').forEach(e=>e.classList.remove('active'));
   document.getElementById(viewId).classList.add('active');

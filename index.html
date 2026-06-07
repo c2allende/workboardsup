@@ -835,17 +835,32 @@ window.listenRequests = () => {
     window.render(); // Re-render to show badges in schedule
     let html = '';
     reqs.forEach(r => {
-      const empName = window.EMPLOYEES.find(e=>e.id===r.eid)?.name || 'Desconocido';
+      const empName = window.EMPLOYEES.find(e=>e.id===r.eid)?.name || r.name || 'Desconocido';
       const createdDate = new Date(r.created);
       const createdStr = createdDate.toLocaleString('es-PR', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+      
+      let badgeHtml = '';
+      let actionsHtml = '';
+      
+      if(r.type === 'swap') {
+        badgeHtml = `<span style="background:var(--royal); color:#fff; font-size:10px; padding:2px 6px; border-radius:4px; margin-left:5px;">INTERCAMBIO</span>`;
+        if(r.status === 'pending' || r.status === 'Pendiente') {
+          actionsHtml = `<div style="display:flex; gap:5px; margin-top:10px;">
+            <button class="btn btn-accent" style="flex:1; height:28px; font-size:12px; padding:0;" onclick="approveSwap('${r.id}', true)">Aprobar</button>
+            <button class="btn btn-ghost" style="flex:1; height:28px; font-size:12px; border:1px solid var(--border); padding:0;" onclick="approveSwap('${r.id}', false)">Denegar</button>
+          </div>`;
+        }
+      }
+
       html += `<div class="req-card">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-          <div class="req-hdr"><b>${empName}</b> · Solicita: ${r.date}</div>
+          <div class="req-hdr"><b>${empName}</b> ${badgeHtml} <div style="font-size:12px; margin-top:2px;">Solicita: ${r.date}</div></div>
           <button class="pop-x" onclick="deleteReq('${r.id}')" title="Eliminar">✕</button>
         </div>
         <div class="req-note">${r.note}</div>
-        <div style="display:flex; justify-content:space-between; align-items:flex-end;">
-          <div class="req-status ${r.status==='Pendiente'?'pend':''}">${r.status}</div>
+        ${actionsHtml}
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:8px;">
+          <div class="req-status ${r.status==='pending'||r.status==='Pendiente'?'pend':''}">${r.status==='pending'?'Pendiente':r.status}</div>
           <div style="font-size:9.5px; color:var(--muted);">Registrado: ${createdStr}</div>
         </div>
       </div>`;
@@ -1118,6 +1133,38 @@ window.importOfficialSchedule = async function(){
     if(btn) btn.textContent = previous || 'Importar programa oficial';
   }
 }
+
+window.approveSwap = async (reqId, isApproved) => {
+  if(!window.isAdmin) return window.toast('🔒', 'Solo administradores');
+  const req = window.reqsData.find(r => r.id === reqId);
+  if(!req) return;
+  
+  if(!isApproved) {
+    await window.setDoc(window.doc(window.db, 'requests', reqId), { status: 'Denegado' }, { merge: true });
+    return window.toast('❌', 'Intercambio denegado');
+  }
+  
+  const dateStr = req.date;
+  const schedDocRef = window.doc(window.db, 'schedules', dateStr);
+  
+  const daySched = window.sched[dateStr] || {};
+  const currentSelfShift = daySched[req.eid] || 'L';
+  const currentTargetShift = daySched[req.targetEid] || 'L';
+  
+  const updateData = {};
+  updateData[req.eid] = currentTargetShift;
+  updateData[req.targetEid] = currentSelfShift;
+  
+  try {
+    await window.setDoc(schedDocRef, updateData, { merge: true });
+    await window.setDoc(window.doc(window.db, 'requests', reqId), { status: 'Aprobado' }, { merge: true });
+    window.toast('✅', 'Intercambio aprobado y aplicado');
+    window.notifyScheduleUpdate();
+  } catch(e) {
+    console.error(e);
+    window.toast('❌', 'Error al procesar');
+  }
+};
 
 window.registerEmployee = async () => {
   if(!window.isAdmin) return window.toast('🔒', 'Inicia sesión como admin primero');
