@@ -599,7 +599,7 @@ window.renderGlobalSchedule = () => {
         
         // Modal trigger only if not self
         const isSelf = parseInt(eid) === currentUserEid;
-        const onclickAttr = isSelf ? '' : `onclick="proposeSwap('${dateStr}', ${eid}, '${name}', '${sh.label}')" style="cursor:pointer;"`;
+        const onclickAttr = isSelf ? '' : `onclick="proposeSwap('${dateStr}', ${eid}, '${name}', '${sh.label} - ${sh.time}')" style="cursor:pointer;"`;
         const badge = isSelf ? `<span style="font-size:10px; background:var(--royal); color:#fff; padding:2px 6px; border-radius:10px; margin-left:8px;">TÚ</span>` : '';
         
         html += `
