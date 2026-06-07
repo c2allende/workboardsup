@@ -432,6 +432,15 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
         <button class="btn btn-ghost" style="color:var(--muted); width:auto; padding:0 20px; border:1px solid var(--border);" onclick="window.deleteEmployeeRules()">Borrar Reglas</button>
       </div>
     </div>
+    
+    <!-- Lista de empleados con reglas -->
+    <div id="activeRulesSummary" style="margin-top:20px; border-top:1px solid var(--border); padding-top:15px;">
+      <div style="font-size:14px; font-weight:600; color:var(--text); margin-bottom:10px;">Empleados con Reglas Configurados:</div>
+      <div id="activeRulesList" style="display:flex; flex-direction:column; gap:8px;">
+        <div style="font-size:13px; color:var(--muted);">Cargando...</div>
+      </div>
+    </div>
+    </div>
   </div>
   
   <!-- Columna 1: Vacaciones -->
@@ -652,13 +661,15 @@ window.globalRules = window.globalRules || {};
 
 // Cargar reglas de empleados (desde el modulo)
 onSnapshot(collection(db, 'rules'), snap => {
+  let newRules = {};
   snap.forEach(d => {
     if (d.id !== '_global') {
-      window.rulesByEmployee[d.id] = d.data();
+      newRules[d.id] = d.data();
     } else {
       window.globalRules = { ...window.globalRules, ...d.data() };
     }
   });
+  window.rulesByEmployee = newRules;
   if (window.updateRuleEmpSelect) window.updateRuleEmpSelect();
 });
 
@@ -1883,6 +1894,26 @@ window.updateRuleEmpSelect = function() {
     });
   }
   if (curr) sel.value = curr;
+  
+  // Actualizar la lista visual de empleados con reglas
+  const rulesList = document.getElementById('activeRulesList');
+  if(rulesList && window.rulesByEmployee) {
+    const rKeys = Object.keys(window.rulesByEmployee);
+    if(rKeys.length === 0) {
+      rulesList.innerHTML = '<div style="font-size:13px; color:var(--muted);">Ningún empleado tiene reglas configuradas.</div>';
+    } else {
+      let html = '';
+      rKeys.forEach(eid => {
+        const emp = (window.EMPLOYEES || []).find(e => e.id == eid);
+        const name = emp ? emp.name : `Empleado #${eid}`;
+        html += `<div style="font-size:13px; padding:8px 12px; background:var(--surf-2); border:1px solid var(--border); border-radius:6px; display:flex; justify-content:space-between; cursor:pointer;" onclick="document.getElementById('ruleEmpSelect').value='${eid}'; window.loadEmployeeRules();">
+          <span>⚙️ <b>${name}</b></span>
+          <span style="color:var(--royal); font-weight:600; font-size:12px;">Ver detalles &rarr;</span>
+        </div>`;
+      });
+      rulesList.innerHTML = html;
+    }
+  }
 };
 
 window.loadEmployeeRules = () => {
