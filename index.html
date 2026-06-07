@@ -309,6 +309,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
       <button class="btn btn-ghost" id="btnDiscardDraft" style="display:none; color: #ef4444;">Descartar Borrador</button>
       <button class="btn btn-ghost" id="btnClear">Limpiar</button>
       <button class="btn btn-ghost" onclick="window.print()">Imprimir</button>
+      <button class="btn" id="btnLoadSecDraft" style="display:none; background:var(--royal); color:white;" onclick="window.loadSecDraft()">Revisar Borrador de Secretaria</button>
       <button class="btn btn-accent" id="btnPublish">Publicar</button>
     </div>
   </div>
@@ -586,7 +587,13 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 
   <!-- Columna 5: Inscripción de Secretaria -->
   <div class="box-panel">
-    <div class="box-hdr">Inscripción de Secretaria (Edición)</div>
+    <div class="box-hdr" style="display:flex; justify-content:space-between; align-items:center;">
+      <span>Inscripción de Secretaria (Edición)</span>
+      <label class="toggle-switch" style="display:flex; align-items:center; gap:5px; font-size:12px; font-weight:normal; cursor:pointer;">
+        <input type="checkbox" id="lockSecretaryToggle" onchange="toggleSecretaryLock(this.checked)">
+        <span style="color:var(--royal); font-weight:bold;">🟢 Habilitar Acceso</span>
+      </label>
+    </div>
     <p style="font-size:12px;color:var(--muted);margin-bottom:15px;line-height:1.4;">
       Registra una cuenta para Secretaria. Podrá editar y publicar el horario, pero no verá reportes ni gestión.
     </p>
@@ -666,6 +673,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
         <p><b>Primer Ingreso:</b> Para entrar a la app de Supervisores por primera vez, el empleado debe usar la opción "Regístrate aquí", ingresar su número de ID, <b>su correo electrónico personal</b> y crear una contraseña nueva.</p>
         <p><b>Recuperación:</b> Como el registro usa sus correos electrónicos reales, si olvidan la clave pueden recuperarla ellos mismos desde el app sin tener que pedirte ayuda a ti para resetearla.</p>
         <p><b>Supervisora (Solo Lectura):</b> Al crear una cuenta de Solo Lectura (para ver el calendario sin editar), se utilizará el número de empleado de la supervisora (ej. 890000) como su contraseña. Para entrar, utilizarán el enlace web del panel y el correo asignado (ej. sup_maria@workboard.local).</p>
+        <p><b>Secretaria (Borradores y Bloqueo):</b> La cuenta de Secretaria permite editar el calendario, pero no publicarlo directamente. Cuando ella guarda, el sistema crea un "Borrador" que te aparecerá a ti (Administrador) como un botón de revisión en la parte superior. Una vez lo revises, tú eres quien lo publica. Además, puedes habilitar o deshabilitar el acceso de la Secretaria usando el interruptor en la pestaña de Gestión de Personal.</p>
       </div>
     </div>
 
@@ -688,7 +696,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 <!-- Firebase Modular SDK -->
 <script type="module">
 import { initializeApp, initializeApp as initApp2 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, doc, setDoc, onSnapshot, deleteField, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, doc, setDoc, getDoc, onSnapshot, deleteField, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword, getAuth as getAuth2 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
@@ -718,32 +726,17 @@ window.collection = collection;
 window.deleteDoc = deleteDoc;
 window.onSnapshot = onSnapshot;
 window.rulesByEmployee = window.rulesByEmployee || {};
-window.globalRules = window.globalRules || {};
 
-// Cargar reglas de empleados (desde el modulo)
-onSnapshot(collection(db, 'rules'), snap => {
-  let newRules = {};
-  snap.forEach(d => {
-    if (d.id !== '_global') {
-      newRules[d.id] = d.data();
-    } else {
-      window.globalRules = { ...window.globalRules, ...d.data() };
-    }
-  });
-  window.rulesByEmployee = newRules;
-  if (window.updateRuleEmpSelect) window.updateRuleEmpSelect();
-});
-
-onAuthStateChanged(auth, user => {
+onAuthStateChanged(auth, async user => {
   const loginOverlay = document.getElementById('loginOverlay');
   const btnHeader = document.getElementById('btnLoginHeader');
   
-  window.isAdmin = false;
-  window.isViewer = false;
-  
   if (!user) {
+    window.isAdmin = false;
+    window.isViewer = false;
+    window.isSecretary = false;
     loginOverlay.style.display = 'flex';
-    btnHeader.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> Ingresar';
+    document.querySelectorAll('.tab-btn').forEach(b => b.style.display = 'none');
     return;
   }
   
@@ -774,11 +767,19 @@ onAuthStateChanged(auth, user => {
     document.querySelectorAll('.tab-btn').forEach(b => b.style.display = 'inline-block');
     window.toast('✅', 'Sesión de administrador activa');
   } else if (role === 'secretaria' || (user.email.startsWith('sec_') && user.email.endsWith('@workboard.local'))) {
+    const snap = await getDoc(doc(db, 'config', 'system'));
+    if (!snap.exists() || !snap.data().secretaryEnabled) {
+      signOut(auth);
+      window.toast('❌', 'Acceso deshabilitado por administrador');
+      loginOverlay.style.display = 'flex';
+      return;
+    }
     window.isAdmin = true; // Permite editar celdas
     window.isSecretary = true;
     loginOverlay.style.display = 'none';
     document.querySelectorAll('.tab-btn').forEach(b => {
       if(b.textContent.includes('Reportes') || b.textContent.includes('Gestión')) b.style.display = 'none';
+      else b.style.display = 'inline-block';
     });
     const tabs = document.querySelectorAll('.tab-btn');
     if (tabs.length > 0) window.switchView('viewHorario', tabs[0]);
@@ -1265,14 +1266,44 @@ window.toggleRequestsLock = async (locked) => {
   window.toast(locked ? '🔒' : '🔓', locked ? 'Peticiones bloqueadas' : 'Peticiones abiertas');
 };
 
+window.toggleSecretaryLock = async (locked) => {
+  if(!window.isAdmin) return;
+  await window.setDoc(window.doc(window.db, 'config', 'system'), { secretaryEnabled: locked }, { merge: true });
+  window.toast(locked ? '🟢' : '🔴', locked ? 'Acceso Secretaria habilitado' : 'Acceso Secretaria deshabilitado');
+};
+
 window.listenConfig = () => {
   onSnapshot(window.doc(window.db, 'config', 'system'), (snap) => {
     if(snap.exists()) {
       const data = snap.data();
       const el = document.getElementById('lockRequestsToggle');
       if(el) el.checked = !!data.requestsLocked;
+      const elSec = document.getElementById('lockSecretaryToggle');
+      if(elSec) elSec.checked = !!data.secretaryEnabled;
     }
   });
+  
+  onSnapshot(window.doc(window.db, 'config', 'secretaryDraft'), (snap) => {
+    const btnDraft = document.getElementById('btnLoadSecDraft');
+    if(!btnDraft) return;
+    if(snap.exists() && Object.keys(snap.data() || {}).length > 0 && !window.isSecretary && window.isAdmin) {
+      window.pendingSecDraft = snap.data();
+      btnDraft.style.display = 'inline-block';
+    } else {
+      window.pendingSecDraft = null;
+      btnDraft.style.display = 'none';
+    }
+  });
+};
+
+window.loadSecDraft = () => {
+  if(!window.pendingSecDraft) return;
+  window.draftSched = window.pendingSecDraft;
+  document.getElementById('btnDiscardDraft').style.display = 'inline-block';
+  document.getElementById('btnPublish').textContent = 'Aprobar y Publicar';
+  document.getElementById('btnLoadSecDraft').style.display = 'none';
+  window.render();
+  window.toast('✨', 'Borrador de Secretaria cargado. Revisa y publica.');
 };
 
 window.registerEmployee = async () => {
@@ -2199,7 +2230,7 @@ document.getElementById('btnGenAuto').onclick = () => {
   window.draftSched = res.draftSchedule;
   
   document.getElementById('btnDiscardDraft').style.display = 'inline-block';
-  document.getElementById('btnPublish').textContent = 'Aprobar y Publicar';
+  document.getElementById('btnPublish').textContent = window.isSecretary ? 'Enviar para Aprobación' : 'Aprobar y Publicar';
   
   window.render();
   window.toast('✨', 'Borrador generado. Revisa y publica.');
@@ -2222,6 +2253,14 @@ document.getElementById('btnPublish').onclick=async ()=>{
   if(!window.isAdmin) return window.toast('🔒', 'Acceso denegado');
   
   if (window.draftSched) {
+    if (window.isSecretary) {
+      await window.setDoc(window.doc(window.db, 'config', 'secretaryDraft'), window.draftSched);
+      window.draftSched = null;
+      document.getElementById('btnDiscardDraft').style.display = 'none';
+      document.getElementById('btnPublish').textContent = 'Publicar';
+      window.render();
+      return window.toast('✅', 'Borrador enviado al administrador para aprobación.');
+    }
     const dates = Object.keys(window.draftSched);
     let count = 0;
     for (const dStr of dates) {
@@ -2230,12 +2269,15 @@ document.getElementById('btnPublish').onclick=async ()=>{
       count++;
     }
     window.draftSched = null;
+    await window.deleteDoc(window.doc(window.db, 'config', 'secretaryDraft')).catch(e=>{});
     document.getElementById('btnDiscardDraft').style.display = 'none';
     document.getElementById('btnPublish').textContent = 'Publicar';
     window.render();
     window.notifyScheduleUpdate();
     return window.toast('🚀', `Borrador publicado con éxito.`);
   }
+
+  if(window.isSecretary) return window.toast('🔒', 'Debes generar un borrador primero.');
 
   const dates=getDates();
   const bad=dates.filter(d=>{ const s=getDayStatus(ds(d)); return !s.allOk&&s.unscheduled<window.EMPLOYEES.length; });
