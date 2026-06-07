@@ -1191,26 +1191,66 @@ window.importOfficialSchedule = async function(){
   if(!data) return window.toast('❌','No se encontró el programa oficial');
   const dates = Object.keys(data.schedules || {}).sort();
   if(!dates.length) return window.toast('❌','El programa oficial no tiene fechas');
-  if(!confirm('Importar programa oficial del 31 de mayo de 2026 al 4 de julio de 2026? Esto reemplazará los turnos de esos empleados en ese periodo.')) return;
+  if(!confirm('Importar programa oficial del 31 de mayo de 2026 al 4 de julio de 2026? Esto limpiará los duplicados falsos y asignará los turnos oficiales a tus perfiles actuales.')) return;
 
   const btn = document.getElementById('btnImportOfficial');
   const previous = btn?.textContent;
   if(btn) btn.textContent = 'Importando...';
 
   try {
-    for (const emp of data.employees) {
-      await window.setDoc(window.doc(window.db, 'employees', String(emp.id)), emp, { merge: true });
+    // 1. LIMPIEZA: Eliminar los perfiles falsos (1 al 9) generados por error.
+    for (let i = 1; i <= 9; i++) {
+      try { await window.deleteDoc(window.doc(window.db, 'employees', String(i))); } catch(e){}
     }
+
+    // Diccionario de traducción de IDs del archivo a IDs Reales.
+    const idMap = {
+      1: 889961, // Victor
+      2: 889553, // Andres
+      3: 890987, // Ernix
+      4: 889982, // Alvin
+      5: 891945, // Carlos
+      6: 890791, // Lillian
+      7: 890232, // Angel
+      8: 891149, // Carolyn
+      9: 891260  // Sixto
+    };
+
+    // 2. LIMPIEZA Y TRADUCCIÓN de los Turnos.
     for (const dateStr of dates) {
-      await window.setDoc(window.doc(window.db, 'schedules', dateStr), data.schedules[dateStr], { merge: true });
+      // a) Borrar del documento de la fecha los campos viejos (1 al 9)
+      const updates = {
+        "1": window.deleteField(), "2": window.deleteField(), "3": window.deleteField(),
+        "4": window.deleteField(), "5": window.deleteField(), "6": window.deleteField(),
+        "7": window.deleteField(), "8": window.deleteField(), "9": window.deleteField()
+      };
+      // Insertar las actualizaciones de borrado primero (esto limpia la fecha)
+      await window.setDoc(window.doc(window.db, 'schedules', dateStr), updates, { merge: true });
+
+      // b) Traducir el horario del día y subirlo
+      const oldSchedule = data.schedules[dateStr];
+      const newSchedule = {};
+      for (const oldId in oldSchedule) {
+        const realId = idMap[oldId];
+        if (realId) {
+          newSchedule[String(realId)] = oldSchedule[oldId];
+        }
+      }
+      
+      // Inyectar el horario con los IDs correctos
+      await window.setDoc(window.doc(window.db, 'schedules', dateStr), newSchedule, { merge: true });
     }
+
     window.notifyScheduleUpdate();
     dateFrom = data.range.from;
     dateTo = data.range.to;
     document.getElementById('dateFrom').value = dateFrom;
     document.getElementById('dateTo').value = dateTo;
-    window.toast('✅', data.employees.length + ' empleados y ' + dates.length + ' días importados');
-    window.render();
+    
+    window.toast('✅', 'Limpieza y traducción completadas. ' + dates.length + ' días actualizados');
+    
+    // Dar un momento a Firebase para sincronizar los cambios de UI
+    setTimeout(() => { window.render(); }, 1500);
   } catch(e) {
     console.error(e);
     window.toast('❌','Error al importar el programa oficial');
