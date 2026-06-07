@@ -616,16 +616,6 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
     <button class="btn btn-accent" id="btnSecSave" onclick="registerSecretary()" style="width:100%;justify-content:center;margin-top:5px;height:36px;background:var(--accent);color:#000;">Inscribir Secretaria</button>
   </div>
 
-  <!-- Columna 6: Inicialización de Usuarios -->
-  <div class="box-panel">
-    <div class="box-hdr">Inicialización de Usuarios</div>
-    <p style="font-size:12px;color:var(--muted);margin-bottom:15px;line-height:1.4;">
-      Registra masivamente los usuarios del archivo <b>usuarios.md</b> en el sistema de autenticación. Utilizar solo una vez.
-    </p>
-    <button class="btn btn-accent" id="btnInitUsers" onclick="initializeUsers()" style="width:100%;justify-content:center;margin-top:5px;height:36px;background:#10b981;color:#fff;">Registrar Usuarios</button>
-    <div id="initUsersLog" style="margin-top:10px; font-size:11px; color:var(--muted); max-height:100px; overflow-y:auto;"></div>
-  </div>
-
   </div> <!-- End inner flex wrapper -->
 </div>
 
@@ -1386,63 +1376,6 @@ window.registerSupervisor = async () => {
     }
   }
   btn.textContent = 'Inscribir Dietista';
-};
-
-window.initializeUsers = async () => {
-  if (!window.isAdmin) return window.toast('🔒', 'Acceso denegado');
-  const btn = document.getElementById('btnInitUsers');
-  const logDiv = document.getElementById('initUsersLog');
-  btn.textContent = 'Registrando...';
-  logDiv.innerHTML = 'Iniciando registro...<br>';
-  
-  const PREDEFINED_USERS = [
-    { name: 'Victor Vazquez Tirado', user: '01vvt0', pass: '889961', role: 'supervisor' },
-    { name: 'Andres Rivera Maldonado', user: '01arm5', pass: '889553', role: 'supervisor' },
-    { name: 'Ernix E. Yace Chinea', user: '01eyc0', pass: '890987', role: 'supervisor' },
-    { name: 'Lillian Y. Diaz Mendez', user: '01ldm0', pass: '890791', role: 'supervisor' },
-    { name: 'Carlos A. Rivera Rivera', user: 'crr2', pass: '891945', role: 'supervisor' },
-    { name: 'Carolynn Betancourt Acosta', user: '01cba0', pass: '891149', role: 'supervisor' },
-    { name: 'Alvin Nieves Huertas', user: '01anh0', pass: '889982', role: 'supervisor' },
-    { name: 'Sixto Sierras Gonzàlez', user: '01ssg0', pass: '891260', role: 'supervisor' },
-    { name: 'Angel Baez Rivera', user: '01abr3', pass: '890232', role: 'asistente' },
-    { name: 'Jacqueline Marrero Saez', user: '01jms3', pass: '889255', role: 'secretaria' },
-    { name: 'Tammy Colom Maldonado', user: '01tcm0', pass: '891129', role: 'supervisor' },
-    { name: 'Ricardo Vera Umpierre', user: '01rvu0', pass: '890062', role: 'supervisor' },
-    { name: 'Melinda Chapman Nartinez', user: '01mcm4', pass: '890816', role: 'supervisor' },
-    { name: 'Carmelo II Allende Martinez', user: '01cam1', pass: '890900', role: 'gerente' },
-    { name: 'Mayte Quiñones Cruz', user: '01mqc0', pass: '891900', role: 'gerente' },
-    { name: 'Empleado Prueba', user: 'emp123456', pass: '123456', role: 'empleado' }
-  ];
-
-  try {
-    await window.setDoc(window.doc(window.db, 'employees', '123456'), { id:123456, name:'Empleado Prueba', role:'Empleado', area:'centro', av:'EP', avColor:'#10b981', tag:'Prueba', tagBg:'rgba(16,185,129,.16)', tagColor:'#34d399' }, {merge: true});
-    logDiv.innerHTML += `<span style="color:#4ade80;">✅ Empleado Prueba (123456) añadido a Base de Datos</span><br>`;
-  } catch(e) {
-    logDiv.innerHTML += `<span style="color:#f87171;">❌ Error añadiendo Empleado Prueba a BD</span><br>`;
-  }
-
-  let successCount = 0;
-  let errorCount = 0;
-
-  for (const u of PREDEFINED_USERS) {
-    const email = u.user + '@workboard.local';
-    try {
-      await window.createUserWithEmailAndPassword(window.secondaryAuth, email, u.pass);
-      logDiv.innerHTML += `<span style="color:#4ade80;">✅ ${u.name} (${u.user})</span><br>`;
-      successCount++;
-    } catch(e) {
-      if (e.code === 'auth/email-already-in-use') {
-        logDiv.innerHTML += `<span style="color:#fbbf24;">⚠️ ${u.user} ya existe</span><br>`;
-      } else {
-        logDiv.innerHTML += `<span style="color:#f87171;">❌ ${u.user}: ${e.message}</span><br>`;
-        errorCount++;
-      }
-    }
-  }
-  
-  logDiv.innerHTML += `<b>Completado: ${successCount} registrados, ${errorCount} errores.</b>`;
-  btn.textContent = 'Registrar Usuarios';
-  window.toast('ℹ️', 'Proceso de registro finalizado');
 };
 
 window.registerSecretary = async () => {
