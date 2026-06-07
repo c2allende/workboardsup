@@ -361,14 +361,14 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
   <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap:24px; align-items:start;">
 
   <div class="box-panel">
-    <div class="box-hdr">Programa oficial de turnos</div>
+    <div class="box-hdr">Carga Masiva de Horarios (Excel)</div>
     <p style="font-size:12px;color:var(--muted);margin-bottom:15px;line-height:1.4;">
-      Carga los turnos asignados del programa oficial desde el 31 de mayo de 2026 hasta el 4 de julio de 2026. Esto actualiza empleados y turnos existentes para ese periodo.
+      Sube un archivo Excel (.xlsx, .xlsm) para cargar turnos de forma masiva. El sistema fusionará inteligentemente los datos basándose en el Número de Empleado y las fechas indicadas en el documento.
     </p>
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
       <label for="excelInput" class="btn btn-accent" id="btnImportOfficial" style="height:36px;padding:0 20px;cursor:pointer;display:inline-flex;align-items:center;">Subir Horario (Excel)</label>
       <input type="file" id="excelInput" accept=".xlsx, .xls, .xlsm, .csv" style="display:none;" onchange="handleExcelUpload(event)">
-      <span style="font-size:12px;color:var(--muted);">9 empleados · 35 días · Cocina Central / Centro de Distribución</span>
+      <span style="font-size:12px;color:var(--muted);">Formatos aceptados: .xlsx, .xlsm, .xls</span>
     </div>
   </div>
 
@@ -674,6 +674,21 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
         <p><b>Recuperación:</b> Como el registro usa sus correos electrónicos reales, si olvidan la clave pueden recuperarla ellos mismos desde el app sin tener que pedirte ayuda a ti para resetearla.</p>
         <p><b>Dietista Supervisor(a) (Solo Lectura):</b> Al crear una cuenta de Solo Lectura (para ver el calendario sin editar), se utilizará el nombre identificador (ej. 01cam1) y el número de empleado como contraseña. Para entrar, utilizarán el enlace web del panel y el correo asignado (ej. dietsup_01cam1@workboard.local).</p>
         <p><b>Secretaria (Borradores y Bloqueo):</b> La cuenta de Secretaria permite editar el calendario, pero no publicarlo directamente. Cuando ella guarda, el sistema crea un "Borrador" que te aparecerá a ti (Administrador) como un botón de revisión en la parte superior. Una vez lo revises, tú eres quien lo publica. Además, puedes habilitar o deshabilitar el acceso de la Secretaria usando el interruptor en la pestaña de Gestión de Personal.</p>
+      </div>
+    </div>
+
+    <!-- Importación de Excel -->
+    <div style="background:var(--surf-2); border:1px solid var(--border); border-radius:12px; padding:24px; box-shadow:0 8px 30px rgba(0,0,0,0.3);">
+      <div style="font-family:'Outfit'; font-size:18px; color:var(--royal); margin-bottom:15px; display:flex; align-items:center; gap:8px;">
+        📊 Importación de Horarios (Excel)
+      </div>
+      <div style="font-size:13px; color:var(--text); line-height:1.6; display:flex; flex-direction:column; gap:10px;">
+        <p><b>Subir Horario:</b> Puedes cargar turnos masivamente a la plataforma mediante un archivo de Excel. Ve a la sección de "Gestión de Personal" y presiona <b>Subir Horario (Excel)</b>.</p>
+        <p><b>Estructura Requerida:</b> Para que el sistema interprete los turnos correctamente, el Excel debe tener el siguiente formato estricto:
+           <br>1. <b>Fechas:</b> Deben estar colocadas en una fila horizontal comenzando desde la Columna B (Ej. <i>31-May-26</i>).
+           <br>2. <b>Pares de Datos:</b> Los empleados se definen en dos filas consecutivas. La primera fila del par contiene el nombre completo en la Columna A y sus turnos hacia la derecha. La segunda fila del par contiene el <b>Número de Empleado</b> en la Columna A.
+        </p>
+        <p><b>Fusión Automática:</b> El sistema leerá estos pares, utilizará el Número de Empleado como llave de identidad, e inyectará los turnos en el panel oficial, ignorando automáticamente espacios en blanco o notas como `***` o `ALM`.</p>
       </div>
     </div>
 
