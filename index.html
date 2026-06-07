@@ -855,10 +855,25 @@ window.listenEmployees = () => {
       891149: 8,  // Carolynn
       891260: 9   // Sixto
     };
+    const AREA_ORDER = { 'cocina': 1, 'centro': 2, 'flex': 3 };
+    
     emps.sort((a,b) => {
+      // 1. Área
+      const areaA = AREA_ORDER[a.area] || 99;
+      const areaB = AREA_ORDER[b.area] || 99;
+      if (areaA !== areaB) return areaA - areaB;
+
+      // 2. Rol (Asistente al final del área)
+      const roleA = (a.role === 'Asistente') ? 2 : 1;
+      const roleB = (b.role === 'Asistente') ? 2 : 1;
+      if (roleA !== roleB) return roleA - roleB;
+
+      // 3. Orden Específico (Originales)
       const oA = CUSTOM_ORDER[a.id] || 999;
       const oB = CUSTOM_ORDER[b.id] || 999;
       if (oA !== oB) return oA - oB;
+      
+      // 4. Nuevos empleados se ordenan por ID
       return a.id - b.id;
     });
     window.EMPLOYEES = emps;
