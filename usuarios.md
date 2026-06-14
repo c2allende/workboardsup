@@ -61,7 +61,6 @@ Num empleado: 890816
 Gerente
 Carmelo II Allende Martinez
 user: 01cam1
-Num empleado: 890900
 
 Gerente Asociada
 Mayte Quiñones Cruz

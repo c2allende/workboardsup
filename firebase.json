@@ -1,4 +1,7 @@
 {
+  "functions": {
+    "source": "functions"
+  },
   "hosting": {
     "site": "workboard-cocina",
     "public": ".",
@@ -6,7 +9,15 @@
       "firebase.json",
       "**/.*",
       "**/node_modules/**",
-      ".git/**"
+      ".git/**",
+      "**/*.md",
+      "**/*.xls",
+      "**/*.xlsx",
+      "**/*.xlsm",
+      "**/*Prototype.html",
+      "**/tests/**",
+      "functions/**",
+      "usuarios.md"
     ],
     "cleanUrls": true,
     "headers": [

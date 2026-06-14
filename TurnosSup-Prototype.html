@@ -169,14 +169,6 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 
 <!-- HORARIO -->
 <div id="viewHorario" class="view">
-  <div id="notificationReminderCard" class="card" style="display:none; margin-bottom:12px; border:1px solid var(--royal);">
-    <div style="font-family:'Outfit';font-size:16px;font-weight:700;color:var(--royal);margin-bottom:6px;">Recordatorio de turno</div>
-    <div id="notificationReminderStatus" style="font-size:13px;color:var(--muted);line-height:1.4;margin-bottom:12px;">Activa un aviso 24 horas antes de tu turno.</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;">
-      <button class="btn" id="btnEnableNotifications" style="width:auto;background:var(--royal);color:#fff;" onclick="enableShiftReminders()">Activar avisos</button>
-      <button class="btn-ghost" id="btnTestNotification" style="display:none;padding:10px 14px;border:1px solid var(--border);" onclick="testShiftReminder()">Probar ahora</button>
-    </div>
-  </div>
   <div id="scheduleList" style="display:flex;flex-direction:column;gap:12px;"></div>
 </div>
 
@@ -264,7 +256,6 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, doc, setDoc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getMessaging, getToken, isSupported as isMessagingSupported, onMessage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
 
 const firebaseConfig = {
   projectId: "workboard-carmelo",
@@ -278,8 +269,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
-let messaging = null;
-let foregroundMessagingUnsubscribe = null;
 
 /* ══ DATA ══ */
 const SHIFTS = {
@@ -322,7 +311,6 @@ onSnapshot(collection(db, 'employees'), snap => {
       const firstName = names[currentUserEid].split(' ')[0];
       greeting.textContent = 'Saludos, ' + firstName;
     }
-    renderNotificationReminder();
   }
 });
 
@@ -338,8 +326,6 @@ function escapeHtml(value) {
 
 window.swapEnabled = true;
 window.chatEnabled = false;
-window.reminderEnabled = true;
-window.reminderActivationId = 0;
 window.requestsLocked = false;
 onSnapshot(doc(db, 'config', 'system'), snap => {
   if(snap.exists()) {
@@ -347,11 +333,8 @@ onSnapshot(doc(db, 'config', 'system'), snap => {
     window.requestsLocked = !!data.requestsLocked;
     window.swapEnabled = data.swapEnabled !== false;
     window.chatEnabled = !!data.chatEnabled;
-    window.reminderEnabled = data.reminderEnabled !== false;
-    window.reminderActivationId = Number(data.reminderActivationId) || 0;
     const btnFloatingChat = document.getElementById('btnFloatingChat');
     if(btnFloatingChat) btnFloatingChat.style.display = window.chatEnabled ? 'flex' : 'none';
-    renderNotificationReminder();
     if(window.checkDateLock) window.checkDateLock();
   }
 });
@@ -362,115 +345,6 @@ let unsubReq=null;
 let unsubUpdates=null;
 let unsubChat=null;
 let lastSeenUpdate = parseInt(localStorage.getItem('lastSeenUpdate')) || 0;
-
-function setNotificationReminderStatus(message, enabled) {
-  const status = document.getElementById('notificationReminderStatus');
-  const enableButton = document.getElementById('btnEnableNotifications');
-  const testButton = document.getElementById('btnTestNotification');
-  if(status) status.textContent = message;
-  if(enableButton) enableButton.textContent = enabled ? 'Avisos activados' : 'Activar avisos';
-  if(enableButton) enableButton.disabled = !!enabled;
-  if(testButton) testButton.style.display = enabled ? 'inline-block' : 'none';
-}
-
-function renderNotificationReminder() {
-  const card = document.getElementById('notificationReminderCard');
-  if(!card) return;
-  const eligible = !!currentUserEid;
-  card.style.display = 'none';
-  if(!eligible) return;
-
-  if(!window.reminderEnabled) return;
-  if(!('Notification' in window)) {
-    card.style.display = 'block';
-    setNotificationReminderStatus('Este navegador no admite notificaciones.', false);
-    return;
-  }
-  const legacyEnabled = localStorage.getItem('shiftReminderEnabled') === 'true' ||
-    localStorage.getItem('notificationPilotEnabled') === 'true';
-  const savedActivationId = localStorage.getItem('shiftReminderActivationId');
-  const enabledForCurrentActivation = Notification.permission === 'granted' &&
-    ((savedActivationId !== null && Number(savedActivationId) === window.reminderActivationId) ||
-      (savedActivationId === null && window.reminderActivationId === 0 && legacyEnabled));
-
-  if(enabledForCurrentActivation) {
-    ensureForegroundNotificationListener();
-    return;
-  }
-
-  card.style.display = 'block';
-  setNotificationReminderStatus('Activa un aviso 24 horas antes de tu turno.', false);
-}
-
-async function ensureForegroundNotificationListener() {
-  if(foregroundMessagingUnsubscribe || !await isMessagingSupported()) return;
-  messaging = messaging || getMessaging(app);
-  foregroundMessagingUnsubscribe = onMessage(messaging, async payload => {
-    const registration = await navigator.serviceWorker.ready;
-    await registration.showNotification(payload.notification?.title || 'Recordatorio de turno', {
-      body: payload.notification?.body || 'Tienes un turno programado mañana.',
-      icon: '/icon-192.png',
-      badge: '/icon-192.png',
-      tag: payload.data?.deliveryId || 'turnosup-shift-reminder',
-      data: { url: payload.data?.url || '/TurnosSup' }
-    });
-  });
-}
-
-function getReminderDeviceId() {
-  let deviceId = localStorage.getItem('shiftReminderDeviceId') || localStorage.getItem('notificationPilotDeviceId');
-  if(!deviceId) {
-    deviceId = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    localStorage.setItem('shiftReminderDeviceId', deviceId);
-  }
-  return deviceId;
-}
-
-window.enableShiftReminders = async () => {
-  if(!currentUserEid) return;
-  if(!window.reminderEnabled) return toast('Los recordatorios están desactivados desde Administración');
-  if(!await isMessagingSupported()) return toast('Este dispositivo no admite avisos push');
-
-  const permission = await Notification.requestPermission();
-  if(permission !== 'granted') return toast('Debes permitir las notificaciones en el teléfono');
-
-  try {
-    const registration = await navigator.serviceWorker.ready;
-    messaging = messaging || getMessaging(app);
-    const token = await getToken(messaging, { serviceWorkerRegistration: registration });
-    if(!token) throw new Error('FCM no devolvió un token');
-
-    const deviceId = getReminderDeviceId();
-    await setDoc(doc(db, 'notificationDevices', `${currentUserEid}_${deviceId}`), {
-      eid: String(currentUserEid),
-      employeeName: window.EMP_NAMES[currentUserEid] || '',
-      enabled: true,
-      reminderActivationId: window.reminderActivationId,
-      token,
-      userAgent: navigator.userAgent,
-      updatedAt: Date.now()
-    });
-    localStorage.setItem('shiftReminderEnabled', 'true');
-    localStorage.setItem('shiftReminderActivationId', String(window.reminderActivationId));
-    renderNotificationReminder();
-    toast('Avisos activados en este teléfono');
-  } catch(error) {
-    console.error('Shift reminder registration error:', error);
-    toast('No se pudo activar. Verifica la configuración de Firebase Messaging');
-  }
-};
-
-window.testShiftReminder = async () => {
-  if(!currentUserEid || Notification.permission !== 'granted') return;
-  const registration = await navigator.serviceWorker.ready;
-  await registration.showNotification('Recordatorio de turno', {
-    body: 'Prueba exitosa. Mañana tienes un turno programado.',
-    icon: '/icon-192.png',
-    badge: '/icon-192.png',
-    data: { url: '/TurnosSup', reminderTest: true },
-    tag: 'turnosup-reminder-test'
-  });
-};
 
 window.dismissUpdateAlert = () => {
   document.getElementById('updateAlert').style.display = 'none';
@@ -509,7 +383,6 @@ onAuthStateChanged(auth, user => {
     // document.getElementById('bottomNav').style.display='flex'; // Hiding old nav
     populateReqOpts();
     loadData();
-    renderNotificationReminder();
     
     if(unsubUpdates) unsubUpdates();
     unsubUpdates = onSnapshot(doc(db, 'metadata', 'updates'), snap => {
@@ -532,7 +405,6 @@ onAuthStateChanged(auth, user => {
     document.getElementById('viewLogin').classList.add('active');
     document.getElementById('appHeader').style.display='none';
     document.getElementById('topBanner').style.display='none';
-    renderNotificationReminder();
     if(unsubSch) unsubSch();
     if(unsubReq) unsubReq();
     if(unsubUpdates) unsubUpdates();

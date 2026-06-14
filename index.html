@@ -143,6 +143,8 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .cell-day{display:flex;align-items:center;justify-content:center;height:68px;border-bottom:1px solid var(--border-2);border-right:1px solid var(--border-2);cursor:pointer;transition:background .12s;padding:2px;}
 .cell-day:hover{background:rgba(59,91,255,.08)!important}
 .cell-day.today-col{background:rgba(59,91,255,.04)}
+.col-hl { background: rgba(59,91,255,0.06) !important; }
+.gh-day.col-hl { background: rgba(59,91,255,0.12) !important; }
 .cell-total{display:flex;flex-direction:column;align-items:center;justify-content:center;height:68px;border-bottom:1px solid var(--border-2);border-left:1px solid var(--border);padding:0 2px;font-size:12.5px;font-weight:600;}
 
 /* ── SHIFT CHIP ── */
@@ -231,9 +233,11 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .req-card{background:var(--surf-2);border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:6px;}
 .req-hdr{font-size:12px;color:var(--muted);}
 .req-hdr b{color:var(--text);font-size:13px;}
-.req-note{font-size:13px;background:var(--surf-3);padding:8px;border-radius:6px;color:var(--text);}
+.req-note{font-size:13px;background:var(--surf-3);padding:10px 14px;border-radius:6px;color:var(--text);}
 .req-status{font-size:10px;font-weight:700;text-transform:uppercase;padding:3px 8px;border-radius:5px;align-self:flex-start;background:var(--border-2);color:var(--muted);}
 .req-status.pend{background:rgba(251,191,36,.15);color:#fbbf24;}
+.req-actions { display:flex; gap: 8px; margin-top: 5px; }
+.btn-req { padding: 4px 12px; font-size: 11px; }
 
 /* ══ TOAST ══ */
 .toast-wrap{position:fixed;bottom:16px;right:16px;z-index:400;display:flex;flex-direction:column;gap:5px}
@@ -265,8 +269,8 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 <!-- ══ HEADER ══ -->
 <header class="app-header">
   <div class="brand">
-    <div class="brand-logo">WB</div>
-    <span class="brand-name">WorkBoard</span>
+    <img src="/icon-192.png" alt="Icono" style="width:30px;height:30px;border-radius:8px;">
+    <span class="brand-name" style="font-size: 15px; font-weight: 700; max-width: 200px; white-space: normal; line-height: 1.1;">Programación Supervisión Servicio Alimentos ASEM</span>
   </div>
   <div class="hdr-divider"></div>
   <div class="tabs">
@@ -403,33 +407,21 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
           <label class="frm-lbl">Turnos Permitidos (ej: C1,C3)</label>
           <input type="text" id="ruleAllowedShifts" class="frm-input" placeholder="C1, C2, C3, D1, D2, A1, E1">
         </div>
-        <div style="flex:1; min-width:200px;">
-          <label class="frm-lbl">Días Fijos (0=Dom... ej: 1,2,5)</label>
-          <input type="text" id="ruleFixedDays" class="frm-input" placeholder="Ej: 1,2,5,6,0">
+      </div>
+
+      <div style="margin-top:10px; border:1px solid var(--border); padding:10px; border-radius:8px; background:var(--surf-2);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <label class="frm-lbl" style="margin:0;">Asignaciones Fijas (1=DOM, 2=LUN, 3=MAR... 7=SAB)</label>
+          <button class="btn btn-accent" style="height:24px; font-size:11px; padding:0 10px;" onclick="window.addFixedAssignmentRow()">+ Añadir</button>
         </div>
-        <div style="flex:1; min-width:150px;">
-          <label class="frm-lbl">Turno Fijo</label>
-          <input type="text" id="ruleFixedShift" class="frm-input" placeholder="Ej: D2">
+        <div id="fixedAssignmentsContainer" style="display:flex; flex-direction:column; gap:10px;">
+           <!-- Dynamic rows will go here -->
         </div>
       </div>
       
-      <div style="display:flex; flex-wrap:wrap; gap:15px;">
-         <div style="flex:1; min-width:200px;">
-          <label class="frm-lbl">Días Fijos - Inicia (Opcional)</label>
-          <input type="date" id="ruleFixedStarts" class="frm-input">
-        </div>
-        <div style="flex:1; min-width:200px;">
-          <label class="frm-lbl">Días Fijos - Expira (Opcional)</label>
-          <input type="date" id="ruleFixedExpires" class="frm-input">
-        </div>
-      </div>
-
-      <div style="display:flex; flex-wrap:wrap; gap:15px; background:var(--surf-2); padding:10px 15px; border-radius:8px; border:1px solid var(--border);">
+      <div style="display:flex; flex-wrap:wrap; gap:15px; background:var(--surf-2); padding:10px 15px; border-radius:8px; border:1px solid var(--border); margin-top:15px;">
         <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text); cursor:pointer; flex:1; min-width:200px;">
-          <input type="checkbox" id="ruleWeekendRotation"> Rotar Fines de Semana (Evitar consecutivos)
-        </label>
-        <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text); cursor:pointer; flex:1; min-width:200px;">
-          <input type="checkbox" id="ruleWeekendAlternating"> Preferir alternar fin de semana (1 sí, 1 no)
+          <input type="checkbox" id="ruleWeekendRotation"> Evitar Fines de Semana Consecutivos (Alternar 1 sí, 1 no)
         </label>
       </div>
 
@@ -487,16 +479,36 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
       </select>
     </div>
     <button class="btn btn-accent" id="btnVacSave" onclick="assignVacations()" style="width:100%;justify-content:center;margin-top:5px;height:36px;">Asignar en Horario</button>
+    <div style="margin-top:15px; border-top:1px solid var(--border); padding-top:10px;">
+      <div style="font-size:12px; font-weight:700; color:var(--text); margin-bottom:8px;">Asignaciones Futuras</div>
+      <div id="vacationsList" style="display:flex; flex-direction:column; gap:6px; max-height:200px; overflow-y:auto; font-size:12px;">
+         <!-- Se llena via JS -->
+      </div>
+    </div>
   </div>
 
   <!-- Columna 2: Peticiones -->
   <div class="box-panel" style="display:flex;flex-direction:column;max-height:80vh;">
     <div class="box-hdr" style="display:flex; justify-content:space-between; align-items:center;">
       <span>Registro de Peticiones</span>
-      <label class="toggle-switch" style="display:flex; align-items:center; gap:5px; font-size:12px; font-weight:normal; cursor:pointer;">
-        <input type="checkbox" id="lockRequestsToggle" onchange="toggleRequestsLock(this.checked)">
-        <span style="color:var(--royal); font-weight:bold;">🔒 Bloquear</span>
-      </label>
+      <div style="display:flex; gap:10px;">
+        <label class="toggle-switch" style="display:flex; align-items:center; gap:5px; font-size:12px; font-weight:normal; cursor:pointer;" title="Permitir chat en App">
+          <input type="checkbox" id="enableChatToggle" onchange="toggleChatFeature(this.checked)">
+          <span style="color:var(--royal); font-weight:bold;">💬 Habilitar Chat</span>
+        </label>
+        <label class="toggle-switch" style="display:flex; align-items:center; gap:5px; font-size:12px; font-weight:normal; cursor:pointer;" title="Permitir intercambios en App">
+          <input type="checkbox" id="enableSwapToggle" onchange="toggleSwapFeature(this.checked)">
+          <span style="color:var(--royal); font-weight:bold;">🤝 Activar Intercambios</span>
+        </label>
+        <label class="toggle-switch" style="display:flex; align-items:center; gap:5px; font-size:12px; font-weight:normal; cursor:pointer;" title="Permitir recordatorios push 24 horas antes del turno">
+          <input type="checkbox" id="enableRemindersToggle" onchange="toggleReminderFeature(this.checked)">
+          <span style="color:var(--royal); font-weight:bold;">🔔 Recordatorios de Turno</span>
+        </label>
+        <label class="toggle-switch" style="display:flex; align-items:center; gap:5px; font-size:12px; font-weight:normal; cursor:pointer;">
+          <input type="checkbox" id="lockRequestsToggle" onchange="toggleRequestsLock(this.checked)">
+          <span style="color:var(--royal); font-weight:bold;">🔒 Bloquear Peticiones</span>
+        </label>
+      </div>
     </div>
     
     <div style="background:var(--surf-3);padding:15px;border-radius:10px;margin-bottom:20px;border:1px solid var(--border-2);">
@@ -618,6 +630,21 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
     <button class="btn btn-accent" id="btnSecSave" onclick="registerSecretary()" style="width:100%;justify-content:center;margin-top:5px;height:36px;background:var(--accent);color:#000;">Inscribir Secretaria</button>
   </div>
 
+  <!-- Columna 6: Auditoría de Chat -->
+  <div class="box-panel" style="grid-column: 1 / -1;">
+    <div class="box-hdr" style="display:flex; justify-content:space-between; align-items:center;">
+      <span>Auditoría de Chat Interno</span>
+      <button class="btn btn-ghost" style="padding:4px 10px; font-size:11px;" onclick="clearChat()">Limpiar Historial</button>
+    </div>
+    <div id="adminChatList" style="max-height:400px; overflow-y:auto; padding-right:5px; display:flex; flex-direction:column; gap:8px;">
+      <div style="text-align:center; color:var(--muted); font-size:12px; margin-top:20px;">Cargando mensajes...</div>
+    </div>
+    <div style="padding:10px; border-top:1px solid var(--border); margin-top:10px; display:flex; gap:8px;">
+      <input type="text" id="adminChatInput" class="frm-input" placeholder="Enviar mensaje global a los supervisores..." style="margin-bottom:0;" onkeypress="if(event.key==='Enter') sendAdminChat()">
+      <button class="btn btn-accent" style="width:auto; padding:0 20px;" onclick="sendAdminChat()">Enviar</button>
+    </div>
+  </div>
+
   </div> <!-- End inner flex wrapper -->
 </div>
 
@@ -696,11 +723,11 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 </div>
 <div class="toast-wrap" id="toastWrap"></div>
 
-<div id="loginOverlay" style="display:flex; position:fixed; inset:0; z-index:9999; background:var(--bg); flex-direction:column; align-items:center; justify-content:center; gap:20px;">
-  <div style="font-family:'Outfit',sans-serif; font-size:28px; font-weight:800; background:linear-gradient(135deg,#fff,var(--accent)); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">WorkBoard</div>
+<div id="loginOverlay" style="display:flex; position:fixed; inset:0; z-index:9999; background:var(--bg); flex-direction:column; align-items:center; justify-content:center; gap:20px; padding: 20px; text-align: center;">
+  <div style="font-family:'Outfit',sans-serif; font-size:28px; font-weight:800; background:linear-gradient(135deg,var(--royal),var(--accent)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; line-height: 1.2;">Programación Supervisión<br>Servicio Alimentos ASEM</div>
   <div style="background:var(--surf-2); border:1px solid var(--border); padding:25px; border-radius:15px; width:100%; max-width:320px; display:flex; flex-direction:column; gap:15px; box-shadow:0 10px 40px rgba(0,0,0,0.5);">
     <h3 style="text-align:center; font-family:'Outfit',sans-serif; margin-bottom:5px;">Acceso Requerido</h3>
-    <input type="text" id="authEmail" placeholder="Usuario (ej. 01vvt0)" class="create-name" style="width:100%; padding:10px; font-size:14px; text-transform:lowercase;">
+    <input type="text" id="authEmail" placeholder="Usuario (ej. 01xxx1)" class="create-name" style="width:100%; padding:10px; font-size:14px; text-transform:lowercase;">
     <input type="password" id="authPass" placeholder="Contraseña" class="create-name" style="width:100%; padding:10px; font-size:14px;">
     <button class="btn btn-accent" id="btnLoginSubmit" style="width:100%; justify-content:center;">Entrar</button>
   </div>
@@ -711,7 +738,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 <!-- Firebase Modular SDK -->
 <script type="module">
 import { initializeApp, initializeApp as initApp2 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, doc, setDoc, getDoc, onSnapshot, deleteField, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, doc, setDoc, getDoc, getDocs, query, onSnapshot, deleteField, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword, getAuth as getAuth2 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
@@ -740,6 +767,8 @@ window.deleteField = deleteField;
 window.collection = collection;
 window.deleteDoc = deleteDoc;
 window.onSnapshot = onSnapshot;
+window.getDocs = getDocs;
+window.query = query;
 window.rulesByEmployee = window.rulesByEmployee || {};
 
 onAuthStateChanged(auth, async user => {
@@ -901,6 +930,16 @@ window.listenEmployees = () => {
       // 4. Nuevos empleados se ordenan por ID
       return a.id - b.id;
     });
+    
+    emps.push({
+      id: 'GA',
+      name: window.gaName || 'Gerente Asociada (Apoyo)',
+      role: 'Apoyo',
+      area: 'centro',
+      av: 'GA',
+      avColor: 'var(--royal)'
+    });
+    
     window.EMPLOYEES = emps;
     if (window.updateRuleEmpSelect) window.updateRuleEmpSelect();
     if (typeof initGestionForms === 'function') initGestionForms();
@@ -916,10 +955,22 @@ window.listenSchedule = () => {
     snap.forEach(docSnap => {
       const dateStr = docSnap.id;
       const data = docSnap.data();
-      for(const eid in data) window.setShift(parseInt(eid), dateStr, data[eid]);
+      for(const eid in data) {
+        const id = isNaN(eid) ? eid : parseInt(eid);
+        window.setShift(id, dateStr, data[eid]);
+      }
     });
     window.render();
   }, err => console.error(err));
+  
+  // Listen to chat messages
+  if(window.unsubChat) window.unsubChat();
+  window.unsubChat = onSnapshot(window.collection(window.db, 'messages'), snap => {
+    let msgs = [];
+    snap.forEach(d => msgs.push({id: d.id, ...d.data()}));
+    msgs.sort((a,b) => a.timestamp - b.timestamp);
+    if(window.renderAdminChat) window.renderAdminChat(msgs);
+  });
 };
 
 let unsubReq = null;
@@ -934,7 +985,10 @@ window.listenRequests = () => {
     window.render(); // Re-render to show badges in schedule
     let html = '';
     reqs.forEach(r => {
-      const empName = window.EMPLOYEES.find(e=>e.id===r.eid)?.name || r.name || 'Desconocido';
+      const empName = escapeHtml(window.EMPLOYEES.find(e=>e.id == r.eid)?.name || r.name || 'Desconocido');
+      const requestDate = escapeHtml(r.date || '');
+      const requestNote = escapeHtml(r.note || '');
+      const requestStatus = escapeHtml(r.status || '');
       const createdDate = new Date(r.created);
       const createdStr = createdDate.toLocaleString('es-PR', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
       
@@ -946,21 +1000,21 @@ window.listenRequests = () => {
       }
       
       if(r.status === 'pending' || r.status === 'Pendiente') {
-        actionsHtml = `<div style="display:flex; gap:5px; margin-top:10px;">
-          <button class="btn btn-accent" style="flex:1; height:28px; font-size:12px; padding:0;" onclick="approveReq('${r.id}', true)">Aprobar</button>
-          <button class="btn btn-ghost" style="flex:1; height:28px; font-size:12px; border:1px solid var(--border); padding:0;" onclick="approveReq('${r.id}', false)">Denegar</button>
+        actionsHtml = `<div style="display:flex; gap:8px;">
+          <button class="btn btn-accent" style="flex:1; height:32px; font-size:13px; padding:0 15px;" onclick="approveReq('${r.id}', true)">Aprobar</button>
+          <button class="btn btn-ghost" style="flex:1; height:32px; font-size:13px; border:1px solid var(--border); padding:0 15px;" onclick="approveReq('${r.id}', false)">Denegar</button>
         </div>`;
       }
 
       html += `<div class="req-card">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-          <div class="req-hdr"><b>${empName}</b> ${badgeHtml} <div style="font-size:12px; margin-top:2px;">Solicita: ${r.date}</div></div>
+          <div class="req-hdr"><b>${empName}</b> ${badgeHtml} <div style="font-size:12px; margin-top:2px;">Solicita: ${requestDate}</div></div>
           <button class="pop-x" onclick="deleteReq('${r.id}')" title="Eliminar">✕</button>
         </div>
-        <div class="req-note">${r.note}</div>
+        <div class="req-note">${requestNote}</div>
         ${actionsHtml}
         <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:8px;">
-          <div class="req-status ${r.status==='pending'||r.status==='Pendiente'?'pend':''}">${r.status==='pending'?'Pendiente':r.status}</div>
+          <div class="req-status ${r.status==='pending'||r.status==='Pendiente'?'pend':''}">${r.status==='pending'?'Pendiente':requestStatus}</div>
           <div style="font-size:9.5px; color:var(--muted);">Registrado: ${createdStr}</div>
         </div>
       </div>`;
@@ -973,7 +1027,9 @@ window.listenRequests = () => {
 window.listenEmployees();
 window.listenSchedule();
 window.listenRequests();
+if(window.listenCustomShifts) window.listenCustomShifts();
 if(window.listenConfig) window.listenConfig();
+if(window.listenRules) window.listenRules();
 </script>
 
 <script>
@@ -983,6 +1039,11 @@ if(window.listenConfig) window.listenConfig();
 const DAYS_ES   = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
 const MONTHS_ES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 const PALETTE   = ['#e879f9','#f97316','#fbbf24','#84cc16','#34d399','#38bdf8','#818cf8','#f87171','#a78bfa','#60a5fa','#ec4899','#14b8a6'];
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  })[ch]);
+}
 const WORK_IDS  = new Set(['C1','C2','C3','CE','D1','D2','A1','E1']);
 
 const SHIFTS = {
@@ -996,28 +1057,44 @@ const SHIFTS = {
   E1:{ id:'E1', label:'Turno 5:30am–1:30pm',  area:null,     start:'05:30', end:'13:30', color:'#60a5fa',     bg:'rgba(96,165,250,.15)', bd:'rgba(96,165,250,.3)' },
   L:  { id:'L',   label:'Libre',            area:null, start:null, end:null, color:'var(--l-c)',   bg:'var(--l-bg)',   bd:'var(--l-bd)'   },
   V:  { id:'V',   label:'Vacaciones',       area:null, start:null, end:null, color:'var(--v-c)',   bg:'var(--v-bg)',   bd:'var(--v-bd)'   },
+  Vac:{ id:'Vac', label:'Vacaciones',       area:null, start:null, end:null, color:'var(--v-c)',   bg:'var(--v-bg)',   bd:'var(--v-bd)'   },
   LR: { id:'LR',  label:'Licencia Regular', area:null, start:null, end:null, color:'var(--lr-c)',  bg:'var(--lr-bg)',  bd:'var(--lr-bd)'  },
   FSE:{ id:'FSE', label:'Fondo',            area:null, start:null, end:null, color:'var(--fse-c)', bg:'var(--fse-bg)', bd:'var(--fse-bd)' },
   PER:{ id:'PER', label:'Permiso',          area:null, start:null, end:null, color:'var(--per-c)', bg:'var(--per-bg)', bd:'var(--per-bd)' },
   F:  { id:'F',   label:'Feriado',          area:null, start:null, end:null, color:'var(--f-c)',   bg:'var(--f-bg)',   bd:'var(--f-bd)'   },
-  ENF:{ id:'ENF', label:'Enfermedad',        area:null, start:null, end:null, color:'#fb7185',     bg:'rgba(251,113,133,.13)', bd:'rgba(251,113,133,.25)' },
+  ENF:{ id:'ENF', label:'Enfermedad',       area:null, start:null, end:null, color:'#fb7185',     bg:'rgba(251,113,133,.13)', bd:'rgba(251,113,133,.25)' },
+  EnfCC:{ id:'EnfCC', label:'Enfermedad Cert.', area:null, start:null, end:null, color:'#fb7185', bg:'rgba(251,113,133,.13)', bd:'rgba(251,113,133,.25)' },
 };
 
 const EMPLOYEES_DEFAULT = [
-  { id:1, name:'Victor Vazquez', role:'Supervisor', area:'cocina', av:'VV', avColor:'#c2410c', tag:'Cocina',     tagBg:'transparent', tagColor:'#ea580c' },
-  { id:2, name:'Andres Rivera',  role:'Supervisor', area:'cocina', av:'AR', avColor:'#92400e', tag:'Cocina',     tagBg:'transparent', tagColor:'#ea580c' },
-  { id:3, name:'Ernix Yace',     role:'Supervisor', area:'cocina', av:'EY', avColor:'#78350f', tag:'Cocina',     tagBg:'transparent', tagColor:'#ea580c' },
-  { id:4, name:'Alvin Nieves',   role:'Supervisor', area:'centro', av:'AN', avColor:'#0e7490', tag:'Centro',    tagBg:'transparent', tagColor:'#0284c7' },
-  { id:5, name:'Carlos Rivera',  role:'Supervisor', area:'centro', av:'CR', avColor:'#1e40af', tag:'Centro',    tagBg:'transparent', tagColor:'#0284c7' },
-  { id:6, name:'Lillian Diaz',   role:'Supervisor', area:'centro', av:'LD', avColor:'#5b21b6', tag:'Centro',    tagBg:'transparent', tagColor:'#0284c7' },
-  { id:7, name:'Angel Baez',     role:'Asistente',  area:'centro', av:'AB', avColor:'#065f46', tag:'Asistente', tagBg:'transparent', tagColor:'#059669', shiftLock:'A1', lockNote:'Turno fijo: A1 (5am–1pm)' },
-  { id:8, name:'Carolyn Betancourt', role:'Supervisor', area:'flex', av:'CB', avColor:'#6d28d9', tag:'Flexible', tagBg:'transparent', tagColor:'#7c3aed' },
-  { id:9, name:'Sisto Sierra',   role:'Supervisor', area:'flex',   av:'SS', avColor:'#9d174d', tag:'Flexible',  tagBg:'transparent', tagColor:'#7c3aed' },
-  { id:123456, name:'Empleado Prueba', role:'Empleado', area:'centro', av:'EP', avColor:'#10b981', tag:'Prueba', tagBg:'rgba(16,185,129,.16)', tagColor:'#34d399' }
+  { id:889961, name:'Victor Vazquez', role:'Supervisor', area:'cocina', av:'VV', avColor:'#c2410c', tag:'Cocina',     tagBg:'transparent', tagColor:'#ea580c' },
+  { id:889553, name:'Andres Rivera',  role:'Supervisor', area:'cocina', av:'AR', avColor:'#92400e', tag:'Cocina',     tagBg:'transparent', tagColor:'#ea580c' },
+  { id:890987, name:'Ernix Yace',     role:'Supervisor', area:'cocina', av:'EY', avColor:'#78350f', tag:'Cocina',     tagBg:'transparent', tagColor:'#ea580c' },
+  { id:889982, name:'Alvin Nieves',   role:'Supervisor', area:'centro', av:'AN', avColor:'#0e7490', tag:'Centro',    tagBg:'transparent', tagColor:'#0284c7' },
+  { id:891945, name:'Carlos Rivera',  role:'Supervisor', area:'centro', av:'CR', avColor:'#1e40af', tag:'Centro',    tagBg:'transparent', tagColor:'#0284c7' },
+  { id:890791, name:'Lillian Diaz',   role:'Supervisor', area:'centro', av:'LD', avColor:'#5b21b6', tag:'Centro',    tagBg:'transparent', tagColor:'#0284c7' },
+  { id:890232, name:'Angel Baez',     role:'Asistente',  area:'centro', av:'AB', avColor:'#065f46', tag:'Asistente', tagBg:'transparent', tagColor:'#059669', shiftLock:'A1', lockNote:'Turno fijo: A1 (5am–1pm)' },
+  { id:891149, name:'Carolyn Betancourt', role:'Supervisor', area:'flex', av:'CB', avColor:'#6d28d9', tag:'Flexible', tagBg:'transparent', tagColor:'#7c3aed' },
+  { id:891260, name:'Sisto Sierra',   role:'Supervisor', area:'flex',   av:'SS', avColor:'#9d174d', tag:'Flexible',  tagBg:'transparent', tagColor:'#7c3aed' }
 ];
 window.EMPLOYEES = [];
 
 const customShifts = {};
+
+let unsubCustomShifts = null;
+window.listenCustomShifts = () => {
+  if (unsubCustomShifts) unsubCustomShifts();
+  unsubCustomShifts = window.onSnapshot(window.doc(window.db, 'config', 'customShifts'), snap => {
+    if (snap.exists()) {
+      const data = snap.data();
+      for (const k in customShifts) delete customShifts[k];
+      Object.assign(customShifts, data);
+      updateCustomLegend();
+      if(typeof window.renderSchedule === 'function') window.renderSchedule();
+      if(typeof window.renderGlobalSchedule === 'function') window.renderGlobalSchedule();
+    }
+  });
+};
 let selectedCreateColor = PALETTE[0];
 
 function hexToRgb(hex){ const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16); return `${r},${g},${b}` }
@@ -1094,7 +1171,7 @@ window.generateReport = function(){
       if(sid==='D2') d2++;
     });
     html += `<tr style="border-bottom:1px solid var(--border);">
-      <td style="padding:10px;"><div style="font-weight:600;color:var(--text);">${emp.name}</div><div style="font-size:10px;color:var(--muted)">${emp.role}</div></td>
+      <td style="padding:10px;"><div style="font-weight:600;color:var(--text);">${escapeHtml(emp.name)}</div><div style="font-size:10px;color:var(--muted)">${escapeHtml(emp.role)}</div></td>
       <td style="font-size:14px;padding:10px;"><b>${tot}</b></td>
       <td style="padding:10px;">${c1}</td><td style="padding:10px;">${d1}</td><td style="padding:10px;">${c2a1}</td><td style="padding:10px;">${e1}</td><td style="padding:10px;">${c3}</td><td style="padding:10px;">${d2}</td>
     </tr>`;
@@ -1125,7 +1202,7 @@ function initGestionForms(){
   const selV = document.getElementById('vacEmp');
   const selR = document.getElementById('reqEmp');
   let opts = '<option value="">-- Selecciona --</option>';
-  window.EMPLOYEES.forEach(e => opts += `<option value="${e.id}">${e.name} (${e.area})</option>`);
+  window.EMPLOYEES.forEach(e => opts += `<option value="${escapeHtml(e.id)}">${escapeHtml(e.name)} (${escapeHtml(e.area)})</option>`);
   if(selV) selV.innerHTML = opts;
   if(selR) selR.innerHTML = opts;
 }
@@ -1151,15 +1228,40 @@ window.assignVacations = async function() {
   const btn = document.getElementById('btnVacSave'); btn.textContent='...';
   let c = new Date(f);
   let count = 0;
+  
+  const promises = [];
+  const affectedWeeks = new Set();
+  
   try {
     while(c<=t) {
       const dStr = ds(c);
-      await window.setDoc(window.doc(window.db, 'schedules', dStr), { [eid]: type }, { merge: true });
+      
+      const sun = new Date(c); sun.setDate(c.getDate() - c.getDay());
+      affectedWeeks.add(ds(sun));
+      
+      if (c.getDay() !== 0 && c.getDay() !== 6) {
+        // Prevent overwriting Feriados
+        const existingShift = window.sched && window.sched[eid] && window.sched[eid][dStr];
+        if (existingShift !== 'F') {
+          promises.push(window.setDoc(window.doc(window.db, 'schedules', dStr), { [eid]: type }, { merge: true }));
+          count++;
+        }
+      }
       c.setDate(c.getDate()+1);
-      count++;
     }
+    
+    affectedWeeks.forEach(sunStr => {
+      const sunDate = new Date(sunStr + 'T12:00:00');
+      const satDate = new Date(sunStr + 'T12:00:00');
+      satDate.setDate(satDate.getDate() + 6);
+      
+      promises.push(window.setDoc(window.doc(window.db, 'schedules', ds(sunDate)), { [eid]: 'L' }, { merge: true }));
+      promises.push(window.setDoc(window.doc(window.db, 'schedules', ds(satDate)), { [eid]: 'L' }, { merge: true }));
+    });
+    
+    await Promise.all(promises);
     window.notifyScheduleUpdate();
-    window.toast('✅',`${count} días asignados correctamente`);
+    window.toast('✅',`${count} días laborables asignados + Fines de semana`);
     document.getElementById('vacFrom').value='';
     document.getElementById('vacTo').value='';
   } catch(e) {
@@ -1167,6 +1269,117 @@ window.assignVacations = async function() {
   }
   btn.textContent='Asignar en Horario';
 }
+
+window.deleteVacationBlock = async function(eid, startStr, endStr) {
+  if(!confirm('¿Seguro que deseas eliminar esta asignación?')) return;
+  const btn = event.currentTarget;
+  btn.style.opacity = '0.5';
+  btn.style.pointerEvents = 'none';
+  
+  let d = new Date(startStr+'T12:00:00');
+  const end = new Date(endStr+'T12:00:00');
+  const promises = [];
+  while(d <= end) {
+    const dStr = ds(d);
+    promises.push(window.setDoc(window.doc(window.db, 'schedules', dStr), { [eid]: window.deleteField() }, { merge: true }));
+    d.setDate(d.getDate() + 1);
+  }
+  try {
+    await Promise.all(promises);
+    window.toast('✅', 'Eliminada');
+    // window.render() will be called automatically by listenSchedule onSnapshot
+  } catch(e) {
+    window.toast('❌', 'Error al eliminar');
+    btn.style.opacity = '1';
+    btn.style.pointerEvents = 'auto';
+  }
+};
+
+window.renderVacationsList = function() {
+  const list = document.getElementById('vacationsList');
+  if(!list) return;
+  if(!window.sched) return;
+  
+  const todayStr = ds(new Date());
+  let blocks = [];
+  
+  window.EMPLOYEES.forEach(emp => {
+    let currentBlock = null;
+    const empSched = window.sched[emp.id] || {};
+    const dates = Object.keys(empSched).sort();
+    
+    dates.forEach(dStr => {
+      // We process all dates to correctly group them, but we only show if the block's end >= today
+      const shift = empSched[dStr];
+      const isVacationCode = shift && !WORK_IDS.has(shift) && shift !== 'L' && shift !== 'F' && shift !== 'ENF';
+      const isGapDay = shift === 'L' || shift === 'F';
+      
+      if (isVacationCode) {
+        if (!currentBlock || currentBlock.type !== shift) {
+          if (currentBlock) blocks.push(currentBlock);
+          currentBlock = { emp: emp, type: shift, start: dStr, end: dStr };
+        } else {
+          // Check if contiguous or separated by a short gap of L/F
+          const d1 = new Date(currentBlock.end + 'T12:00:00');
+          const d2 = new Date(dStr + 'T12:00:00');
+          const diffDays = Math.ceil(Math.abs(d2 - d1) / (1000 * 60 * 60 * 24));
+          
+          if (diffDays <= 6) { // Merge if gap is small (weekends/holidays)
+            currentBlock.end = dStr;
+          } else {
+            blocks.push(currentBlock);
+            currentBlock = { emp: emp, type: shift, start: dStr, end: dStr };
+          }
+        }
+      } else if (!isGapDay) {
+        // Regular work shift or regular sickness breaks the vacation block
+        if (currentBlock) {
+          blocks.push(currentBlock);
+          currentBlock = null;
+        }
+      }
+    });
+    if (currentBlock) blocks.push(currentBlock);
+  });
+  
+  // Filter out blocks that ended before today
+  blocks = blocks.filter(b => b.end >= todayStr);
+  
+  // Sort blocks by start date
+  blocks.sort((a,b) => a.start.localeCompare(b.start));
+  
+  if (blocks.length === 0) {
+    list.innerHTML = `<div style="color:var(--muted);text-align:center;padding:10px;">
+      No hay asignaciones futuras.
+    </div>`;
+    return;
+  }
+  
+  let html = '';
+  blocks.forEach(b => {
+    const fmt = (dStr) => {
+      const d = new Date(dStr+'T12:00:00');
+      const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+      return `${d.getDate()} ${months[d.getMonth()]} (${DAYS_ES[d.getDay()].substring(0,3)})`;
+    };
+    const dateRange = b.start === b.end ? fmt(b.start) : `${fmt(b.start)} - ${fmt(b.end)}`;
+    const cfg = window.chipCfg(b.type);
+    
+    html += `
+      <div style="display:flex; justify-content:space-between; align-items:center; background:var(--surf-2); padding:8px 10px; border-radius:6px; border:1px solid var(--border-2);">
+        <div>
+          <div style="font-weight:600; color:var(--text); margin-bottom:2px;">${escapeHtml(b.emp.name)}</div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span style="background:${cfg.bg}; color:${cfg.color}; padding:2px 4px; border-radius:4px; font-size:10px; font-weight:700;">${b.type}</span>
+            <span style="color:var(--muted); font-size:11px;">${dateRange}</span>
+          </div>
+        </div>
+        <button onclick="deleteVacationBlock('${b.emp.id}', '${b.start}', '${b.end}')" style="background:transparent; border:none; color:var(--red); cursor:pointer; font-size:14px; padding:4px;" title="Eliminar asignación">🗑️</button>
+      </div>
+    `;
+  });
+  list.innerHTML = html;
+};
 
 /* ══════════════════════════════════════════════════════
    GESTIÓN - PETICIONES
@@ -1337,10 +1550,17 @@ window.approveReq = async (reqId, isApproved) => {
     updateData[req.eid] = currentTargetShift;
     updateData[req.targetEid] = currentSelfShift;
   } else {
-    let code = req.note;
-    if(code.includes('(') && code.includes(')')) {
-      code = code.split('(')[1].split(')')[0];
-    }
+    const requestCodes = {
+      'Libre': 'L',
+      'Dia Libre (L)': 'L',
+      'Turno AM Cocina': 'C1',
+      'Turno AM Cocina(AM-C)': 'C1',
+      'Turno AM Centro': 'D1',
+      'Turno PM Centro': 'D2'
+    };
+    let code = String(requestCodes[req.note] || req.note || '');
+    if(code.includes('(') && code.includes(')')) code = code.split('(')[1].split(')')[0];
+    if (!resolveShift(code)) return window.toast('❌', 'La petición no corresponde a un turno válido');
     updateData[req.eid] = code;
   }
   
@@ -1367,6 +1587,26 @@ window.toggleSecretaryLock = async (locked) => {
   window.toast(locked ? '🟢' : '🔴', locked ? 'Acceso Secretaria habilitado' : 'Acceso Secretaria deshabilitado');
 };
 
+window.toggleChatFeature = async (enabled) => {
+  if(!window.isAdmin) return;
+  await window.setDoc(window.doc(window.db, 'config', 'system'), { chatEnabled: enabled }, { merge: true });
+  window.toast(enabled ? '🟢' : '🔴', enabled ? 'Chat habilitado en App' : 'Chat deshabilitado');
+};
+
+window.toggleSwapFeature = async (enabled) => {
+  if(!window.isAdmin) return;
+  await window.setDoc(window.doc(window.db, 'config', 'system'), { swapEnabled: enabled }, { merge: true });
+  window.toast(enabled ? '🟢' : '🔴', enabled ? 'Intercambios habilitados en App' : 'Intercambios deshabilitados');
+};
+
+window.toggleReminderFeature = async (enabled) => {
+  if(!window.isAdmin) return;
+  const update = { reminderEnabled: enabled };
+  if(enabled) update.reminderActivationId = Date.now();
+  await window.setDoc(window.doc(window.db, 'config', 'system'), update, { merge: true });
+  window.toast(enabled ? '🟢' : '🔴', enabled ? 'Recordatorios de turno habilitados' : 'Recordatorios de turno deshabilitados');
+};
+
 window.listenConfig = () => {
   onSnapshot(window.doc(window.db, 'config', 'system'), (snap) => {
     if(snap.exists()) {
@@ -1375,6 +1615,18 @@ window.listenConfig = () => {
       if(el) el.checked = !!data.requestsLocked;
       const elSec = document.getElementById('lockSecretaryToggle');
       if(elSec) elSec.checked = !!data.secretaryEnabled;
+      const elSwap = document.getElementById('enableSwapToggle');
+      if(elSwap) elSwap.checked = !!data.swapEnabled;
+      const elChat = document.getElementById('enableChatToggle');
+      if(elChat) elChat.checked = !!data.chatEnabled;
+      const elReminders = document.getElementById('enableRemindersToggle');
+      if(elReminders) elReminders.checked = data.reminderEnabled !== false;
+      window.gaName = data.gaName || 'Gerente Asociada (Apoyo)';
+      const prevGaEnabled = window.gaEnabled;
+      window.gaEnabled = data.gaEnabled !== undefined ? data.gaEnabled : false;
+      const gaInp = document.getElementById('gaNameInput');
+      if (gaInp && document.activeElement !== gaInp) gaInp.value = window.gaName;
+      if (prevGaEnabled !== window.gaEnabled && window.EMPLOYEES.length > 0) window.render();
     }
   });
   
@@ -1391,6 +1643,16 @@ window.listenConfig = () => {
   });
 };
 
+window.listenRules = () => {
+  window.onSnapshot(window.collection(window.db, 'rules'), snap => {
+    window.rulesByEmployee = {};
+    snap.forEach(doc => {
+      window.rulesByEmployee[doc.id] = doc.data();
+    });
+    if (window.updateRuleEmpSelect) window.updateRuleEmpSelect();
+  });
+};
+
 window.loadSecDraft = () => {
   if(!window.pendingSecDraft) return;
   window.draftSched = window.pendingSecDraft;
@@ -1399,6 +1661,63 @@ window.loadSecDraft = () => {
   document.getElementById('btnLoadSecDraft').style.display = 'none';
   window.render();
   window.toast('✨', 'Borrador de Secretaria cargado. Revisa y publica.');
+};
+
+window.renderAdminChat = (msgs) => {
+  const container = document.getElementById('adminChatList');
+  if(!container) return;
+  if(!msgs.length) {
+    container.innerHTML = '<div style="text-align:center; color:var(--muted); font-size:12px; margin-top:20px;">No hay mensajes registrados.</div>';
+    return;
+  }
+  let html = '';
+  msgs.forEach(m => {
+    const d = new Date(m.timestamp);
+    const dateStr = d.toLocaleDateString('es-PR') + ' ' + d.toLocaleTimeString('es-PR', {hour: '2-digit', minute:'2-digit'});
+    const senderName = escapeHtml(window.EMPLOYEES.find(e=>e.id===m.eid)?.name || m.name || 'Desconocido');
+    html += `
+      <div style="background:var(--surf-3); padding:10px 14px; border-radius:8px; font-size:13px; line-height:1.4; border:1px solid var(--border);">
+        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+          <b style="color:var(--royal);">${senderName}</b>
+          <span style="font-size:10px; color:var(--muted);">${dateStr}</span>
+        </div>
+        <div>${escapeHtml(m.text)}</div>
+      </div>
+    `;
+  });
+  
+  const isScrolledToBottom = container.scrollHeight - container.clientHeight <= container.scrollTop + 50;
+  container.innerHTML = html;
+  if(isScrolledToBottom) {
+    container.scrollTop = container.scrollHeight;
+  }
+};
+
+window.clearChat = async () => {
+  if(!confirm("¿Estás seguro de eliminar TODOS los mensajes del chat grupal? Esta acción no se puede deshacer.")) return;
+  const q = window.query(window.collection(window.db, 'messages'));
+  const snap = await window.getDocs(q);
+  snap.forEach(d => {
+    window.deleteDoc(d.ref);
+  });
+  window.toast('🗑️', 'Historial del chat borrado');
+};
+
+window.sendAdminChat = async () => {
+  const inp = document.getElementById('adminChatInput');
+  const text = inp.value.trim();
+  if(!text) return;
+  
+  inp.value = '';
+  inp.focus();
+  
+  const id = Date.now().toString();
+  await window.setDoc(window.doc(window.db, 'messages', id), {
+    eid: 'admin',
+    name: 'Administrador 🛡️',
+    text: text,
+    timestamp: Date.now()
+  });
 };
 
 window.registerEmployee = async () => {
@@ -1545,7 +1864,7 @@ function empShiftCount(eid,dates,shiftIds){ return dates.filter(d=>shiftIds.incl
    LÓGICA DE COBERTURA
 ══════════════════════════════════════════════════════ */
 function getDayStatus(dateStr){
-  const unscheduled=window.EMPLOYEES.filter(e=>getShift(e.id,dateStr)===null).length;
+  const unscheduled=window.EMPLOYEES.filter(e=>getShift(e.id,dateStr)===null && (e.id !== 'GA' || window.gaEnabled)).length;
   const cnt={};
   window.EMPLOYEES.forEach(e=>{
     const sid=getShift(e.id,dateStr);
@@ -1561,11 +1880,12 @@ function getDayStatus(dateStr){
   const centroOk   = optA||optB;
 
   const issues=[];
+  const EXPECTED_EMPS = window.EMPLOYEES.filter(e => e.id !== 'GA' || window.gaEnabled).length;
   if(unscheduled>0) issues.push(`${unscheduled} sin asignar`);
   if(!cocinaOk){ if(c1<1) issues.push('Falta C1'); if(c3<1) issues.push('Falta C3'); }
   if(!centroOk) issues.push(`Necesita D1×2+D2 ó A1+D1+D2`);
 
-  return { unscheduled, c1,c2,c3, d1,d2,a1, cocinaOk, centroOk, optA, optB, issues, allOk:cocinaOk&&centroOk&&unscheduled===0, c:(cocinaOk&&centroOk&&unscheduled===0)?'green': (cocinaOk&&centroOk)?'yellow':'red', label: issues.length?issues.join(', '):'Completo' };
+  return { unscheduled, EXPECTED_EMPS, c1,c2,c3, d1,d2,a1, cocinaOk, centroOk, optA, optB, issues, allOk:cocinaOk&&centroOk&&unscheduled===0, c:(cocinaOk&&centroOk&&unscheduled===0)?'green': (cocinaOk&&centroOk)?'yellow':'red', label: issues.length?issues.join(', '):'Completo' };
 }
 
 function getDayStatusArea(dateStr, area){
@@ -1573,7 +1893,8 @@ function getDayStatusArea(dateStr, area){
   if (area === 'cocina') empIds = window.EMPLOYEES.filter(e => e.area === 'cocina').map(e => e.id);
   else if (area === 'centro') empIds = window.EMPLOYEES.filter(e => e.area === 'centro').map(e => e.id);
   
-  const unscheduled = empIds.filter(id=>getShift(id,dateStr)===null).length;
+  const unscheduled = empIds.filter(id=>getShift(id,dateStr)===null && (id !== 'GA' || window.gaEnabled)).length;
+  const expectedTotal = empIds.filter(id => id !== 'GA' || window.gaEnabled).length;
 
   const cnt={};
   // Count shifts from ALL employees to allow flexible supervisors to contribute to coverage
@@ -1603,6 +1924,7 @@ function getDayStatusArea(dateStr, area){
     c: (isOk && unscheduled===0) ? 'green' : (isOk ? 'yellow' : 'red'),
     label: issues.length ? issues.join(', ') : 'Completo',
     unscheduled,
+    expectedTotal,
     issues: issues,
     cocinaOk: area === 'cocina' ? isOk : true,
     centroOk: area === 'centro' ? isOk : true
@@ -1646,10 +1968,24 @@ function chipCfg(n){ return n<=7?{w:104,cls:'',empW:220}:n<=14?{w:78,cls:'sm',em
 window.render = function(){
   const dates=getDates();
   document.getElementById('drDays').textContent=`${dates.length} día${dates.length>1?'s':''}`;
-  const body=document.getElementById('scheduleBody'); body.innerHTML='';
+  
+  const body=document.getElementById('scheduleBody');
+  const oldScroll = body.querySelector('.grid-scroll');
+  const scrollTop = oldScroll ? oldScroll.scrollTop : 0;
+  const scrollLeft = oldScroll ? oldScroll.scrollLeft : 0;
+  const winScroll = window.scrollY;
+  
+  body.innerHTML='';
   if(!dates.length){ body.innerHTML='<p style="color:var(--muted);padding:24px">Selecciona un rango de fechas válido.</p>'; return; }
   body.appendChild(buildGrid(dates));
   window.renderEmpList();
+  window.renderVacationsList();
+  
+  const newScroll = body.querySelector('.grid-scroll');
+  if (newScroll) {
+    newScroll.scrollTop = scrollTop;
+    newScroll.scrollLeft = scrollLeft;
+  }
 }
 
 window.renderEmpList = function(){
@@ -1663,7 +1999,7 @@ window.renderEmpList = function(){
   window.EMPLOYEES.forEach(e => {
     html += `<div style="display:flex;justify-content:space-between;align-items:center;background:var(--surf-3);padding:10px;margin-bottom:5px;border-radius:6px;border:1px solid var(--border-2);">
       <div>
-        <div style="font-weight:600;font-size:14px;">${e.name} <span style="font-size:12px;color:var(--muted);">(ID: ${e.id})</span></div>
+        <div style="font-weight:600;font-size:14px;">${escapeHtml(e.name)} <span style="font-size:12px;color:var(--muted);">(ID: ${escapeHtml(e.id)})</span></div>
         <div style="font-size:12px;color:var(--muted);">${e.role} · ${e.area === 'cocina' ? 'Cocina' : (e.area === 'centro' ? 'Centro' : 'Flexible')}</div>
       </div>
       <button class="btn btn-ghost" style="color:#ef4444;border-color:#ef4444;padding:4px 8px;font-size:12px;" onclick="deleteEmployee(${e.id})">Borrar</button>
@@ -1678,7 +2014,7 @@ function buildGrid(dates){
 
   const wrap=el('div','area-section');
   wrap.innerHTML=`<div class="area-hdr" style="background:var(--surf-3)">
-    <div class="area-icon">WB</div>
+    <div class="area-icon" style="background:transparent; overflow:hidden;"><img src="/icon-192.png" alt="Logo" style="width:100%; height:100%; object-fit:cover; border-radius:9px;"></div>
     <div>
       <div class="area-hdr-name" style="color:var(--text)">Programación · Todos los Empleados</div>
       <div class="area-hdr-meta">8 supervisores · 1 asistente · ${fmtFull(dates[0])} → ${fmtFull(dates[dates.length-1])}</div>
@@ -1689,44 +2025,65 @@ function buildGrid(dates){
   </div>`;
 
   const scroll=el('div','grid-scroll');
+  scroll.style.maxHeight = '75vh';
+  scroll.style.overflowY = 'auto';
+
   const grid=el('div','grid');
   grid.style.gridTemplateColumns=`${cfg.empW}px repeat(${dates.length},${cfg.w}px) 34px 34px 34px 34px 34px 34px 40px`;
 
+  let cTop = 0;
+  const stickyStyle = (e, h, isLeft) => {
+    e.style.position = 'sticky';
+    e.style.top = cTop + 'px';
+    if(isLeft) { e.style.left = '0'; e.style.zIndex = '20'; } 
+    else { e.style.zIndex = '15'; }
+    if(!e.style.background && !e.style.backgroundColor) e.style.background = 'var(--surf)';
+    if(h) e.style.height = h + 'px';
+  };
+
   if(dates.length>7){
-    grid.appendChild(el('div','wk-grp-empty'));
+    const items = [];
+    const we = el('div','wk-grp-empty'); items.push(we);
     let wn=1;
     for(let i=0;i<dates.length;i+=7){
       const chunk=dates.slice(i,Math.min(i+7,dates.length));
       const h=el('div','wk-grp-label');
       h.style.gridColumn=`span ${chunk.length}`;
       h.textContent=`Sem. ${wn++}  ·  ${fmtD(chunk[0])} – ${fmtD(chunk[chunk.length-1])}`;
-      grid.appendChild(h);
+      items.push(h);
     }
-    for(let k=0; k<7; k++) grid.appendChild(el('div','wk-grp-empty'));
+    for(let k=0; k<7; k++) items.push(el('div','wk-grp-empty'));
+    items.forEach(i => { stickyStyle(i, 22, i.className==='wk-grp-empty' && items.indexOf(i)===0); grid.appendChild(i); });
+    cTop += 22;
   }
 
-  const emHdr=el('div','gh-empty','Empleado'); grid.appendChild(emHdr);
-  dates.forEach(d=>{ const th=el('div','gh-day'+(isToday(d)?' today-hdr':'')); th.innerHTML=`<span class="d-name">${DAYS_ES[d.getDay()]}</span><span class="d-num">${d.getDate()}</span>`; grid.appendChild(th); });
-  
-  const th1=el('div','gh-total'); th1.innerHTML=`4am<br><span>C1</span>`; grid.appendChild(th1);
-  const th2=el('div','gh-total'); th2.innerHTML=`4:30<br><span>D1</span>`; grid.appendChild(th2);
-  const th3=el('div','gh-total'); th3.innerHTML=`5am<br><span>C2/A1</span>`; grid.appendChild(th3);
-  const th4=el('div','gh-total'); th4.innerHTML=`5:30<br><span>E1</span>`; grid.appendChild(th4);
-  const th5=el('div','gh-total'); th5.innerHTML=`6am<br><span>C3</span>`; grid.appendChild(th5);
-  const th6=el('div','gh-total'); th6.innerHTML=`10am<br><span>D2</span>`; grid.appendChild(th6);
-  const thH=el('div','gh-total'); thH.innerHTML=`Tot<br><span>Días</span>`; grid.appendChild(thH);
+  const hdrItems = [];
+  const emHdr=el('div','gh-empty','Empleado'); hdrItems.push(emHdr);
+  dates.forEach((d,cIdx)=>{ const th=el('div','gh-day'+(isToday(d)?' today-hdr':'')); th.dataset.col=cIdx; th.innerHTML=`<span class="d-name">${DAYS_ES[d.getDay()]}</span><span class="d-num">${d.getDate()}</span>`; hdrItems.push(th); });
+  ['4am','4:30','5am','5:30','6am','10am','Tot'].forEach((t,idx) => {
+    const s = ['C1','D1','C2/A1','E1','C3','D2','Días'][idx];
+    const th=el('div','gh-total'); th.innerHTML=`${t}<br><span>${s}</span>`; hdrItems.push(th);
+  });
+  hdrItems.forEach(i => { stickyStyle(i, 38, i.className==='gh-empty'); grid.appendChild(i); });
+  cTop += 38;
 
-  const cmpLblC=el('div','complete-label'); cmpLblC.innerHTML=`<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Est. Cocina`; grid.appendChild(cmpLblC);
-  dates.forEach(d=>{ const cell=el('div','complete-cell'); cell.appendChild(buildStatusBadge(getDayStatusArea(ds(d), 'cocina'),cfg.cls)); grid.appendChild(cell); });
-  for(let k=0; k<7; k++) grid.appendChild(el('div','complete-total'));
+  const cmpItemsC = [];
+  const cmpLblC=el('div','complete-label'); cmpLblC.innerHTML=`<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Est. Cocina`; cmpItemsC.push(cmpLblC);
+  dates.forEach((d,cIdx)=>{ const cell=el('div','complete-cell'); cell.dataset.col=cIdx; cell.appendChild(buildStatusBadge(getDayStatusArea(ds(d), 'cocina'),cfg.cls)); cmpItemsC.push(cell); });
+  for(let k=0; k<7; k++) cmpItemsC.push(el('div','complete-total'));
+  cmpItemsC.forEach(i => { stickyStyle(i, 32, i.className==='complete-label'); grid.appendChild(i); });
+  cTop += 32;
 
-  const cmpLblD=el('div','complete-label'); cmpLblD.innerHTML=`<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Est. Centro`; grid.appendChild(cmpLblD);
-  dates.forEach(d=>{ const cell=el('div','complete-cell'); cell.appendChild(buildStatusBadge(getDayStatusArea(ds(d), 'centro'),cfg.cls)); grid.appendChild(cell); });
-  for(let k=0; k<7; k++) grid.appendChild(el('div','complete-total'));
+  const cmpItemsD = [];
+  const cmpLblD=el('div','complete-label'); cmpLblD.innerHTML=`<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Est. Centro`; cmpItemsD.push(cmpLblD);
+  dates.forEach((d,cIdx)=>{ const cell=el('div','complete-cell'); cell.dataset.col=cIdx; cell.appendChild(buildStatusBadge(getDayStatusArea(ds(d), 'centro'),cfg.cls)); cmpItemsD.push(cell); });
+  for(let k=0; k<7; k++) cmpItemsD.push(el('div','complete-total'));
+  cmpItemsD.forEach(i => { stickyStyle(i, 32, i.className==='complete-label'); grid.appendChild(i); });
+  cTop += 32;
 
-  const cocinaIds = window.EMPLOYEES.filter(e => e.area === 'cocina').map(e => e.id);
-  const centroIds = window.EMPLOYEES.filter(e => e.area === 'centro').map(e => e.id);
-  const flexIds = window.EMPLOYEES.filter(e => e.area === 'flex').map(e => e.id);
+  const cocinaIds = window.EMPLOYEES.filter(e => e.area === 'cocina' && e.id !== 'GA').map(e => e.id);
+  const centroIds = window.EMPLOYEES.filter(e => e.area === 'centro' && e.id !== 'GA').map(e => e.id);
+  const flexIds = window.EMPLOYEES.filter(e => e.area === 'flex' && e.id !== 'GA').map(e => e.id);
 
   const GROUPS=[
     {label:'Cocina Central',         color:'#f97316',bg:'rgba(249,115,22,.06)',  empIds: cocinaIds},
@@ -1736,14 +2093,37 @@ function buildGrid(dates){
   GROUPS.forEach((grp,gi)=>{
     const dRow=el('div','area-divider');
     const dLbl=el('div','area-div-label'); dLbl.style.cssText=`color:${grp.color};background:${grp.bg};border-top:${gi>0?'2px solid rgba(0,0,0,.05)':'none'}`; dLbl.textContent=grp.label; dRow.appendChild(dLbl);
-    for(let i=0;i<dates.length;i++){ const c=el('div','area-div-cell'); c.style.cssText=`background:${grp.bg};border-top:${gi>0?'2px solid rgba(0,0,0,.05)':'none'}`; dRow.appendChild(c); }
+    for(let i=0;i<dates.length;i++){ const c=el('div','area-div-cell'); c.style.cssText=`background:${grp.bg};border-top:${gi>0?'2px solid rgba(0,0,0,.05)':'none'}`; c.dataset.col=i; dRow.appendChild(c); }
     for(let k=0; k<7; k++){ const dt=el('div','area-div-total'); dt.style.cssText=`background:${grp.bg};border-top:${gi>0?'2px solid rgba(0,0,0,.05)':'none'}`; dRow.appendChild(dt); }
     grid.appendChild(dRow);
     grp.empIds.forEach(eid=>grid.appendChild(buildEmpRow(eid,dates,cfg)));
   });
 
+  if (window.gaEnabled || window.EMPLOYEES.some(e => e.id === 'GA')) {
+    const rowGA = buildEmpRow('GA', dates, cfg);
+    grid.appendChild(rowGA);
+  }
+
   buildCovRow(grid,'cocina','Cob. Cocina','#f97316',dates,cfg);
   buildCovRow(grid,'centro','Cob. Centro','#22d3ee',dates,cfg);
+
+  grid.addEventListener('mouseover', e => {
+    const cell = e.target.closest('[data-col]');
+    if(!cell) return;
+    const cIdx = cell.dataset.col;
+    if(grid.dataset.activeCol === cIdx) return;
+    if(grid.dataset.activeCol) {
+      grid.querySelectorAll(`[data-col="${grid.dataset.activeCol}"]`).forEach(el => el.classList.remove('col-hl'));
+    }
+    grid.querySelectorAll(`[data-col="${cIdx}"]`).forEach(el => el.classList.add('col-hl'));
+    grid.dataset.activeCol = cIdx;
+  });
+  grid.addEventListener('mouseleave', () => {
+    if(grid.dataset.activeCol) {
+      grid.querySelectorAll(`[data-col="${grid.dataset.activeCol}"]`).forEach(el => el.classList.remove('col-hl'));
+      delete grid.dataset.activeCol;
+    }
+  });
 
   scroll.appendChild(grid); wrap.appendChild(scroll);
   return wrap;
@@ -1751,9 +2131,10 @@ function buildGrid(dates){
 
 function buildCovRow(grid,areaId,labelText,color,dates,cfg){
   const lbl=el('div','cov-label'); lbl.style.cssText=`color:${color};border-top:1px solid var(--border)`; lbl.textContent=labelText; grid.appendChild(lbl);
-  dates.forEach(d=>{
+  dates.forEach((d, cIdx)=>{
     const st=getDayStatus(ds(d));
     const cell=el('div','cov-cell'); cell.style.borderTop='1px solid var(--border)';
+    cell.dataset.col = cIdx;
     if(areaId==='cocina'){
       if(cfg.cls===''||cfg.cls==='sm'){
         [['C1',st.c1,st.c1>=1],['C2',st.c2,true],['C3',st.c3,st.c3>=1]].forEach(([id,n,ok])=>{ 
@@ -1777,7 +2158,8 @@ function buildCovRow(grid,areaId,labelText,color,dates,cfg){
 
 function buildStatusBadge(st,chipCls){
   const b=el('div','cmp-badge');
-  if(st.unscheduled===window.EMPLOYEES.length){ b.className='cmp-badge cmp-none'; b.textContent=chipCls==='xxs'?'–':'Sin programar'; return b; }
+  const totalEmps = st.expectedTotal || (st.EXPECTED_EMPS || window.EMPLOYEES.length);
+  if(st.unscheduled===totalEmps && totalEmps > 0){ b.className='cmp-badge cmp-none'; b.textContent=chipCls==='xxs'?'–':'Sin programar'; return b; }
   if(st.allOk){ b.className='cmp-badge cmp-ok'; b.textContent=chipCls==='xxs'?'✓':'✓ Completo'; b.title='Cobertura completa'; return b; }
   b.className=`cmp-badge ${(!st.cocinaOk&&!st.centroOk)||st.unscheduled>4?'cmp-err':'cmp-warn'}`;
   b.title=st.issues.join('\n');
@@ -1788,17 +2170,44 @@ function buildStatusBadge(st,chipCls){
 }
 
 function buildEmpRow(eid,dates,cfg){
-  const emp=window.EMPLOYEES.find(e=>e.id===eid);
+  const emp=window.EMPLOYEES.find(e=>e.id == eid) || (eid === 'GA' ? {
+    id: 'GA', av: 'GA', avColor: 'var(--royal)', name: window.gaName || 'Gerente Asociada (Apoyo)',
+    role: 'Apoyo', area: 'centro'
+  } : null);
+  if (!emp) return el('div','grid-row');
   const row=el('div','grid-row');
   const nc=el('div','cell-name');
-  nc.innerHTML=`<div class="emp-av" style="background:${emp.avColor}">${emp.av}</div>
-    <div class="cell-name-info"><div class="emp-n" title="${emp.name}">${emp.name}</div>
-    <div class="emp-r" style="background:transparent;color:${emp.role === 'Asistente' ? '#059669' : (emp.area === 'cocina' ? '#ea580c' : (emp.area === 'flex' ? '#7c3aed' : '#0284c7'))}">${emp.role}</div>
-    ${emp.lockNote?`<div class="emp-lk">${emp.lockNote}</div>`:''}</div>`;
+  
+  if (eid === 'GA') {
+    const savedGaName = window.gaName || 'Gerente Asociada (Apoyo)';
+    const gaEnabledHtml = `
+      <label style="display:flex;align-items:center;gap:3px;cursor:pointer;font-size:10px;color:var(--text);margin-left:auto;">
+        <input type="checkbox" ${window.gaEnabled ? 'checked' : ''} onchange="if(window.isAdmin) window.setDoc(window.doc(window.db, 'config', 'system'), {gaEnabled: this.checked}, {merge:true})">
+        Req. Turno
+      </label>
+    `;
+    nc.innerHTML = `
+      <div class="emp-av" style="background:${emp.avColor}">${emp.av}</div>
+      <div style="flex:1;">
+        <input type="text" id="gaNameInput" value="${escapeHtml(savedGaName)}" placeholder="Nombre / Apoyo" style="font-weight:700;color:var(--text);font-size:13px;line-height:1.2;border:none;background:transparent;width:100%;outline:none;border-bottom:1px solid transparent;transition:all 0.2s;font-family:Outfit,sans-serif;" onfocus="this.style.borderBottom='1px solid var(--royal)'" onblur="this.style.borderBottom='1px solid transparent'" onchange="if(window.isAdmin) window.setDoc(window.doc(window.db, 'config', 'system'), {gaName: this.value}, {merge:true})">
+        <div style="display:flex;align-items:center;margin-top:2px;">
+          <div style="font-size:11px;color:var(--muted);font-weight:600;">Centro de Distribución</div>
+          ${gaEnabledHtml}
+        </div>
+      </div>
+    `;
+  } else {
+    nc.innerHTML=`<div class="emp-av" style="background:${emp.avColor}">${escapeHtml(emp.av)}</div>
+      <div class="cell-name-info"><div class="emp-n" title="${escapeHtml(emp.name)}">${escapeHtml(emp.name)}</div>
+      <div class="emp-r" style="background:transparent;color:${emp.role === 'Asistente' ? '#059669' : (emp.area === 'cocina' ? '#ea580c' : (emp.area === 'flex' ? '#7c3aed' : '#0284c7'))}">${escapeHtml(emp.role)}</div>
+      ${emp.lockNote?`<div class="emp-lk">${escapeHtml(emp.lockNote)}</div>`:''}</div>`;
+  }
+  
   row.appendChild(nc);
-  dates.forEach(d=>{
+  dates.forEach((d, cIdx)=>{
     const dateStr=ds(d);
     const cell=el('div','cell-day'+(isToday(d)?' today-col':''));
+    cell.dataset.col = cIdx;
     cell.appendChild(buildChip(eid,dateStr,cfg.cls));
     cell.addEventListener('click',e=>{ e.stopPropagation(); showPop(eid,dateStr,fmtFull(d),cell); });
     row.appendChild(cell);
@@ -1831,7 +2240,7 @@ function buildChip(eid,dateStr,size){
     isDraft = true;
   }
   
-  const req = window.reqsData?.find(r => r.eid === eid && r.date === dateStr);
+  const req = window.reqsData?.find(r => r.eid == eid && r.date === dateStr);
   const badgeHTML = req ? `<div style="position:absolute;top:-4px;right:-4px;background:#f59e0b;color:#000;border-radius:50%;width:12px;height:12px;font-size:9px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 4px rgba(0,0,0,0.5);">🔔</div>` : '';
 
   if(sid===null){ const e=el('div',`chip-empty${size?' '+size:''}`); e.style.position='relative'; e.innerHTML='+'+badgeHTML; return e; }
@@ -1862,7 +2271,7 @@ let popState=null;
 function showPop(eid,dateStr,dayLabel,cellEl){
   if(!window.isAdmin) { window.toast('🔒', 'Solo los administradores pueden editar'); return; }
   popState={eid,dateStr,dayLabel,cellEl};
-  const emp=window.EMPLOYEES.find(e=>e.id===eid);
+  const emp=window.EMPLOYEES.find(e=>e.id == eid);
   document.getElementById('popName').textContent=emp.name;
   document.getElementById('popDay').textContent=`${dayLabel} · ${emp.role}`;
   buildPopBody();
@@ -1873,15 +2282,15 @@ function showPop(eid,dateStr,dayLabel,cellEl){
 function buildPopBody(){
   if(!popState) return;
   const {eid,dateStr}=popState;
-  const emp=window.EMPLOYEES.find(e=>e.id===eid);
+  const emp=window.EMPLOYEES.find(e=>e.id == eid);
   const cur=getShift(eid,dateStr);
   const body=document.getElementById('popBody'); body.innerHTML='';
 
-  const req = window.reqsData?.find(r => r.eid === eid && r.date === dateStr);
+  const req = window.reqsData?.find(r => r.eid == eid && r.date === dateStr);
   if (req) {
     const rBox = el('div');
     rBox.style.cssText = 'background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);border-radius:8px;padding:8px;margin-bottom:8px;color:#fbbf24;';
-    rBox.innerHTML = `<div style="font-size:10px;font-weight:700;margin-bottom:3px;display:flex;align-items:center;gap:4px;"><span>🔔</span> PETICIÓN DEL EMPLEADO</div><div style="font-size:11px;color:var(--text);">${req.note}</div>`;
+    rBox.innerHTML = `<div style="font-size:10px;font-weight:700;margin-bottom:3px;display:flex;align-items:center;gap:4px;"><span>🔔</span> PETICIÓN DEL EMPLEADO</div><div style="font-size:11px;color:var(--text);">${escapeHtml(req.note)}</div>`;
     body.appendChild(rBox);
   }
 
@@ -1895,8 +2304,8 @@ function buildPopBody(){
   let workGroups=[];
   if(emp.shiftLock)            workGroups=[{label:'Turno Asistente',ids:['A1']}];
   else if(emp.area==='cocina') workGroups=[{label:'Cocina Central',ids:['C1','C2','E1','C3']}];
-  else if(emp.area==='centro') workGroups=[{label:'Centro de Distribución',ids:['D1','E1','D2']}];
-  else if(emp.area==='flex')   workGroups=[{label:'Cocina Central',ids:['C1','C2','E1','C3']},{label:'Centro de Distribución',ids:['D1','E1','D2']}];
+  else if(emp.area==='centro') workGroups=[{label:'Centro de Distribución',ids:['D1','E1','D2','A1']}];
+  else if(emp.area==='flex')   workGroups=[{label:'Cocina Central',ids:['C1','C2','E1','C3']},{label:'Centro de Distribución',ids:['D1','E1','D2','A1']}];
 
   workGroups.forEach((grp,gi)=>{
     if(gi>0||cur!==null) body.appendChild(el('div','pop-sep'));
@@ -1906,7 +2315,7 @@ function buildPopBody(){
 
   body.appendChild(el('div','pop-sep'));
   body.appendChild(el('div','pop-sec','Ausencias / Feriados'));
-  ['L','V','LR','FSE','PER','F'].forEach(sid=>body.appendChild(buildPopOpt(sid,cur,eid,dateStr)));
+  ['L','Vac','LR','FSE','PER','F','ENF','EnfCC'].forEach(sid=>body.appendChild(buildPopOpt(sid,cur,eid,dateStr)));
 
   const customIds=Object.keys(customShifts);
   if(customIds.length){
@@ -1960,7 +2369,7 @@ function buildPopOpt(sid,cur,eid,dateStr){
   return opt;
 }
 
-function saveCustomType(){
+async function saveCustomType(){
   const code=(document.getElementById('newCode')?.value||'').trim().toUpperCase();
   const name=(document.getElementById('newName')?.value||'').trim();
   if(!code||!name){ window.toast('⚠️','Ingresa código y nombre'); return; }
@@ -1970,6 +2379,12 @@ function saveCustomType(){
   updateCustomLegend();
   window.toast('✅',`Tipo "${code}" creado`);
   buildPopBody();
+  
+  try {
+    await window.setDoc(window.doc(window.db, 'config', 'customShifts'), customShifts);
+  } catch(e) {
+    console.error('Error saving custom shift', e);
+  }
 }
 
 function positionPop(cellEl,pop){
@@ -1988,7 +2403,7 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape') window.closePop();
 
 async function assign(eid,dateStr,sid){
   if (!window.isAdmin) return window.toast('🔒', 'Acceso denegado');
-  const emp=window.EMPLOYEES.find(e=>e.id===eid);
+  const emp=window.EMPLOYEES.find(e=>e.id == eid);
   if(sid !== null && WORK_IDS.has(sid)){
     const td = new Date(dateStr + 'T12:00:00');
     const sun = new Date(td); sun.setDate(td.getDate() - td.getDay());
@@ -2044,6 +2459,70 @@ function shiftRange(dir){
   window.render();
 }
 
+window.addFixedAssignmentRow = function(data = null) {
+  const container = document.getElementById('fixedAssignmentsContainer');
+  const row = document.createElement('div');
+  row.style.cssText = 'display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; background:var(--surf-3); padding:10px; border-radius:6px;';
+  
+  let daysStr = '';
+  if (data && data.weekdays) {
+     daysStr = data.weekdays.map(d => d + 1).join(', ');
+  }
+  
+  row.innerHTML = `
+    <div style="flex:2; min-width:120px;">
+      <label class="frm-lbl" style="font-size:10px;">Días (1-7)</label>
+      <input type="text" class="frm-input fa-days" placeholder="Ej: 1, 2" value="${daysStr}">
+    </div>
+    <div style="flex:1; min-width:80px;">
+      <label class="frm-lbl" style="font-size:10px;">Turno</label>
+      <input type="text" class="frm-input fa-shift" placeholder="C1" value="${data ? (data.shift||'') : ''}">
+    </div>
+    <div style="flex:2; min-width:130px;">
+      <label class="frm-lbl" style="font-size:10px;">Inicia (Opcional)</label>
+      <input type="date" class="frm-input fa-starts" value="${data?.startsOn || ''}">
+    </div>
+    <div style="flex:2; min-width:130px;">
+      <label class="frm-lbl" style="font-size:10px;">Expira (Opcional)</label>
+      <input type="date" class="frm-input fa-expires" value="${data?.expiresOn || ''}">
+    </div>
+    <button class="btn btn-ghost" style="color:#ef4444; border:1px solid #ef4444; padding:0 10px; height:36px;" onclick="this.parentElement.remove()">✕</button>
+  `;
+  container.appendChild(row);
+};
+
+window.loadEmployeeRules = async () => {
+  const eid = document.getElementById('ruleEmpSelect').value;
+  if (!eid) return;
+  const mainView = document.getElementById('rulesMainView');
+  const container = document.getElementById('rulesContainer');
+  const nameSpan = document.getElementById('ruleEditName');
+  
+  const emp = (window.EMPLOYEES || []).find(e => e.id == eid);
+  nameSpan.textContent = emp ? emp.name : `ID: ${eid}`;
+  
+  mainView.style.display = 'none';
+  container.style.display = 'flex';
+  const rules = window.rulesByEmployee[eid] || {};
+  
+  document.getElementById('ruleAllowedShifts').value = rules.allowedShifts ? rules.allowedShifts.join(', ') : '';
+  
+  const faContainer = document.getElementById('fixedAssignmentsContainer');
+  if (faContainer) {
+    faContainer.innerHTML = '';
+    if (rules.fixedAssignments && rules.fixedAssignments.length > 0) {
+      rules.fixedAssignments.forEach(fa => window.addFixedAssignmentRow(fa));
+    } else {
+      window.addFixedAssignmentRow();
+    }
+  }
+  
+  document.getElementById('ruleWeekendRotation').checked = rules.weekendRotationEnabled || rules.preferAlternatingWeekends;
+  document.getElementById('ruleMaxConsecutiveWeekends').value = rules.maxConsecutiveWeekends || 2;
+  document.getElementById('ruleMaxWorkDays').value = rules.maxWorkDaysPerWeek || 5;
+  document.getElementById('ruleOpeningTarget').value = rules.openingTargetPerMonth || 13;
+};
+
 document.getElementById('btnPrev').onclick=()=>shiftRange(-1);
 document.getElementById('btnNext').onclick=()=>shiftRange(1);
 document.getElementById('btnToday').onclick=()=>{
@@ -2092,11 +2571,22 @@ window.updateRuleEmpSelect = function() {
   if(!sel) return;
   const curr = sel.value;
   sel.innerHTML = '<option value="">-- Seleccionar --</option>';
+  const addedIds = new Set();
   if (window.EMPLOYEES) {
     window.EMPLOYEES.forEach(e => {
-      sel.innerHTML += `<option value="${e.id}">${e.name}</option>`;
+      sel.innerHTML += `<option value="${escapeHtml(e.id)}">${escapeHtml(e.name)}</option>`;
+      addedIds.add(e.id.toString());
     });
   }
+  
+  if (window.rulesByEmployee) {
+    Object.keys(window.rulesByEmployee).forEach(eid => {
+      if (!addedIds.has(eid.toString())) {
+        sel.innerHTML += `<option value="${eid}">Empleado #${eid} (Eliminado)</option>`;
+      }
+    });
+  }
+
   if (curr) sel.value = curr;
   
   // Actualizar la lista visual de empleados con reglas
@@ -2111,7 +2601,7 @@ window.updateRuleEmpSelect = function() {
         const emp = (window.EMPLOYEES || []).find(e => e.id == eid);
         const name = emp ? emp.name : `Empleado #${eid}`;
         html += `<div style="font-size:13px; padding:8px 12px; background:var(--surf-2); border:1px solid var(--border); border-radius:6px; display:flex; justify-content:space-between; cursor:pointer;" onclick="document.getElementById('ruleEmpSelect').value='${eid}'; window.loadEmployeeRules();">
-          <span>⚙️ <b>${name}</b></span>
+          <span>⚙️ <b>${escapeHtml(name)}</b></span>
           <span style="color:var(--royal); font-weight:600; font-size:12px;">Ver detalles &rarr;</span>
         </div>`;
       });
@@ -2141,14 +2631,18 @@ window.loadEmployeeRules = () => {
   
   document.getElementById('ruleAllowedShifts').value = rules.allowedShifts ? rules.allowedShifts.join(', ') : '';
   
-  const fa = (rules.fixedAssignments && rules.fixedAssignments.length > 0) ? rules.fixedAssignments[0] : null;
-  document.getElementById('ruleFixedDays').value = fa ? fa.weekdays.join(',') : '';
-  document.getElementById('ruleFixedShift').value = fa ? fa.shift : '';
-  document.getElementById('ruleFixedStarts').value = fa ? (fa.startsOn || '') : '';
-  document.getElementById('ruleFixedExpires').value = fa ? (fa.expiresOn || '') : '';
+  const faContainer = document.getElementById('fixedAssignmentsContainer');
+  if (faContainer) {
+    faContainer.innerHTML = '';
+    if (rules.fixedAssignments && rules.fixedAssignments.length > 0) {
+      rules.fixedAssignments.forEach(fa => window.addFixedAssignmentRow(fa));
+    } else {
+      window.addFixedAssignmentRow();
+    }
+  }
   
-  document.getElementById('ruleWeekendRotation').checked = !!rules.weekendRotationEnabled;
-  document.getElementById('ruleWeekendAlternating').checked = !!rules.preferAlternatingWeekends;
+  // Note: we merged preferAlternatingWeekends into weekendRotationEnabled in UI, so checking either will check the box
+  document.getElementById('ruleWeekendRotation').checked = rules.weekendRotationEnabled || rules.preferAlternatingWeekends;
   document.getElementById('ruleMaxConsecutiveWeekends').value = rules.maxConsecutiveWeekends || 2;
   document.getElementById('ruleMaxWorkDays').value = rules.maxWorkDaysPerWeek || 5;
   document.getElementById('ruleOpeningTarget').value = rules.openingTargetPerMonth || 13;
@@ -2162,7 +2656,7 @@ window.saveEmployeeRules = async () => {
   const rules = {
     employeeId: parseInt(eid),
     weekendRotationEnabled: document.getElementById('ruleWeekendRotation').checked,
-    preferAlternatingWeekends: document.getElementById('ruleWeekendAlternating').checked,
+    preferAlternatingWeekends: document.getElementById('ruleWeekendRotation').checked,
     maxConsecutiveWeekends: parseInt(document.getElementById('ruleMaxConsecutiveWeekends').value) || 2,
     maxWorkDaysPerWeek: parseInt(document.getElementById('ruleMaxWorkDays').value) || 5,
     openingTargetPerMonth: parseInt(document.getElementById('ruleOpeningTarget').value) || 13,
@@ -2173,18 +2667,26 @@ window.saveEmployeeRules = async () => {
   const al = document.getElementById('ruleAllowedShifts').value.trim();
   if (al) rules.allowedShifts = al.split(',').map(s => s.trim().toUpperCase());
   
-  const fd = document.getElementById('ruleFixedDays').value.trim();
-  const fs = document.getElementById('ruleFixedShift').value.trim().toUpperCase();
-  if (fd && fs) {
-    rules.fixedAssignments = [{
-      weekdays: fd.split(',').map(n => parseInt(n.trim())),
-      shift: fs,
-      startsOn: document.getElementById('ruleFixedStarts').value || null,
-      expiresOn: document.getElementById('ruleFixedExpires').value || null
-    }];
-  } else {
-    rules.fixedAssignments = [];
-  }
+  const rows = document.querySelectorAll('#fixedAssignmentsContainer > div');
+  rules.fixedAssignments = [];
+  rows.forEach(row => {
+    const daysStr = row.querySelector('.fa-days').value.trim();
+    const shiftStr = row.querySelector('.fa-shift').value.trim().toUpperCase();
+    const startsStr = row.querySelector('.fa-starts').value;
+    const expiresStr = row.querySelector('.fa-expires').value;
+    
+    if (daysStr && shiftStr) {
+      const weekdays = daysStr.split(',').map(n => parseInt(n.trim()) - 1).filter(n => !isNaN(n) && n >= 0 && n <= 6);
+      if (weekdays.length > 0) {
+        rules.fixedAssignments.push({
+          weekdays: weekdays,
+          shift: shiftStr,
+          startsOn: startsStr || null,
+          expiresOn: expiresStr || null
+        });
+      }
+    }
+  });
   
   try {
     await window.setDoc(window.doc(window.db, 'rules', eid), rules);

@@ -62,6 +62,41 @@ window.SchedulingEngine = {
       return globalRules.workShiftIds.includes(shiftId);
     };
 
+    function getWeekendId(dateStr) {
+      // Retorna el lunes anterior para identificar el fin de semana unico
+      const d = new Date(dateStr + 'T12:00:00');
+      d.setDate(d.getDate() - (d.getDay() === 0 ? 6 : d.getDay() - 1)); 
+      return ds(d);
+    }
+
+    // Historical Lookback (Last 30 days before dateFrom)
+    const pastStart = new Date(dateFrom + 'T12:00:00');
+    pastStart.setDate(pastStart.getDate() - 30);
+    const dateFromObj = new Date(dateFrom + 'T12:00:00');
+    
+    let pastCurr = new Date(pastStart);
+    while (pastCurr < dateFromObj) {
+      const dStr = ds(pastCurr);
+      if (existingSchedule[dStr]) {
+        for (const eid in existingSchedule[dStr]) {
+          const shift = existingSchedule[dStr][eid];
+          if (isWorkShift(shift)) {
+             if (dStr.substring(0,7) === dateFrom.substring(0,7)) {
+                if (globalRules.openingShiftIds.includes(shift)) {
+                  stats.openingsByEmployee[eid] = (stats.openingsByEmployee[eid] || 0) + 1;
+                }
+                stats.daysWorkedByEmployee[eid] = (stats.daysWorkedByEmployee[eid] || 0) + 1;
+             }
+             if (isWeekend(dStr)) {
+               if (!stats.weekendsWorkedByEmployee[eid]) stats.weekendsWorkedByEmployee[eid] = new Set();
+               stats.weekendsWorkedByEmployee[eid].add(getWeekendId(dStr));
+             }
+          }
+        }
+      }
+      pastCurr.setDate(pastCurr.getDate() + 1);
+    }
+
     // 2. Preservar ausencias existentes (ya cargadas en draftSchedule por existingSchedule, pero vamos a marcarlas para no tocarlas)
     const fixedCells = new Set(); // 'date-eid'
     for (const dStr of dates) {
@@ -160,12 +195,7 @@ window.SchedulingEngine = {
       }
     };
 
-    function getWeekendId(dateStr) {
-      // Retorna el lunes anterior para identificar el fin de semana unico
-      const d = new Date(dateStr + 'T12:00:00');
-      d.setDate(d.getDate() - (d.getDay() === 0 ? 6 : d.getDay() - 1)); 
-      return ds(d);
-    }
+
 
     // Funciones de validacion
     const canAssign = (eid, dateStr, shift) => {
@@ -181,7 +211,8 @@ window.SchedulingEngine = {
           const cd = new Date(weekStart + 'T12:00:00');
           cd.setDate(cd.getDate() + i);
           const cds = ds(cd);
-          if (draftSchedule[cds] && isWorkShift(draftSchedule[cds][eid])) {
+          const currentShift = draftSchedule[cds] ? draftSchedule[cds][eid] : (existingSchedule[cds] ? existingSchedule[cds][eid] : null);
+          if (currentShift && isWorkShift(currentShift)) {
              daysInWeek++;
           }
        }

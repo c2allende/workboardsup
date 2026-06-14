@@ -1,4 +1,33 @@
-const CACHE_NAME = 'workboard-cache-v12';
+// Firebase recommends registering custom click behavior before importing Messaging.
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  const targetUrl = event.notification.data?.url || '/TurnosSup';
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
+      const existing = windowClients.find(client => new URL(client.url).pathname.startsWith('/TurnosSup'));
+      if(existing) {
+        existing.focus();
+        return existing.navigate(targetUrl);
+      }
+      return clients.openWindow(targetUrl);
+    })
+  );
+});
+
+importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js');
+
+firebase.initializeApp({
+  projectId: 'workboard-carmelo',
+  appId: '1:45199402595:web:be8cd97cf9a43890cdfa56',
+  apiKey: 'AIzaSyASSpZRHvbj_BeQJ9qOEYCQSKVwjI_7q0E',
+  authDomain: 'workboard-carmelo.firebaseapp.com',
+  messagingSenderId: '45199402595'
+});
+
+firebase.messaging();
+
+const CACHE_NAME = 'workboard-cache-v69';
 
 const APP_ASSETS = [
   '/',
