@@ -60,6 +60,14 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .btn-ghost:hover{background:var(--surf-3);color:var(--text)}
 .btn-accent{background:var(--accent);color:#060f1e;font-weight:700}
 .btn-accent:hover{background:#00e0a0}
+.btn:disabled{opacity:.38;cursor:not-allowed;filter:grayscale(1);box-shadow:none}
+.btn:disabled:hover{background:inherit;color:inherit}
+.readonly-badge{display:none;align-items:center;gap:5px;padding:5px 10px;border:1px solid rgba(37,99,235,.25);border-radius:7px;background:rgba(37,99,235,.08);color:var(--royal);font-size:11px;font-weight:700;white-space:nowrap}
+body.viewer-mode .readonly-badge{display:inline-flex}
+body.viewer-mode .cell-day{cursor:default}
+body.viewer-mode .cell-day:hover{background:inherit!important}
+body.viewer-mode .cell-day:hover .chip{transform:none;filter:none}
+body.viewer-mode .cell-day:hover .chip-empty{border-color:var(--border);color:rgba(0,0,0,.15);background:transparent}
 
 /* ══ VISTAS ══ */
 .view-section{display:none;flex:1;flex-direction:column;}
@@ -310,6 +318,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
       <span class="dr-days" id="drDays"></span>
     </div>
     <div class="h-controls-right">
+      <span class="readonly-badge" id="readonlyBadge">🔒 Solo lectura</span>
       <button class="btn btn-ghost" id="btnGenAuto" style="border: 1px solid var(--royal); color: var(--royal);">Generar Automático</button>
       <button class="btn btn-ghost" id="btnDiscardDraft" style="display:none; color: #ef4444;">Descartar Borrador</button>
       <button class="btn btn-ghost" id="btnClear">Limpiar</button>
@@ -771,6 +780,19 @@ window.getDocs = getDocs;
 window.query = query;
 window.rulesByEmployee = window.rulesByEmployee || {};
 
+function applyReadOnlyUi(isViewer) {
+  document.body.classList.toggle('viewer-mode', isViewer);
+  ['btnGenAuto', 'btnDiscardDraft', 'btnClear', 'btnLoadSecDraft', 'btnPublish'].forEach(id => {
+    const control = document.getElementById(id);
+    if(control) {
+      control.disabled = isViewer;
+      control.setAttribute('aria-disabled', String(isViewer));
+      if(isViewer) control.title = 'Deshabilitado: sesión de solo lectura';
+      else control.removeAttribute('title');
+    }
+  });
+}
+
 onAuthStateChanged(auth, async user => {
   const loginOverlay = document.getElementById('loginOverlay');
   const btnHeader = document.getElementById('btnLoginHeader');
@@ -779,6 +801,7 @@ onAuthStateChanged(auth, async user => {
     window.isAdmin = false;
     window.isViewer = false;
     window.isSecretary = false;
+    applyReadOnlyUi(false);
     loginOverlay.style.display = 'flex';
     document.querySelectorAll('.tab-btn').forEach(b => b.style.display = 'none');
     return;
@@ -807,6 +830,8 @@ onAuthStateChanged(auth, async user => {
 
   if (user.email === 'carmelo.allende@gmail.com' || role === 'gerente') {
     window.isAdmin = true;
+    window.isViewer = false;
+    applyReadOnlyUi(false);
     loginOverlay.style.display = 'none';
     document.querySelectorAll('.tab-btn').forEach(b => b.style.display = 'inline-block');
     window.toast('✅', 'Sesión de administrador activa');
@@ -819,7 +844,9 @@ onAuthStateChanged(auth, async user => {
       return;
     }
     window.isAdmin = true; // Permite editar celdas
+    window.isViewer = false;
     window.isSecretary = true;
+    applyReadOnlyUi(false);
     loginOverlay.style.display = 'none';
     document.querySelectorAll('.tab-btn').forEach(b => {
       if(b.textContent.includes('Reportes') || b.textContent.includes('Gestión')) b.style.display = 'none';
@@ -829,7 +856,10 @@ onAuthStateChanged(auth, async user => {
     if (tabs.length > 0) window.switchView('viewHorario', tabs[0]);
     window.toast('✅', 'Sesión de Secretaria (Edición de Horario)');
   } else if (role === 'supervisor' || role === 'asistente' || (user.email.startsWith('sup_') && user.email.endsWith('@workboard.local')) || (user.email.startsWith('dietsup_') && user.email.endsWith('@workboard.local'))) {
+    window.isAdmin = false;
     window.isViewer = true;
+    window.isSecretary = false;
+    applyReadOnlyUi(true);
     loginOverlay.style.display = 'none';
     document.querySelectorAll('.tab-btn').forEach(b => {
       if(b.textContent.includes('Reportes') || b.textContent.includes('Gestión')) b.style.display = 'none';
@@ -845,7 +875,10 @@ onAuthStateChanged(auth, async user => {
       return;
     }
     
+    window.isAdmin = false;
     window.isViewer = true;
+    window.isSecretary = false;
+    applyReadOnlyUi(true);
     loginOverlay.style.display = 'none';
     document.querySelectorAll('.tab-btn').forEach(b => {
       if(b.textContent.includes('Reportes') || b.textContent.includes('Gestión')) b.style.display = 'none';

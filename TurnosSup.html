@@ -132,7 +132,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
   <div class="login-box">
     <div class="login-hdr" style="color:var(--accent); font-size: 22px; text-align: center;">Turnos Supervisores(as)<br>CC-CD</div>
     <div style="font-size:13px;color:var(--muted);text-align:center;margin-bottom:10px;">Acceso para Supervisor(a)</div>
-    <input type="number" id="empId" class="inp" placeholder="Tu Número de Empleado (Ej. 890000)" aria-label="Número de empleado" autocomplete="username">
+    <input type="text" id="empId" class="inp" placeholder="Número de Empleado o usuario DietSup" aria-label="Número de empleado o usuario DietSup" autocomplete="username">
     <div style="position:relative;">
       <input type="password" id="empPass" class="inp" placeholder="Contraseña" aria-label="Contraseña" autocomplete="current-password">
       <button type="button" class="eye-btn" onmousedown="showPass('empPass')" onmouseup="hidePass('empPass')" onmouseleave="hidePass('empPass')" ontouchstart="showPass('empPass')" ontouchend="hidePass('empPass')">👁️</button>
@@ -217,6 +217,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 
 <!-- EN TURNO (GLOBAL) -->
 <div id="viewEnTurno" class="view">
+  <a id="dietSupFullScheduleLink" href="/" style="display:none; margin-bottom:15px; padding:12px 15px; border-radius:10px; background:var(--royal); color:#fff; text-decoration:none; font-weight:700; text-align:center;">Abrir calendario completo</a>
   <div id="globalScheduleList" style="display:flex;flex-direction:column;gap:15px;padding-bottom:20px;"></div>
 </div>
 
@@ -350,13 +351,15 @@ onSnapshot(doc(db, 'config', 'system'), snap => {
     window.reminderEnabled = data.reminderEnabled !== false;
     window.reminderActivationId = Number(data.reminderActivationId) || 0;
     const btnFloatingChat = document.getElementById('btnFloatingChat');
-    if(btnFloatingChat) btnFloatingChat.style.display = window.chatEnabled ? 'flex' : 'none';
+    if(btnFloatingChat) btnFloatingChat.style.display = window.chatEnabled && currentUserRole !== 'dietista' ? 'flex' : 'none';
     renderNotificationReminder();
     if(window.checkDateLock) window.checkDateLock();
   }
 });
 
 let currentUserEid = null;
+let currentUserRole = 'employee';
+let currentUserName = '';
 let unsubSch=null;
 let unsubReq=null;
 let unsubUpdates=null;
@@ -376,7 +379,7 @@ function setNotificationReminderStatus(message, enabled) {
 function renderNotificationReminder() {
   const card = document.getElementById('notificationReminderCard');
   if(!card) return;
-  const eligible = !!currentUserEid;
+  const eligible = !!currentUserEid && currentUserRole !== 'dietista';
   card.style.display = 'none';
   if(!eligible) return;
 
@@ -487,6 +490,11 @@ onAuthStateChanged(auth, user => {
     let idStr = Object.keys(window.EMP_EMAILS || {}).find(k => window.EMP_EMAILS[k].toLowerCase() === user.email.toLowerCase());
     if(idStr) currentUserEid = parseInt(idStr);
     else if(user.email.startsWith('emp') && user.email.endsWith('@workboard.local')) currentUserEid = parseInt(user.email.replace('emp','').replace('@workboard.local',''));
+    else if(user.email.startsWith('dietsup_') && user.email.endsWith('@workboard.local')) {
+      currentUserRole = 'dietista';
+      currentUserEid = user.email.split('@')[0];
+      currentUserName = 'DietSup ' + currentUserEid.replace('dietsup_', '');
+    }
     
     if(currentUserEid) validUser = true;
     else signOut(auth); // Fallback: cerrar sesión si no se encuentra el ID
@@ -495,19 +503,25 @@ onAuthStateChanged(auth, user => {
   if(validUser) {
     document.getElementById('viewLogin').classList.remove('active');
     document.getElementById('viewReg').classList.remove('active');
-    document.getElementById('viewHorario').classList.add('active');
+    const isDietista = currentUserRole === 'dietista';
+    document.getElementById(isDietista ? 'viewEnTurno' : 'viewHorario').classList.add('active');
     document.getElementById('appHeader').style.display='flex';
     document.getElementById('topBanner').style.display='flex';
+    document.getElementById('btnNavMis').style.display = isDietista ? 'none' : 'inline-block';
+    document.getElementById('btnNavPet').style.display = isDietista ? 'none' : 'inline-block';
+    document.getElementById('dietSupFullScheduleLink').style.display = isDietista ? 'block' : 'none';
+    document.getElementById('btnNavTodos').classList.toggle('active', isDietista);
+    document.getElementById('btnNavMis').classList.toggle('active', !isDietista);
     
     const greeting = document.getElementById('userGreeting');
     if (greeting) {
-      const fullName = window.EMP_NAMES[currentUserEid] || '';
+      const fullName = window.EMP_NAMES[currentUserEid] || currentUserName || '';
       const firstName = fullName.split(' ')[0];
       greeting.textContent = 'Saludos, ' + firstName;
     }
     
     // document.getElementById('bottomNav').style.display='flex'; // Hiding old nav
-    populateReqOpts();
+    if(!isDietista) populateReqOpts();
     loadData();
     renderNotificationReminder();
     
@@ -528,6 +542,8 @@ onAuthStateChanged(auth, user => {
 
   } else {
     currentUserEid = null;
+    currentUserRole = 'employee';
+    currentUserName = '';
     document.querySelectorAll('.view').forEach(e=>e.classList.remove('active'));
     document.getElementById('viewLogin').classList.add('active');
     document.getElementById('appHeader').style.display='none';
@@ -545,8 +561,10 @@ window.login = async () => {
   const pass=document.getElementById('empPass').value;
   if(!id||!pass) return toast('Completa los campos');
   
-  if(!window.EMP_NAMES[id]) return toast('Número de empleado inválido');
-  const email = window.EMP_EMAILS[id] || `emp${id}@workboard.local`;
+  const isDietSupLogin = id.startsWith('dietsup_') || id.startsWith('dietsup');
+  const cleanDietSupId = id.replace(/^dietsup_?/, '').replace(/[^a-z0-9]/g, '');
+  if(!isDietSupLogin && !window.EMP_NAMES[id]) return toast('Número de empleado inválido');
+  const email = isDietSupLogin ? `dietsup_${cleanDietSupId}@workboard.local` : (window.EMP_EMAILS[id] || `emp${id}@workboard.local`);
   const btn=document.getElementById('btnLogin'); btn.textContent='...';
   try{
     await signInWithEmailAndPassword(auth, email, pass);
@@ -631,13 +649,14 @@ function loadData(){
       }
     });
     window.myDays = days;
-    renderSchedule();
+    if(currentUserRole !== 'dietista') renderSchedule();
+    else renderGlobalSchedule();
     if(document.getElementById('viewEnTurno').classList.contains('active')) { if(window.renderGlobalSchedule) window.renderGlobalSchedule(); }
   });
 
   // Requests
   if(unsubReq) unsubReq();
-  unsubReq = onSnapshot(collection(db, 'requests'), snap => {
+  if(currentUserRole !== 'dietista') unsubReq = onSnapshot(collection(db, 'requests'), snap => {
     let reqs = [];
     snap.forEach(d => {
       const data = d.data();
@@ -648,7 +667,7 @@ function loadData(){
   });
   
   if(unsubChat) unsubChat();
-  unsubChat = onSnapshot(collection(db, 'messages'), snap => {
+  if(currentUserRole !== 'dietista') unsubChat = onSnapshot(collection(db, 'messages'), snap => {
     let msgs = [];
     snap.forEach(d => msgs.push({id: d.id, ...d.data()}));
     msgs.sort((a,b) => a.timestamp - b.timestamp);
@@ -902,7 +921,7 @@ window.renderGlobalSchedule = () => {
     // Ocultar Empleado Prueba de los demás
     eids = eids.filter(eid => {
       const name = window.EMP_NAMES[eid] || '';
-      return name !== 'Empleado Prueba' || parseInt(eid) === currentUserEid;
+      return currentUserRole === 'dietista' || name !== 'Empleado Prueba' || parseInt(eid) === currentUserEid;
     });
     
     const sortOrder = { 'C1': 1, 'CE': 2, 'C2': 3, 'C3': 4, 'D1': 5, 'A1': 6, 'E1': 7, 'D2': 8 };
@@ -1016,7 +1035,7 @@ window.nav = (id, btn) => {
     if(container) container.scrollTop = container.scrollHeight;
     if(fab) fab.style.display = 'none';
   } else if (id !== 'viewLogin' && id !== 'viewReg') {
-    if(fab && window.chatEnabled) fab.style.display = 'flex';
+    if(fab && window.chatEnabled && currentUserRole !== 'dietista') fab.style.display = 'flex';
   }
 }
 
