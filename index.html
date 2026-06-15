@@ -63,6 +63,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .btn:disabled{opacity:.38;cursor:not-allowed;filter:grayscale(1);box-shadow:none}
 .btn:disabled:hover{background:inherit;color:inherit}
 .readonly-badge{display:none;align-items:center;gap:5px;padding:5px 10px;border:1px solid rgba(37,99,235,.25);border-radius:7px;background:rgba(37,99,235,.08);color:var(--royal);font-size:11px;font-weight:700;white-space:nowrap}
+.mobile-viewer-back{display:none;align-items:center;gap:5px;padding:7px 11px;border-radius:7px;background:var(--royal);color:#fff;text-decoration:none;font-size:12px;font-weight:700;white-space:nowrap}
 body.viewer-mode .readonly-badge{display:inline-flex}
 body.viewer-mode .cell-day{cursor:default}
 body.viewer-mode .cell-day:hover{background:inherit!important}
@@ -121,8 +122,8 @@ body.viewer-mode .cell-day:hover .chip-empty{border-color:var(--border);color:rg
 .gh-day.today-hdr .d-num{background:var(--royal);color:#fff;width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;}
 .gh-day.today-hdr .d-name{color:#818cf8}
 
-.gh-total{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:5px 1px;border-bottom:1px solid var(--border);border-left:1px solid var(--border);font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);background:var(--surf);text-align:center;}
-.gh-total span{font-size:10px;color:var(--text);margin-top:1px}
+.gh-total{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:5px 12px;border-bottom:1px solid var(--border);border-left:1px solid var(--border);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);background:var(--surf);text-align:left;}
+.gh-total span{font-size:11px;color:var(--text);margin-top:2px;text-transform:none;letter-spacing:0}
 
 .complete-label{display:flex;align-items:center;padding:0 10px;height:32px;border-bottom:1px solid var(--border-2);border-right:1px solid var(--border);background:var(--border-2);position:sticky;left:0;z-index:2;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);gap:5px;}
 .complete-cell{display:flex;align-items:center;justify-content:center;height:32px;border-bottom:1px solid var(--border-2);border-right:1px solid var(--border-2);padding:2px;}
@@ -153,7 +154,18 @@ body.viewer-mode .cell-day:hover .chip-empty{border-color:var(--border);color:rg
 .cell-day.today-col{background:rgba(59,91,255,.04)}
 .col-hl { background: rgba(59,91,255,0.06) !important; }
 .gh-day.col-hl { background: rgba(59,91,255,0.12) !important; }
-.cell-total{display:flex;flex-direction:column;align-items:center;justify-content:center;height:68px;border-bottom:1px solid var(--border-2);border-left:1px solid var(--border);padding:0 2px;font-size:12.5px;font-weight:600;}
+.cell-total{display:flex;flex-direction:column;justify-content:center;height:68px;border-bottom:1px solid var(--border-2);border-left:1px solid var(--border);padding:7px 10px;background:linear-gradient(90deg,rgba(37,99,235,.025),transparent);}
+.monthly-summary{display:grid;grid-template-columns:62px repeat(3,1fr);gap:9px;align-items:center;width:100%}
+.monthly-total{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:47px;border-radius:9px;background:rgba(37,99,235,.09);color:var(--royal)}
+.monthly-total strong{font-family:'Outfit',sans-serif;font-size:19px;line-height:1}
+.monthly-total span{font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-top:3px;text-align:center;line-height:1.15}
+.monthly-metric{min-width:0}
+.monthly-metric-top{display:flex;justify-content:space-between;align-items:center;gap:5px;font-size:7px;color:var(--muted);font-weight:700;text-transform:uppercase;line-height:1.1}
+.monthly-metric-top span{display:flex;flex-direction:column;gap:1px}
+.monthly-metric-top small{font-size:7px;color:var(--text);font-weight:600;text-transform:none}
+.monthly-metric-top strong{font-size:12px;color:var(--text)}
+.monthly-track{height:4px;border-radius:99px;background:var(--border-2);overflow:hidden;margin-top:4px}
+.monthly-fill{height:100%;border-radius:99px}
 
 /* ── SHIFT CHIP ── */
 .chip{display:flex;flex-direction:column;align-items:center;justify-content:center;width:104px;padding:6px 5px 5px;border-radius:8px;border:1px solid transparent;transition:transform .13s,filter .13s;pointer-events:none;}
@@ -189,6 +201,34 @@ body.viewer-mode .cell-day:hover .chip-empty{border-color:var(--border);color:rg
 .sp-ok{background:transparent;color:#059669}
 .sp-lo{background:transparent;color:#dc2626}
 .sp-na{background:var(--border-2);color:var(--dim)}
+
+@media (max-width: 800px){
+  body.dietsup-viewer .app-header{height:48px;padding:0 10px}
+  body.dietsup-viewer .brand-name{font-size:12px!important;max-width:190px!important}
+  body.dietsup-viewer .tabs{display:none}
+  body.dietsup-viewer .h-controls{top:48px;padding:7px 10px;gap:7px}
+  body.dietsup-viewer .date-range,
+  body.dietsup-viewer .h-controls-right,
+  body.dietsup-viewer .legend-bar{display:none!important}
+  body.dietsup-viewer .mobile-viewer-back{display:inline-flex}
+  body.dietsup-viewer .schedule-body{padding:8px 0 16px}
+  body.dietsup-viewer .area-section{border-radius:0;border-left:0;border-right:0}
+  body.dietsup-viewer .area-hdr{padding:8px 10px}
+  body.dietsup-viewer .area-icon,
+  body.dietsup-viewer .area-hdr-right{display:none}
+  body.dietsup-viewer .area-hdr-name{font-size:13px}
+  body.dietsup-viewer .area-hdr-meta{font-size:9px}
+  body.dietsup-viewer .grid-scroll{max-height:none!important;overflow-y:visible!important}
+  body.dietsup-viewer .cell-name{height:54px;padding:0 7px;gap:5px}
+  body.dietsup-viewer .cell-day{height:54px;padding:2px}
+  body.dietsup-viewer .emp-av{display:none}
+  body.dietsup-viewer .emp-n{font-size:10px;white-space:normal;line-height:1.15}
+  body.dietsup-viewer .emp-r{font-size:8px;padding:1px 3px}
+  body.dietsup-viewer .chip{width:58px;padding:4px 2px}
+  body.dietsup-viewer .chip-id{font-size:10px}
+  body.dietsup-viewer .chip-time{display:none}
+  body.dietsup-viewer .chip-empty{width:58px;height:34px;font-size:12px}
+}
 
 /* ══ POPOVER ══ */
 #popover{position:fixed;z-index:300;background:var(--surf-2);border:1px solid var(--border);border-radius:13px;width:278px;box-shadow:0 20px 56px rgba(0,0,10,.15);display:none;animation:popIn .15s ease;}
@@ -298,6 +338,7 @@ body.viewer-mode .cell-day:hover .chip-empty{border-color:var(--border);color:rg
 <!-- ════════ VISTA 1: HORARIO ════════ -->
 <div id="viewHorario" class="view-section active">
   <div class="h-controls">
+    <a class="mobile-viewer-back" href="/TurnosSup">‹ Regresar a TurnoSup</a>
     <div class="week-nav">
       <button class="nav-btn" id="btnPrev" title="Período anterior">
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
@@ -780,8 +821,9 @@ window.getDocs = getDocs;
 window.query = query;
 window.rulesByEmployee = window.rulesByEmployee || {};
 
-function applyReadOnlyUi(isViewer) {
+function applyReadOnlyUi(isViewer, isDietSup = false) {
   document.body.classList.toggle('viewer-mode', isViewer);
+  document.body.classList.toggle('dietsup-viewer', isDietSup);
   ['btnGenAuto', 'btnDiscardDraft', 'btnClear', 'btnLoadSecDraft', 'btnPublish'].forEach(id => {
     const control = document.getElementById(id);
     if(control) {
@@ -859,7 +901,8 @@ onAuthStateChanged(auth, async user => {
     window.isAdmin = false;
     window.isViewer = true;
     window.isSecretary = false;
-    applyReadOnlyUi(true);
+    applyReadOnlyUi(true, user.email.startsWith('dietsup_'));
+    if(typeof window.render === 'function') window.render();
     loginOverlay.style.display = 'none';
     document.querySelectorAll('.tab-btn').forEach(b => {
       if(b.textContent.includes('Reportes') || b.textContent.includes('Gestión')) b.style.display = 'none';
@@ -1892,6 +1935,21 @@ function fmtT(t){ let[h,m]=t.split(':').map(Number); const p=h>=12?'pm':'am'; if
 function sidLabel(sid){ const s=resolveShift(sid); if(!s?.start) return ''; return `${fmtT(s.start)} – ${fmtT(s.end)}` }
 function empDays(eid,dates){ return dates.filter(d=>WORK_IDS.has(getShift(eid,ds(d)))).length }
 function empShiftCount(eid,dates,shiftIds){ return dates.filter(d=>shiftIds.includes(getShift(eid,ds(d)))).length; }
+function getMonthDates(referenceDate){
+  const first=new Date(referenceDate.getFullYear(),referenceDate.getMonth(),1,12);
+  const last=new Date(referenceDate.getFullYear(),referenceDate.getMonth()+1,0,12);
+  const dates=[];
+  for(let d=new Date(first);d<=last;d=addDays(d,1)) dates.push(new Date(d));
+  return dates;
+}
+function monthlyShiftSummary(eid,monthDates){
+  return {
+    total:empDays(eid,monthDates),
+    opening:empShiftCount(eid,monthDates,['C1','D1','CE']),
+    compensation:empShiftCount(eid,monthDates,['C2','A1','E1']),
+    balance:empShiftCount(eid,monthDates,['D2'])
+  };
+}
 
 /* ══════════════════════════════════════════════════════
    LÓGICA DE COBERTURA
@@ -1997,6 +2055,7 @@ function updateCustomLegend(){
 function el(tag,cls,txt){ const e=document.createElement(tag); if(cls) e.className=cls; if(txt!==undefined) e.textContent=txt; return e }
 
 function chipCfg(n){ return n<=7?{w:104,cls:'',empW:220}:n<=14?{w:78,cls:'sm',empW:220}:n<=21?{w:58,cls:'xs',empW:220}:{w:44,cls:'xxs',empW:220} }
+function isCompactDietSupMobile(){ return document.body.classList.contains('dietsup-viewer') && window.matchMedia('(max-width: 800px)').matches; }
 
 window.render = function(){
   const dates=getDates();
@@ -2042,7 +2101,16 @@ window.renderEmpList = function(){
 }
 
 function buildGrid(dates){
-  const cfg=chipCfg(dates.length);
+  const compactViewer = isCompactDietSupMobile();
+  const cfg=compactViewer ? {w:62,cls:'xs',empW:108} : chipCfg(dates.length);
+  const monthDates=getMonthDates(dates[0]);
+  const monthLabel=dates[0].toLocaleDateString('es-PR',{month:'long',year:'numeric'});
+  const monthlySummaries=window.EMPLOYEES.map(e=>monthlyShiftSummary(e.id,monthDates));
+  const monthlyMax={
+    opening:Math.max(1,...monthlySummaries.map(s=>s.opening)),
+    compensation:Math.max(1,...monthlySummaries.map(s=>s.compensation)),
+    balance:Math.max(1,...monthlySummaries.map(s=>s.balance))
+  };
   const total=window.EMPLOYEES.reduce((a,e)=>a+empDays(e.id,dates),0);
 
   const wrap=el('div','area-section');
@@ -2062,7 +2130,9 @@ function buildGrid(dates){
   scroll.style.overflowY = 'auto';
 
   const grid=el('div','grid');
-  grid.style.gridTemplateColumns=`${cfg.empW}px repeat(${dates.length},${cfg.w}px) 34px 34px 34px 34px 34px 34px 40px`;
+  grid.style.gridTemplateColumns=compactViewer
+    ? `${cfg.empW}px repeat(${dates.length},${cfg.w}px)`
+    : `${cfg.empW}px repeat(${dates.length},${cfg.w}px) 420px`;
 
   let cTop = 0;
   const stickyStyle = (e, h, isLeft) => {
@@ -2085,7 +2155,7 @@ function buildGrid(dates){
       h.textContent=`Sem. ${wn++}  ·  ${fmtD(chunk[0])} – ${fmtD(chunk[chunk.length-1])}`;
       items.push(h);
     }
-    for(let k=0; k<7; k++) items.push(el('div','wk-grp-empty'));
+    if(!compactViewer) items.push(el('div','wk-grp-empty'));
     items.forEach(i => { stickyStyle(i, 22, i.className==='wk-grp-empty' && items.indexOf(i)===0); grid.appendChild(i); });
     cTop += 22;
   }
@@ -2093,26 +2163,29 @@ function buildGrid(dates){
   const hdrItems = [];
   const emHdr=el('div','gh-empty','Empleado'); hdrItems.push(emHdr);
   dates.forEach((d,cIdx)=>{ const th=el('div','gh-day'+(isToday(d)?' today-hdr':'')); th.dataset.col=cIdx; th.innerHTML=`<span class="d-name">${DAYS_ES[d.getDay()]}</span><span class="d-num">${d.getDate()}</span>`; hdrItems.push(th); });
-  ['4am','4:30','5am','5:30','6am','10am','Tot'].forEach((t,idx) => {
-    const s = ['C1','D1','C2/A1','E1','C3','D2','Días'][idx];
-    const th=el('div','gh-total'); th.innerHTML=`${t}<br><span>${s}</span>`; hdrItems.push(th);
-  });
+  if(!compactViewer) {
+    const th=el('div','gh-total');
+    th.innerHTML=`Balance mensual<span>${monthLabel}</span>`;
+    hdrItems.push(th);
+  }
   hdrItems.forEach(i => { stickyStyle(i, 38, i.className==='gh-empty'); grid.appendChild(i); });
   cTop += 38;
 
-  const cmpItemsC = [];
-  const cmpLblC=el('div','complete-label'); cmpLblC.innerHTML=`<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Est. Cocina`; cmpItemsC.push(cmpLblC);
-  dates.forEach((d,cIdx)=>{ const cell=el('div','complete-cell'); cell.dataset.col=cIdx; cell.appendChild(buildStatusBadge(getDayStatusArea(ds(d), 'cocina'),cfg.cls)); cmpItemsC.push(cell); });
-  for(let k=0; k<7; k++) cmpItemsC.push(el('div','complete-total'));
-  cmpItemsC.forEach(i => { stickyStyle(i, 32, i.className==='complete-label'); grid.appendChild(i); });
-  cTop += 32;
+  if(!compactViewer) {
+    const cmpItemsC = [];
+    const cmpLblC=el('div','complete-label'); cmpLblC.innerHTML=`<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Est. Cocina`; cmpItemsC.push(cmpLblC);
+    dates.forEach((d,cIdx)=>{ const cell=el('div','complete-cell'); cell.dataset.col=cIdx; cell.appendChild(buildStatusBadge(getDayStatusArea(ds(d), 'cocina'),cfg.cls)); cmpItemsC.push(cell); });
+    cmpItemsC.push(el('div','complete-total'));
+    cmpItemsC.forEach(i => { stickyStyle(i, 32, i.className==='complete-label'); grid.appendChild(i); });
+    cTop += 32;
 
-  const cmpItemsD = [];
-  const cmpLblD=el('div','complete-label'); cmpLblD.innerHTML=`<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Est. Centro`; cmpItemsD.push(cmpLblD);
-  dates.forEach((d,cIdx)=>{ const cell=el('div','complete-cell'); cell.dataset.col=cIdx; cell.appendChild(buildStatusBadge(getDayStatusArea(ds(d), 'centro'),cfg.cls)); cmpItemsD.push(cell); });
-  for(let k=0; k<7; k++) cmpItemsD.push(el('div','complete-total'));
-  cmpItemsD.forEach(i => { stickyStyle(i, 32, i.className==='complete-label'); grid.appendChild(i); });
-  cTop += 32;
+    const cmpItemsD = [];
+    const cmpLblD=el('div','complete-label'); cmpLblD.innerHTML=`<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Est. Centro`; cmpItemsD.push(cmpLblD);
+    dates.forEach((d,cIdx)=>{ const cell=el('div','complete-cell'); cell.dataset.col=cIdx; cell.appendChild(buildStatusBadge(getDayStatusArea(ds(d), 'centro'),cfg.cls)); cmpItemsD.push(cell); });
+    cmpItemsD.push(el('div','complete-total'));
+    cmpItemsD.forEach(i => { stickyStyle(i, 32, i.className==='complete-label'); grid.appendChild(i); });
+    cTop += 32;
+  }
 
   const cocinaIds = window.EMPLOYEES.filter(e => e.area === 'cocina' && e.id !== 'GA').map(e => e.id);
   const centroIds = window.EMPLOYEES.filter(e => e.area === 'centro' && e.id !== 'GA').map(e => e.id);
@@ -2127,18 +2200,20 @@ function buildGrid(dates){
     const dRow=el('div','area-divider');
     const dLbl=el('div','area-div-label'); dLbl.style.cssText=`color:${grp.color};background:${grp.bg};border-top:${gi>0?'2px solid rgba(0,0,0,.05)':'none'}`; dLbl.textContent=grp.label; dRow.appendChild(dLbl);
     for(let i=0;i<dates.length;i++){ const c=el('div','area-div-cell'); c.style.cssText=`background:${grp.bg};border-top:${gi>0?'2px solid rgba(0,0,0,.05)':'none'}`; c.dataset.col=i; dRow.appendChild(c); }
-    for(let k=0; k<7; k++){ const dt=el('div','area-div-total'); dt.style.cssText=`background:${grp.bg};border-top:${gi>0?'2px solid rgba(0,0,0,.05)':'none'}`; dRow.appendChild(dt); }
+    if(!compactViewer) { const dt=el('div','area-div-total'); dt.style.cssText=`background:${grp.bg};border-top:${gi>0?'2px solid rgba(0,0,0,.05)':'none'}`; dRow.appendChild(dt); }
     grid.appendChild(dRow);
-    grp.empIds.forEach(eid=>grid.appendChild(buildEmpRow(eid,dates,cfg)));
+    grp.empIds.forEach(eid=>grid.appendChild(buildEmpRow(eid,dates,cfg,compactViewer,monthDates,monthlyMax)));
   });
 
   if (window.gaEnabled || window.EMPLOYEES.some(e => e.id === 'GA')) {
-    const rowGA = buildEmpRow('GA', dates, cfg);
+    const rowGA = buildEmpRow('GA', dates, cfg, compactViewer,monthDates,monthlyMax);
     grid.appendChild(rowGA);
   }
 
-  buildCovRow(grid,'cocina','Cob. Cocina','#f97316',dates,cfg);
-  buildCovRow(grid,'centro','Cob. Centro','#22d3ee',dates,cfg);
+  if(!compactViewer) {
+    buildCovRow(grid,'cocina','Cob. Cocina','#f97316',dates,cfg);
+    buildCovRow(grid,'centro','Cob. Centro','#22d3ee',dates,cfg);
+  }
 
   grid.addEventListener('mouseover', e => {
     const cell = e.target.closest('[data-col]');
@@ -2186,7 +2261,7 @@ function buildCovRow(grid,areaId,labelText,color,dates,cfg){
     }
     grid.appendChild(cell);
   });
-  for(let k=0; k<7; k++){ const tot=el('div','cov-cell-total'); tot.style.borderTop='1px solid var(--border)'; grid.appendChild(tot); }
+  const tot=el('div','cov-cell-total'); tot.style.borderTop='1px solid var(--border)'; grid.appendChild(tot);
 }
 
 function buildStatusBadge(st,chipCls){
@@ -2202,7 +2277,7 @@ function buildStatusBadge(st,chipCls){
   return b;
 }
 
-function buildEmpRow(eid,dates,cfg){
+function buildEmpRow(eid,dates,cfg,compactViewer=false,monthDates=[],monthlyMax={opening:1,compensation:1,balance:1}){
   const emp=window.EMPLOYEES.find(e=>e.id == eid) || (eid === 'GA' ? {
     id: 'GA', av: 'GA', avColor: 'var(--royal)', name: window.gaName || 'Gerente Asociada (Apoyo)',
     role: 'Apoyo', area: 'centro'
@@ -2211,7 +2286,10 @@ function buildEmpRow(eid,dates,cfg){
   const row=el('div','grid-row');
   const nc=el('div','cell-name');
   
-  if (eid === 'GA') {
+  if (eid === 'GA' && compactViewer) {
+    nc.innerHTML=`<div class="cell-name-info"><div class="emp-n" title="${escapeHtml(emp.name)}">${escapeHtml(emp.name)}</div>
+      <div class="emp-r" style="background:transparent;color:#0284c7">Apoyo</div></div>`;
+  } else if (eid === 'GA') {
     const savedGaName = window.gaName || 'Gerente Asociada (Apoyo)';
     const gaEnabledHtml = `
       <label style="display:flex;align-items:center;gap:3px;cursor:pointer;font-size:10px;color:var(--text);margin-left:auto;">
@@ -2246,22 +2324,18 @@ function buildEmpRow(eid,dates,cfg){
     row.appendChild(cell);
   });
 
-  const tC1 = empShiftCount(eid,dates,['C1']);
-  const tD1 = empShiftCount(eid,dates,['D1']);
-  const t5  = empShiftCount(eid,dates,['C2','A1']);
-  const tE1 = empShiftCount(eid,dates,['E1']);
-  const tC3 = empShiftCount(eid,dates,['C3']);
-  const tD2 = empShiftCount(eid,dates,['D2']);
+  if(compactViewer) return row;
 
-  [tC1,tD1,t5,tE1,tC3,tD2].forEach(t=>{
-    const c=el('div','cell-total'); c.textContent=t||'-';
-    if(!t) c.style.color='var(--border)';
-    row.appendChild(c);
-  });
-
-  const tot=el('div','cell-total');
-  tot.innerHTML=`<div style="font-size:12.5px;font-weight:700;color:var(--text);">${empDays(eid,dates)}</div>`;
-  row.appendChild(tot);
+  const summary=monthlyShiftSummary(eid,monthDates);
+  const pct=(value,max)=>Math.min(100,Math.round((value/max)*100));
+  const total=el('div','cell-total');
+  total.innerHTML=`<div class="monthly-summary">
+    <div class="monthly-total"><strong>${summary.total}</strong><span>Turnos<br>del mes</span></div>
+    <div class="monthly-metric"><div class="monthly-metric-top"><span>Total madrugadas<small>4:00 / 4:30</small></span><strong>${summary.opening}</strong></div><div class="monthly-track"><div class="monthly-fill" style="width:${pct(summary.opening,monthlyMax.opening)}%;background:#f97316"></div></div></div>
+    <div class="monthly-metric"><div class="monthly-metric-top"><span>Total madrugadas<small>5:00 / 5:30</small></span><strong>${summary.compensation}</strong></div><div class="monthly-track"><div class="monthly-fill" style="width:${pct(summary.compensation,monthlyMax.compensation)}%;background:#2563eb"></div></div></div>
+    <div class="monthly-metric"><div class="monthly-metric-top"><span>Total turnos<small>10:00 AM</small></span><strong>${summary.balance}</strong></div><div class="monthly-track"><div class="monthly-fill" style="width:${pct(summary.balance,monthlyMax.balance)}%;background:#7c3aed"></div></div></div>
+  </div>`;
+  row.appendChild(total);
   return row;
 }
 
