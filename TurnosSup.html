@@ -263,7 +263,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, doc, setDoc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, doc, setDoc, getDoc, getDocs, query, where, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getMessaging, getToken, isSupported as isMessagingSupported, onMessage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
 
@@ -305,6 +305,7 @@ const SHIFTS = {
 window.EMP_NAMES = {};
 window.EMP_AREAS = {};
 window.EMP_EMAILS = {};
+window.employeesLoaded = false;
 onSnapshot(collection(db, 'employees'), snap => {
   let names = {};
   let areas = {};
@@ -317,6 +318,7 @@ onSnapshot(collection(db, 'employees'), snap => {
   window.EMP_NAMES = names;
   window.EMP_AREAS = areas;
   window.EMP_EMAILS = emails;
+  window.employeesLoaded = true;
   if (currentUserEid && names[currentUserEid]) {
     const greeting = document.getElementById('userGreeting');
     if (greeting) {
@@ -365,6 +367,48 @@ let unsubReq=null;
 let unsubUpdates=null;
 let unsubChat=null;
 let lastSeenUpdate = parseInt(localStorage.getItem('lastSeenUpdate')) || 0;
+
+function coerceEmployeeId(id) {
+  return /^\d+$/.test(String(id)) ? parseInt(id) : String(id);
+}
+
+async function getEmployeeRecord(id) {
+  const cleanId = String(id || '').trim().toLowerCase();
+  if(!cleanId) return null;
+  const localName = window.EMP_NAMES[cleanId];
+  const localEmail = window.EMP_EMAILS[cleanId];
+  if(localName || localEmail) {
+    return {
+      id: cleanId,
+      name: localName,
+      email: localEmail || `emp${cleanId}@workboard.local`
+    };
+  }
+
+  const snap = await getDoc(doc(db, 'employees', cleanId));
+  if(!snap.exists()) return null;
+  const data = snap.data();
+  return {
+    id: cleanId,
+    name: data.name || '',
+    email: data.email || `emp${cleanId}@workboard.local`
+  };
+}
+
+async function findEmployeeByEmail(email) {
+  const cleanEmail = String(email || '').trim().toLowerCase();
+  if(!cleanEmail) return null;
+
+  const localId = Object.keys(window.EMP_EMAILS || {}).find(k =>
+    String(window.EMP_EMAILS[k] || '').toLowerCase() === cleanEmail
+  );
+  if(localId) return { id: localId };
+
+  const snap = await getDocs(query(collection(db, 'employees'), where('email', '==', cleanEmail)));
+  if(snap.empty) return null;
+  const first = snap.docs[0];
+  return { id: first.id, ...first.data() };
+}
 
 function setNotificationReminderStatus(message, enabled) {
   const status = document.getElementById('notificationReminderStatus');
@@ -484,11 +528,16 @@ window.dismissUpdateAlert = () => {
 }
 
 /* ══ AUTH ══ */
-onAuthStateChanged(auth, user => {
+onAuthStateChanged(auth, async user => {
   let validUser = false;
   if(user) {
-    let idStr = Object.keys(window.EMP_EMAILS || {}).find(k => window.EMP_EMAILS[k].toLowerCase() === user.email.toLowerCase());
-    if(idStr) currentUserEid = parseInt(idStr);
+    const userEmail = String(user.email || '').toLowerCase();
+    let idStr = Object.keys(window.EMP_EMAILS || {}).find(k => String(window.EMP_EMAILS[k] || '').toLowerCase() === userEmail);
+    if(!idStr) {
+      const employeeRecord = await findEmployeeByEmail(userEmail);
+      if(employeeRecord) idStr = employeeRecord.id;
+    }
+    if(idStr) currentUserEid = coerceEmployeeId(idStr);
     else if(user.email.startsWith('emp') && user.email.endsWith('@workboard.local')) currentUserEid = parseInt(user.email.replace('emp','').replace('@workboard.local',''));
     else if(user.email.startsWith('dietsup_') && user.email.endsWith('@workboard.local')) {
       currentUserRole = 'dietista';
@@ -563,10 +612,17 @@ window.login = async () => {
   
   const isDietSupLogin = id.startsWith('dietsup_') || id.startsWith('dietsup');
   const cleanDietSupId = id.replace(/^dietsup_?/, '').replace(/[^a-z0-9]/g, '');
-  if(!isDietSupLogin && !window.EMP_NAMES[id]) return toast('Número de empleado inválido');
-  const email = isDietSupLogin ? `dietsup_${cleanDietSupId}@workboard.local` : (window.EMP_EMAILS[id] || `emp${id}@workboard.local`);
   const btn=document.getElementById('btnLogin'); btn.textContent='...';
   try{
+    let email = `dietsup_${cleanDietSupId}@workboard.local`;
+    if(!isDietSupLogin) {
+      const employeeRecord = await getEmployeeRecord(id);
+      if(!employeeRecord) {
+        btn.textContent='Entrar';
+        return toast('Número de empleado inválido');
+      }
+      email = employeeRecord.email;
+    }
     await signInWithEmailAndPassword(auth, email, pass);
   } catch(e) { toast('Credenciales incorrectas'); }
   btn.textContent='Entrar';
@@ -577,10 +633,14 @@ window.register = async () => {
   const email=document.getElementById('regEmail').value;
   const pass=document.getElementById('regPass').value;
   if(!id||!pass||!email) return toast('Completa todos los campos');
-  if(!window.EMP_NAMES[id]) return toast('Número de empleado inválido');
   if(pass.length<6) return toast('Mínimo 6 caracteres');
   const btn=document.getElementById('btnReg'); btn.textContent='...';
   try{
+    const employeeRecord = await getEmployeeRecord(id);
+    if(!employeeRecord) {
+      btn.textContent='Registrarme';
+      return toast('Número de empleado inválido');
+    }
     // Optimistic update to prevent onAuthStateChanged from signing out immediately
     window.EMP_EMAILS[id] = email.toLowerCase();
     
@@ -596,9 +656,10 @@ window.register = async () => {
 window.forgotPassword = async () => {
   const id = prompt("Ingresa tu Número de Empleado para recuperar la contraseña:");
   if(!id) return;
-  if(!window.EMP_NAMES[id]) return toast('Número de empleado inválido');
+  const employeeRecord = await getEmployeeRecord(id);
+  if(!employeeRecord) return toast('Número de empleado inválido');
   
-  const email = window.EMP_EMAILS[id];
+  const email = employeeRecord.email;
   if(!email || email.includes('@workboard.local')) {
     return toast('No tienes un correo personal registrado. Contacta al administrador.');
   }
