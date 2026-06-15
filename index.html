@@ -163,7 +163,8 @@ body.viewer-mode .cell-day:hover .chip-empty{border-color:var(--border);color:rg
 .monthly-metric-top{display:flex;justify-content:space-between;align-items:center;gap:5px;font-size:7px;color:var(--muted);font-weight:700;text-transform:uppercase;line-height:1.1}
 .monthly-metric-top span{display:flex;flex-direction:column;gap:1px}
 .monthly-metric-top small{font-size:7px;color:var(--text);font-weight:600;text-transform:none}
-.monthly-metric-top strong{font-size:12px;color:var(--text)}
+.monthly-metric-top strong{display:flex;flex-direction:column;align-items:flex-end;font-size:12px;color:var(--text)}
+.monthly-metric-top strong em{font-size:7px;color:var(--muted);font-style:normal;font-weight:700}
 .monthly-track{height:4px;border-radius:99px;background:var(--border-2);overflow:hidden;margin-top:4px}
 .monthly-fill{height:100%;border-radius:99px}
 
@@ -224,10 +225,10 @@ body.viewer-mode .cell-day:hover .chip-empty{border-color:var(--border);color:rg
   body.dietsup-viewer .emp-av{display:none}
   body.dietsup-viewer .emp-n{font-size:10px;white-space:normal;line-height:1.15}
   body.dietsup-viewer .emp-r{font-size:8px;padding:1px 3px}
-  body.dietsup-viewer .chip{width:58px;padding:4px 2px}
-  body.dietsup-viewer .chip-id{font-size:10px}
+  body.dietsup-viewer .chip{width:72px;padding:5px 2px}
+  body.dietsup-viewer .chip-id{font-size:8px;line-height:1.2;white-space:normal;text-align:center}
   body.dietsup-viewer .chip-time{display:none}
-  body.dietsup-viewer .chip-empty{width:58px;height:34px;font-size:12px}
+  body.dietsup-viewer .chip-empty{width:72px;height:34px;font-size:12px}
 }
 
 /* ══ POPOVER ══ */
@@ -429,7 +430,7 @@ body.viewer-mode .cell-day:hover .chip-empty{border-color:var(--border);color:rg
   <!-- Panel de Reglas del Motor -->
   <div class="box-panel" style="border-color: var(--royal);">
     <div class="box-hdr" style="color:var(--royal); margin-bottom:5px;">Reglas de Motor Automático</div>
-    
+
     <!-- Vista Principal: Seleccionador y Lista -->
     <div id="rulesMainView">
       <div style="font-size:12px;color:var(--muted);margin-bottom:15px;line-height:1.4;">
@@ -445,7 +446,7 @@ body.viewer-mode .cell-day:hover .chip-empty{border-color:var(--border);color:rg
         </div>
       </div>
     </div>
-    
+
     <!-- Vista Edición: Formulario -->
     <div id="rulesContainer" style="display:none; flex-direction:column; gap:15px;">
       <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(37,99,235,.1); padding:10px 15px; border-radius:8px;">
@@ -651,6 +652,11 @@ body.viewer-mode .cell-day:hover .chip-empty{border-color:var(--border);color:rg
       <input type="password" id="regSupPass" class="frm-input" placeholder="Ej. 890000 (Mínimo 6 dígitos)">
     </div>
     <button class="btn btn-accent" id="btnSupSave" onclick="registerSupervisor()" style="width:100%;justify-content:center;margin-top:5px;height:36px;background:var(--royal);">Inscribir Dietista</button>
+
+    <div class="box-hdr" style="font-size:14px;border-top:1px solid var(--border);padding-top:15px;margin-top:15px;">Dietistas Inscritos</div>
+    <div style="flex:1;overflow-y:auto;padding-right:5px;max-height:200px;" id="dietitianList">
+      <div style="color:var(--muted);font-size:12px;text-align:center;">Cargando dietistas...</div>
+    </div>
   </div>
 
   <!-- Columna 5: Inscripción de Secretaria -->
@@ -678,9 +684,40 @@ body.viewer-mode .cell-day:hover .chip-empty{border-color:var(--border);color:rg
       <input type="password" id="regSecPass" class="frm-input" placeholder="Ej. 890000 (Mínimo 6 dígitos)">
     </div>
     <button class="btn btn-accent" id="btnSecSave" onclick="registerSecretary()" style="width:100%;justify-content:center;margin-top:5px;height:36px;background:var(--accent);color:#000;">Inscribir Secretaria</button>
+
+    <div class="box-hdr" style="font-size:14px;border-top:1px solid var(--border);padding-top:15px;margin-top:15px;">Secretarias Inscritas</div>
+    <div style="flex:1;overflow-y:auto;padding-right:5px;max-height:200px;" id="secretaryList">
+      <div style="color:var(--muted);font-size:12px;text-align:center;">Cargando secretarias...</div>
+    </div>
   </div>
 
-  <!-- Columna 6: Auditoría de Chat -->
+  <!-- Columna 6: Administrador Alterno -->
+  <div class="box-panel">
+    <div class="box-hdr">Administrador Alterno</div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:15px;line-height:1.4;">
+      Crea una cuenta con las mismas funciones del administrador principal para delegar publicaciones, aprobaciones y configuración de TurnoSup.
+    </p>
+    <div class="frm-row">
+      <label class="frm-lbl">Nombre del Administrador Alterno</label>
+      <input type="text" id="regAdminFullName" class="frm-input" placeholder="Ej. Maria Martinez">
+    </div>
+    <div class="frm-row">
+      <label class="frm-lbl">Nombre identificador (user)</label>
+      <input type="text" id="regAdminName" class="frm-input" placeholder="Ej. 01abc1 (será admin_01abc1@workboard.local)">
+    </div>
+    <div class="frm-row">
+      <label class="frm-lbl">Contraseña inicial</label>
+      <input type="password" id="regAdminPass" class="frm-input" placeholder="Mínimo 6 caracteres">
+    </div>
+    <button class="btn btn-accent" id="btnAdminSave" onclick="registerAlternateAdmin()" style="width:100%;justify-content:center;margin-top:5px;height:36px;background:#7c3aed;color:#fff;">Inscribir Administrador Alterno</button>
+
+    <div class="box-hdr" style="font-size:14px;border-top:1px solid var(--border);padding-top:15px;margin-top:15px;">Administradores Alternos</div>
+    <div style="flex:1;overflow-y:auto;padding-right:5px;max-height:200px;" id="alternateAdminList">
+      <div style="color:var(--muted);font-size:12px;text-align:center;">Cargando administradores alternos...</div>
+    </div>
+  </div>
+
+  <!-- Columna 7: Auditoría de Chat -->
   <div class="box-panel" style="grid-column: 1 / -1;">
     <div class="box-hdr" style="display:flex; justify-content:space-between; align-items:center;">
       <span>Auditoría de Chat Interno</span>
@@ -720,9 +757,10 @@ body.viewer-mode .cell-day:hover .chip-empty{border-color:var(--border);color:rg
         ⚙️ Motor Automático (Scheduling Engine)
       </div>
       <div style="font-size:13px; color:var(--text); line-height:1.6; display:flex; flex-direction:column; gap:10px;">
-        <p><b>¿Qué hace?</b> El botón "Generar Automático" (en la sección Horario) acomoda los turnos de todos los empleados en segundos, garantizando la cobertura mínima de Cocina y Centro de Distribución.</p>
+        <p><b>¿Qué hace?</b> El botón "Generar Automático" (en la sección Horario) acomoda los turnos de todos los empleados en segundos, garantizando la cobertura mínima de Cocina y Centro de Distribución. El resultado queda como borrador hasta que sea revisado y publicado.</p>
         <p><b>Cobertura Global:</b> El sistema sabe que Cocina necesita 1 turno C1 y 1 turno C3 mínimo; y el Centro necesita combinaciones específicas de D1, D2 y A1.</p>
         <p><b>Reglas por Empleado:</b> Para que el motor funcione bien, debes configurarle reglas a cada supervisor en la pestaña de <i>Gestión de Personal > Reglas de Motor Automático</i>. Puedes restringirles qué días no trabajan (Ej. "Libre todos los domingos"), limitar el máximo de días que trabajan a la semana, o prohibirles turnos específicos (Ej. "Prohibido turno C1").</p>
+        <p><b>Balance mensual:</b> A la derecha del calendario se resume el mes completo por supervisor: total de turnos, total de madrugadas 4:00/4:30, total de madrugadas 5:00/5:30 y participación en turnos 10:00 AM. Las barras de madrugadas usan meta 13 como 100%; la barra de 10:00 AM indica el porciento del total mensual asignado.</p>
       </div>
     </div>
 
@@ -735,7 +773,9 @@ body.viewer-mode .cell-day:hover .chip-empty{border-color:var(--border);color:rg
         <p><b>Peticiones Normales:</b> Los empleados usan la app móvil para pedir vacaciones, días libres, licencias o fondo. Estas llegan a tu "Registro de Peticiones" para ser aprobadas.</p>
         <p><b>Intercambios (Marketplace):</b> Los supervisores pueden tocar el turno de un compañero en la sección "En Turno" de su app para proponerle un cambio. La petición llegará marcada con la etiqueta azul <b>[INTERCAMBIO]</b> en tu panel.</p>
         <p><b>Aprobar/Denegar Automático:</b> Todas las peticiones e intercambios tienen botones de "Aprobar" y "Denegar". Al aprobarlas, el sistema aplicará automáticamente los cambios (ya sea la ausencia o el cruce de turnos) directamente en el calendario.</p>
-        <p><b>Interruptor Maestro (Bloqueo):</b> En la esquina superior del panel de peticiones verás un switch <b>"🔒 Bloquear"</b>. Enciéndelo justo antes de ponerte a crear la programación. Esto bloqueará la app de los supervisores instantáneamente para que no puedan enviar peticiones de última hora que interrumpan tu proceso. Cuando termines la programación, recuerda apagarlo.</p>
+        <p><b>Interruptor Maestro (Bloqueo):</b> En la esquina superior del panel de peticiones verás <b>"🔒 Bloquear Peticiones"</b>. Enciéndelo justo antes de crear la programación para que no entren peticiones de última hora desde TurnoSup. Cuando termines, recuerda abrirlo si deseas recibir nuevas peticiones.</p>
+        <p><b>Funciones móviles:</b> Desde el mismo encabezado puedes habilitar/deshabilitar Chat, Intercambios y Recordatorios de Turno. Cada cambio muestra una alerta de orientación porque impacta lo que los usuarios ven o reciben en TurnoSup.</p>
+        <p><b>Recordatorios de Turno:</b> Cuando se habilitan, el empleado debe activar el recibo de avisos en TurnoSup. Si el administrador apaga y vuelve a encender la función, el sistema pide una nueva activación para respetar el consentimiento de avisos.</p>
         <p><b>Turno CE (Cocina Extendido):</b> Un intercambio en el mismo día no altera la cantidad de personal. Sin embargo, si falta personal (alguien se enferma), puedes asignar manualmente el turno rojo <b>CE (4am - 2pm)</b> a otro supervisor para cubrir una jornada de 10 horas.</p>
       </div>
     </div>
@@ -746,11 +786,24 @@ body.viewer-mode .cell-day:hover .chip-empty{border-color:var(--border);color:rg
         🔐 Cuentas y Accesos de Supervisores
       </div>
       <div style="font-size:13px; color:var(--text); line-height:1.6; display:flex; flex-direction:column; gap:10px;">
-        <p><b>Crear Usuario:</b> Cuando se añade a un empleado nuevo desde la sección "Añadir Nuevo Supervisor", se le asignara su numero de empleado como número ID (ej. 890000).</p>
+        <p><b>Crear Usuario:</b> Cuando se añade a un empleado nuevo desde la sección "Inscripción de Empleado", se le asigna su número de empleado como ID (ej. 890000).</p>
         <p><b>Primer Ingreso:</b> Para entrar a la app de Supervisores por primera vez, el empleado debe usar la opción "Regístrate aquí", ingresar su número de ID, <b>su correo electrónico personal</b> y crear una contraseña nueva.</p>
         <p><b>Recuperación:</b> Como el registro usa sus correos electrónicos reales, si olvidan la clave pueden recuperarla ellos mismos desde el app sin tener que pedirte ayuda a ti para resetearla.</p>
-        <p><b>Dietista Supervisor(a) (Solo Lectura):</b> Al crear una cuenta de Solo Lectura (para ver el calendario sin editar), se utilizará el nombre identificador (ej. 01cam1) y el número de empleado como contraseña. Para entrar, utilizarán el enlace web del panel y el correo asignado (ej. dietsup_01cam1@workboard.local).</p>
-        <p><b>Secretaria (Borradores y Bloqueo):</b> La cuenta de Secretaria permite editar el calendario, pero no publicarlo directamente. Cuando ella guarda, el sistema crea un "Borrador" que te aparecerá a ti (Administrador) como un botón de revisión en la parte superior. Una vez lo revises, tú eres quien lo publica. Además, puedes habilitar o deshabilitar el acceso de la Secretaria usando el interruptor en la pestaña de Gestión de Personal.</p>
+        <p><b>Dietista Supervisor(a) (Solo Lectura):</b> Se crea desde Gestión de Personal y aparece en "Dietistas Inscritos". En móvil puede entrar a TurnoSup y abrir un calendario compacto con empleados, áreas y horarios legibles; en PC puede ver el calendario completo de index en solo lectura.</p>
+        <p><b>Secretaria (Edición):</b> La cuenta de Secretaria permite editar calendario y enviar borradores, pero no publicarlos directamente. El administrador revisa el borrador y decide si lo publica. Su acceso se habilita/deshabilita desde el interruptor de la sección Secretaria, y la cuenta aparece en "Secretarias Inscritas".</p>
+        <p><b>Administrador Alterno:</b> Esta cuenta se crea desde Gestión de Personal y aparece en "Administradores Alternos". Tiene permisos completos como el administrador principal: publicar, aprobar, administrar cuentas, habilitar funciones y modificar TurnoSup. Úsalo solo para personas autorizadas a tomar decisiones operacionales.</p>
+      </div>
+    </div>
+
+    <!-- Acciones Críticas -->
+    <div style="background:var(--surf-2); border:1px solid var(--border); border-radius:12px; padding:24px; box-shadow:0 8px 30px rgba(0,0,0,0.3);">
+      <div style="font-family:'Outfit'; font-size:18px; color:var(--royal); margin-bottom:15px; display:flex; align-items:center; gap:8px;">
+        ⚠️ Acciones Críticas y Verificación
+      </div>
+      <div style="font-size:13px; color:var(--text); line-height:1.6; display:flex; flex-direction:column; gap:10px;">
+        <p><b>Confirmaciones obligatorias:</b> El sistema muestra alertas antes de acciones que afectan a empleados, TurnoSup o datos publicados. Lee el impacto antes de confirmar.</p>
+        <p><b>Acciones protegidas:</b> Habilitar/deshabilitar peticiones, secretaria, chat, intercambios y recordatorios; limpiar horario; publicar horario o borrador; borrar empleados; borrar reglas automáticas; limpiar historial de chat; y crear administradores alternos.</p>
+        <p><b>Buenas prácticas:</b> Antes de publicar, revisa cobertura, peticiones pendientes y balance mensual. Antes de bloquear funciones, avisa al equipo si aplica. Antes de crear un administrador alterno, confirma que la persona debe tener autoridad completa.</p>
       </div>
     </div>
 
@@ -821,6 +874,30 @@ window.getDocs = getDocs;
 window.query = query;
 window.rulesByEmployee = window.rulesByEmployee || {};
 
+window.confirmCriticalAction = function({ title, message, impact, confirmLabel = 'Confirmar acción' }) {
+  return window.confirm(`${title}\n\n${message}\n\nImpacto: ${impact}\n\nPara continuar selecciona OK. Si no estás seguro, selecciona Cancelar.`);
+};
+
+function renderAccountList(list, records, fallbackText) {
+  if(!list) return;
+  if(!records.length) {
+    list.innerHTML = `<div style="color:var(--muted);font-size:12px;text-align:center;">${fallbackText}</div>`;
+    return;
+  }
+  list.innerHTML = records.map(r => `
+    <div style="background:var(--surf-3);padding:10px;margin-bottom:6px;border-radius:8px;border:1px solid var(--border-2);">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+        <div style="min-width:0;">
+          <div style="font-weight:700;font-size:13px;color:var(--text);">${escapeHtml(r.fullName || r.username || 'Cuenta')}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px;">Usuario: <b style="color:var(--text);">${escapeHtml(r.username || '')}</b></div>
+          <div style="font-size:10.5px;color:var(--muted);margin-top:2px;word-break:break-all;">${escapeHtml(r.email || '')}</div>
+        </div>
+        <span style="font-size:10px;font-weight:700;color:${r.status === 'Inactivo' ? '#dc2626' : '#059669'};background:${r.status === 'Inactivo' ? 'rgba(220,38,38,.08)' : 'rgba(5,150,105,.08)'};padding:3px 7px;border-radius:999px;">${escapeHtml(r.status || 'Activo')}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
 function applyReadOnlyUi(isViewer, isDietSup = false) {
   document.body.classList.toggle('viewer-mode', isViewer);
   document.body.classList.toggle('dietsup-viewer', isDietSup);
@@ -869,14 +946,22 @@ onAuthStateChanged(auth, async user => {
 
   const username = user.email.split('@')[0];
   const role = USER_ROLES[username];
+  const adminLookupId = username.replace(/^(admin_|dietsup_|sup_|sec_)/, '');
+  let alternateAdmin = null;
+  try {
+    const adminSnap = await getDoc(doc(db, 'adminAlternates', adminLookupId));
+    if(adminSnap.exists() && adminSnap.data().status !== 'Inactivo') alternateAdmin = adminSnap.data();
+  } catch(e) {
+    console.warn('No se pudo verificar administrador alterno', e);
+  }
 
-  if (user.email === 'carmelo.allende@gmail.com' || role === 'gerente') {
+  if (user.email === 'carmelo.allende@gmail.com' || role === 'gerente' || alternateAdmin) {
     window.isAdmin = true;
     window.isViewer = false;
     applyReadOnlyUi(false);
     loginOverlay.style.display = 'none';
     document.querySelectorAll('.tab-btn').forEach(b => b.style.display = 'inline-block');
-    window.toast('✅', 'Sesión de administrador activa');
+    window.toast('✅', alternateAdmin ? 'Sesión de administrador alterno activa' : 'Sesión de administrador activa');
   } else if (role === 'secretaria' || (user.email.startsWith('sec_') && user.email.endsWith('@workboard.local'))) {
     const snap = await getDoc(doc(db, 'config', 'system'));
     if (!snap.exists() || !snap.data().secretaryEnabled) {
@@ -963,6 +1048,9 @@ document.getElementById('btnLoginSubmit').onclick = async () => {
 
 // Listeners
 let unsubEmp = null;
+let unsubDietitians = null;
+let unsubSecretaries = null;
+let unsubAlternateAdmins = null;
 window.listenEmployees = () => {
   if (unsubEmp) unsubEmp();
   unsubEmp = onSnapshot(collection(db, 'employees'), async snap => {
@@ -1020,6 +1108,48 @@ window.listenEmployees = () => {
     if (window.updateRuleEmpSelect) window.updateRuleEmpSelect();
     if (typeof initGestionForms === 'function') initGestionForms();
     window.render();
+  });
+};
+
+window.listenDietitians = () => {
+  if (unsubDietitians) unsubDietitians();
+  unsubDietitians = onSnapshot(collection(db, 'dietitians'), snap => {
+    let dietitians = [];
+    snap.forEach(d => dietitians.push({ id: d.id, ...d.data() }));
+    dietitians.sort((a,b) => (a.fullName || '').localeCompare(b.fullName || '', 'es'));
+    window.DIETITIANS = dietitians;
+    window.renderDietitianList();
+  }, err => {
+    console.error(err);
+    window.renderDietitianList();
+  });
+};
+
+window.listenSecretaries = () => {
+  if (unsubSecretaries) unsubSecretaries();
+  unsubSecretaries = onSnapshot(collection(db, 'secretaries'), snap => {
+    let secretaries = [];
+    snap.forEach(d => secretaries.push({ id: d.id, ...d.data() }));
+    secretaries.sort((a,b) => (a.fullName || '').localeCompare(b.fullName || '', 'es'));
+    window.SECRETARIES = secretaries;
+    window.renderSecretaryList();
+  }, err => {
+    console.error(err);
+    window.renderSecretaryList();
+  });
+};
+
+window.listenAlternateAdmins = () => {
+  if (unsubAlternateAdmins) unsubAlternateAdmins();
+  unsubAlternateAdmins = onSnapshot(collection(db, 'adminAlternates'), snap => {
+    let admins = [];
+    snap.forEach(d => admins.push({ id: d.id, ...d.data() }));
+    admins.sort((a,b) => (a.fullName || '').localeCompare(b.fullName || '', 'es'));
+    window.ALTERNATE_ADMINS = admins;
+    window.renderAlternateAdminList();
+  }, err => {
+    console.error(err);
+    window.renderAlternateAdminList();
   });
 };
 
@@ -1101,6 +1231,9 @@ window.listenRequests = () => {
 };
 
 window.listenEmployees();
+window.listenDietitians();
+window.listenSecretaries();
+window.listenAlternateAdmins();
 window.listenSchedule();
 window.listenRequests();
 if(window.listenCustomShifts) window.listenCustomShifts();
@@ -1653,30 +1786,55 @@ window.approveReq = async (reqId, isApproved) => {
 
 window.toggleRequestsLock = async (locked) => {
   if(!window.isAdmin) return;
+  if(!window.confirmCriticalAction({
+    title: locked ? 'Bloquear Peticiones' : 'Abrir Peticiones',
+    message: locked ? 'Los empleados no podrán someter nuevas peticiones desde TurnoSup.' : 'Los empleados podrán volver a someter peticiones desde TurnoSup.',
+    impact: 'Cambia inmediatamente la disponibilidad de peticiones en la app móvil.'
+  })) { document.getElementById('lockRequestsToggle').checked = !locked; return; }
   await window.setDoc(window.doc(window.db, 'config', 'system'), { requestsLocked: locked }, { merge: true });
   window.toast(locked ? '🔒' : '🔓', locked ? 'Peticiones bloqueadas' : 'Peticiones abiertas');
 };
 
 window.toggleSecretaryLock = async (locked) => {
   if(!window.isAdmin) return;
+  if(!window.confirmCriticalAction({
+    title: locked ? 'Habilitar Secretaria' : 'Deshabilitar Secretaria',
+    message: locked ? 'La secretaria podrá entrar, editar horarios y enviar borradores.' : 'La secretaria no podrá acceder al panel de edición.',
+    impact: 'Afecta la delegación de edición y la operación administrativa del calendario.'
+  })) { document.getElementById('lockSecretaryToggle').checked = !locked; return; }
   await window.setDoc(window.doc(window.db, 'config', 'system'), { secretaryEnabled: locked }, { merge: true });
   window.toast(locked ? '🟢' : '🔴', locked ? 'Acceso Secretaria habilitado' : 'Acceso Secretaria deshabilitado');
 };
 
 window.toggleChatFeature = async (enabled) => {
   if(!window.isAdmin) return;
+  if(!window.confirmCriticalAction({
+    title: enabled ? 'Habilitar Chat' : 'Deshabilitar Chat',
+    message: enabled ? 'Los supervisores podrán usar el chat desde TurnoSup.' : 'Los supervisores dejarán de ver y usar el chat desde TurnoSup.',
+    impact: 'Cambia una funcionalidad visible para usuarios de la app móvil.'
+  })) { document.getElementById('enableChatToggle').checked = !enabled; return; }
   await window.setDoc(window.doc(window.db, 'config', 'system'), { chatEnabled: enabled }, { merge: true });
   window.toast(enabled ? '🟢' : '🔴', enabled ? 'Chat habilitado en App' : 'Chat deshabilitado');
 };
 
 window.toggleSwapFeature = async (enabled) => {
   if(!window.isAdmin) return;
+  if(!window.confirmCriticalAction({
+    title: enabled ? 'Activar Intercambios' : 'Desactivar Intercambios',
+    message: enabled ? 'Los empleados podrán solicitar intercambios de turno.' : 'Los empleados no podrán solicitar intercambios de turno.',
+    impact: 'Afecta directamente las opciones disponibles en TurnoSup.'
+  })) { document.getElementById('enableSwapToggle').checked = !enabled; return; }
   await window.setDoc(window.doc(window.db, 'config', 'system'), { swapEnabled: enabled }, { merge: true });
   window.toast(enabled ? '🟢' : '🔴', enabled ? 'Intercambios habilitados en App' : 'Intercambios deshabilitados');
 };
 
 window.toggleReminderFeature = async (enabled) => {
   if(!window.isAdmin) return;
+  if(!window.confirmCriticalAction({
+    title: enabled ? 'Habilitar Recordatorios de Turno' : 'Deshabilitar Recordatorios de Turno',
+    message: enabled ? 'Los empleados deberán activar nuevamente el recibo de avisos para esta activación.' : 'Se detendrán los avisos 24 horas antes del turno.',
+    impact: 'Afecta notificaciones push y la experiencia móvil de todos los empleados.'
+  })) { document.getElementById('enableRemindersToggle').checked = !enabled; return; }
   const update = { reminderEnabled: enabled };
   if(enabled) update.reminderActivationId = Date.now();
   await window.setDoc(window.doc(window.db, 'config', 'system'), update, { merge: true });
@@ -1770,7 +1928,11 @@ window.renderAdminChat = (msgs) => {
 };
 
 window.clearChat = async () => {
-  if(!confirm("¿Estás seguro de eliminar TODOS los mensajes del chat grupal? Esta acción no se puede deshacer.")) return;
+  if(!window.confirmCriticalAction({
+    title: 'Limpiar Historial de Chat',
+    message: 'Se eliminarán todos los mensajes del chat grupal.',
+    impact: 'La auditoría y conversación interna dejarán de estar disponibles. Esta acción no se puede deshacer.'
+  })) return;
   const q = window.query(window.collection(window.db, 'messages'));
   const snap = await window.getDocs(q);
   snap.forEach(d => {
@@ -1855,6 +2017,13 @@ window.registerSupervisor = async () => {
   try {
     const email = `dietsup_${cleanName}@workboard.local`;
     await window.createUserWithEmailAndPassword(window.secondaryAuth, email, pass);
+    await window.setDoc(window.doc(db, 'dietitians', cleanName), {
+      fullName: fullName.trim(),
+      username: `dietsup_${cleanName}`,
+      email,
+      createdAt: Date.now(),
+      status: 'Activo'
+    }, { merge: true });
     
     window.toast('✅', `Dietista registrado. Correo: ${email}`);
     document.getElementById('regSupFullName').value = '';
@@ -1889,6 +2058,13 @@ window.registerSecretary = async () => {
   try {
     const email = `sec_${cleanName}@workboard.local`;
     await window.createUserWithEmailAndPassword(window.secondaryAuth, email, pass);
+    await window.setDoc(window.doc(db, 'secretaries', cleanName), {
+      fullName: fullName.trim(),
+      username: `sec_${cleanName}`,
+      email,
+      createdAt: Date.now(),
+      status: 'Activo'
+    }, { merge: true });
     
     window.toast('✅', `Secretaria registrada. Correo de acceso: ${email}`);
     document.getElementById('regSecFullName').value = '';
@@ -1900,9 +2076,57 @@ window.registerSecretary = async () => {
   btn.textContent = 'Inscribir Secretaria';
 };
 
+window.registerAlternateAdmin = async () => {
+  if(!window.isAdmin) return window.toast('🔒', 'Inicia sesión como admin primero');
+  const fullName = document.getElementById('regAdminFullName').value;
+  const nameStr = document.getElementById('regAdminName').value;
+  const pass = document.getElementById('regAdminPass').value;
+
+  if (!nameStr || !pass || !fullName) return window.toast('⚠️', 'Completa todos los campos');
+  if (pass.length < 6) return window.toast('⚠️', 'Contraseña: min 6 caracteres');
+
+  const cleanName = nameStr.toLowerCase().replace(/[^a-z0-9]/g, '');
+  if(!cleanName) return window.toast('⚠️', 'Identificador inválido');
+
+  if(!window.confirmCriticalAction({
+    title: 'Crear Administrador Alterno',
+    message: `Vas a crear una cuenta con permisos completos: admin_${cleanName}@workboard.local.`,
+    impact: 'Podrá publicar horarios, aprobar cambios, habilitar/deshabilitar funciones, administrar cuentas y modificar TurnoSup.'
+  })) return;
+
+  const btn = document.getElementById('btnAdminSave');
+  btn.textContent = 'Guardando...';
+
+  try {
+    const email = `admin_${cleanName}@workboard.local`;
+    await window.createUserWithEmailAndPassword(window.secondaryAuth, email, pass);
+    await window.setDoc(window.doc(db, 'adminAlternates', cleanName), {
+      fullName: fullName.trim(),
+      username: `admin_${cleanName}`,
+      email,
+      createdAt: Date.now(),
+      status: 'Activo',
+      permissions: 'Administrador completo'
+    }, { merge: true });
+
+    window.toast('✅', `Administrador alterno registrado. Correo: ${email}`);
+    document.getElementById('regAdminFullName').value = '';
+    document.getElementById('regAdminName').value = '';
+    document.getElementById('regAdminPass').value = '';
+  } catch(e) {
+    if(e.code === 'auth/email-already-in-use') window.toast('❌', 'Ese administrador alterno ya existe');
+    else window.toast('❌', 'Error: ' + e.message);
+  }
+  btn.textContent = 'Inscribir Administrador Alterno';
+};
+
 window.deleteEmployee = async function(id) {
   if(!window.isAdmin) return window.toast('🔒','Acceso denegado');
-  if(confirm('¿Eliminar empleado definitivamente? Esto lo borrará del sistema y no podrá acceder a la app.')) {
+  if(window.confirmCriticalAction({
+    title: 'Eliminar Empleado',
+    message: 'Se eliminará el empleado del sistema.',
+    impact: 'Puede afectar acceso móvil, programación, peticiones y reportes. Esta acción no se puede deshacer desde la app.'
+  })) {
     try {
       await window.deleteDoc(window.doc(window.db, 'employees', String(id)));
       window.toast('🗑️', 'Empleado eliminado');
@@ -2055,9 +2279,22 @@ function updateCustomLegend(){
 function el(tag,cls,txt){ const e=document.createElement(tag); if(cls) e.className=cls; if(txt!==undefined) e.textContent=txt; return e }
 
 function chipCfg(n){ return n<=7?{w:104,cls:'',empW:220}:n<=14?{w:78,cls:'sm',empW:220}:n<=21?{w:58,cls:'xs',empW:220}:{w:44,cls:'xxs',empW:220} }
-function isCompactDietSupMobile(){ return document.body.classList.contains('dietsup-viewer') && window.matchMedia('(max-width: 800px)').matches; }
+function isCompactDietSupMobile(){
+  const explicitlyRequested=new URLSearchParams(window.location.search).get('dietsupMobile')==='1';
+  return document.body.classList.contains('dietsup-viewer') && (explicitlyRequested || window.matchMedia('(max-width: 800px)').matches);
+}
+let lastCompactDietSupMode=null;
+window.addEventListener('resize',()=>{
+  const compact=isCompactDietSupMobile();
+  if(lastCompactDietSupMode===null) { lastCompactDietSupMode=compact; return; }
+  if(compact!==lastCompactDietSupMode) {
+    lastCompactDietSupMode=compact;
+    if(typeof window.render==='function') window.render();
+  }
+});
 
 window.render = function(){
+  lastCompactDietSupMode=isCompactDietSupMobile();
   const dates=getDates();
   document.getElementById('drDays').textContent=`${dates.length} día${dates.length>1?'s':''}`;
   
@@ -2100,16 +2337,51 @@ window.renderEmpList = function(){
   list.innerHTML = html;
 }
 
+window.renderDietitianList = function(){
+  const list = document.getElementById('dietitianList');
+  let dietitians = [...(window.DIETITIANS || [])];
+  if(dietitians.length === 0) {
+    dietitians = [{
+      id: 'prueba',
+      fullName: 'DietSup Prueba',
+      username: 'dietsup_prueba',
+      email: 'dietsup_prueba@workboard.local',
+      status: 'Activo'
+    }];
+  }
+  renderAccountList(list, dietitians, 'No hay dietistas inscritos.');
+}
+
+window.renderSecretaryList = function(){
+  const list = document.getElementById('secretaryList');
+  let secretaries = [...(window.SECRETARIES || [])];
+  if(secretaries.length === 0) {
+    secretaries = [{
+      id: '01jms3',
+      fullName: 'Jacqueline Marrero Saez',
+      username: 'sec_01jms3',
+      email: 'sec_01jms3@workboard.local',
+      status: 'Activo'
+    }];
+  }
+  renderAccountList(list, secretaries, 'No hay secretarias inscritas.');
+}
+
+window.renderAlternateAdminList = function(){
+  const list = document.getElementById('alternateAdminList');
+  const admins = [...(window.ALTERNATE_ADMINS || [])];
+  renderAccountList(list, admins, 'No hay administradores alternos inscritos.');
+}
+
 function buildGrid(dates){
   const compactViewer = isCompactDietSupMobile();
-  const cfg=compactViewer ? {w:62,cls:'xs',empW:108} : chipCfg(dates.length);
+  const cfg=compactViewer ? {w:76,cls:'xs',empW:108} : chipCfg(dates.length);
   const monthDates=getMonthDates(dates[0]);
   const monthLabel=dates[0].toLocaleDateString('es-PR',{month:'long',year:'numeric'});
   const monthlySummaries=window.EMPLOYEES.map(e=>monthlyShiftSummary(e.id,monthDates));
-  const monthlyMax={
-    opening:Math.max(1,...monthlySummaries.map(s=>s.opening)),
-    compensation:Math.max(1,...monthlySummaries.map(s=>s.compensation)),
-    balance:Math.max(1,...monthlySummaries.map(s=>s.balance))
+  const monthlyScale={
+    madrugadaTarget:13,
+    balanceTotal:monthlySummaries.reduce((sum,s)=>sum+s.balance,0)
   };
   const total=window.EMPLOYEES.reduce((a,e)=>a+empDays(e.id,dates),0);
 
@@ -2202,11 +2474,11 @@ function buildGrid(dates){
     for(let i=0;i<dates.length;i++){ const c=el('div','area-div-cell'); c.style.cssText=`background:${grp.bg};border-top:${gi>0?'2px solid rgba(0,0,0,.05)':'none'}`; c.dataset.col=i; dRow.appendChild(c); }
     if(!compactViewer) { const dt=el('div','area-div-total'); dt.style.cssText=`background:${grp.bg};border-top:${gi>0?'2px solid rgba(0,0,0,.05)':'none'}`; dRow.appendChild(dt); }
     grid.appendChild(dRow);
-    grp.empIds.forEach(eid=>grid.appendChild(buildEmpRow(eid,dates,cfg,compactViewer,monthDates,monthlyMax)));
+    grp.empIds.forEach(eid=>grid.appendChild(buildEmpRow(eid,dates,cfg,compactViewer,monthDates,monthlyScale)));
   });
 
   if (window.gaEnabled || window.EMPLOYEES.some(e => e.id === 'GA')) {
-    const rowGA = buildEmpRow('GA', dates, cfg, compactViewer,monthDates,monthlyMax);
+    const rowGA = buildEmpRow('GA', dates, cfg,compactViewer,monthDates,monthlyScale);
     grid.appendChild(rowGA);
   }
 
@@ -2277,7 +2549,7 @@ function buildStatusBadge(st,chipCls){
   return b;
 }
 
-function buildEmpRow(eid,dates,cfg,compactViewer=false,monthDates=[],monthlyMax={opening:1,compensation:1,balance:1}){
+function buildEmpRow(eid,dates,cfg,compactViewer=false,monthDates=[],monthlyScale={madrugadaTarget:13,balanceTotal:0}){
   const emp=window.EMPLOYEES.find(e=>e.id == eid) || (eid === 'GA' ? {
     id: 'GA', av: 'GA', avColor: 'var(--royal)', name: window.gaName || 'Gerente Asociada (Apoyo)',
     role: 'Apoyo', area: 'centro'
@@ -2319,7 +2591,7 @@ function buildEmpRow(eid,dates,cfg,compactViewer=false,monthDates=[],monthlyMax=
     const dateStr=ds(d);
     const cell=el('div','cell-day'+(isToday(d)?' today-col':''));
     cell.dataset.col = cIdx;
-    cell.appendChild(buildChip(eid,dateStr,cfg.cls));
+    cell.appendChild(buildChip(eid,dateStr,cfg.cls,compactViewer));
     cell.addEventListener('click',e=>{ e.stopPropagation(); showPop(eid,dateStr,fmtFull(d),cell); });
     row.appendChild(cell);
   });
@@ -2327,19 +2599,22 @@ function buildEmpRow(eid,dates,cfg,compactViewer=false,monthDates=[],monthlyMax=
   if(compactViewer) return row;
 
   const summary=monthlyShiftSummary(eid,monthDates);
-  const pct=(value,max)=>Math.min(100,Math.round((value/max)*100));
+  const pct=(value,total)=>total > 0 ? Math.min(100,Math.round((value/total)*100)) : 0;
+  const openingPct=pct(summary.opening,monthlyScale.madrugadaTarget);
+  const compensationPct=pct(summary.compensation,monthlyScale.madrugadaTarget);
+  const balancePct=pct(summary.balance,monthlyScale.balanceTotal);
   const total=el('div','cell-total');
   total.innerHTML=`<div class="monthly-summary">
     <div class="monthly-total"><strong>${summary.total}</strong><span>Turnos<br>del mes</span></div>
-    <div class="monthly-metric"><div class="monthly-metric-top"><span>Total madrugadas<small>4:00 / 4:30</small></span><strong>${summary.opening}</strong></div><div class="monthly-track"><div class="monthly-fill" style="width:${pct(summary.opening,monthlyMax.opening)}%;background:#f97316"></div></div></div>
-    <div class="monthly-metric"><div class="monthly-metric-top"><span>Total madrugadas<small>5:00 / 5:30</small></span><strong>${summary.compensation}</strong></div><div class="monthly-track"><div class="monthly-fill" style="width:${pct(summary.compensation,monthlyMax.compensation)}%;background:#2563eb"></div></div></div>
-    <div class="monthly-metric"><div class="monthly-metric-top"><span>Total turnos<small>10:00 AM</small></span><strong>${summary.balance}</strong></div><div class="monthly-track"><div class="monthly-fill" style="width:${pct(summary.balance,monthlyMax.balance)}%;background:#7c3aed"></div></div></div>
+    <div class="monthly-metric"><div class="monthly-metric-top"><span>Total madrugadas<small>4:00 / 4:30</small></span><strong>${summary.opening}<em>${openingPct}%</em></strong></div><div class="monthly-track" title="${openingPct}% de la meta mensual de 13"><div class="monthly-fill" style="width:${openingPct}%;background:#f97316"></div></div></div>
+    <div class="monthly-metric"><div class="monthly-metric-top"><span>Total madrugadas<small>5:00 / 5:30</small></span><strong>${summary.compensation}<em>${compensationPct}%</em></strong></div><div class="monthly-track" title="${compensationPct}% de la meta mensual de 13"><div class="monthly-fill" style="width:${compensationPct}%;background:#2563eb"></div></div></div>
+    <div class="monthly-metric"><div class="monthly-metric-top"><span>Total turnos<small>10:00 AM</small></span><strong>${summary.balance}<em>${balancePct}%</em></strong></div><div class="monthly-track" title="${balancePct}% de los ${monthlyScale.balanceTotal} turnos de 10:00 AM asignados"><div class="monthly-fill" style="width:${balancePct}%;background:#7c3aed"></div></div></div>
   </div>`;
   row.appendChild(total);
   return row;
 }
 
-function buildChip(eid,dateStr,size){
+function buildChip(eid,dateStr,size,compactViewer=false){
   let isDraft = false;
   let sid=getShift(eid,dateStr);
   if (window.draftSched && window.draftSched[dateStr] && window.draftSched[dateStr][eid]) {
@@ -2362,7 +2637,10 @@ function buildChip(eid,dateStr,size){
     chip.style.cssText=`background:${sh.bg};border-color:${sh.bd};color:${sh.color};position:relative;`;
   }
 
-  if(WORK_IDS.has(sid)){
+  if(compactViewer) {
+    const label=WORK_IDS.has(sid) ? `${fmtT(sh.start)}–${fmtT(sh.end)}` : sh.label;
+    chip.innerHTML=`${badgeHTML}<div class="chip-id">${escapeHtml(label)}</div>`;
+  } else if(WORK_IDS.has(sid)){
     chip.innerHTML=`${badgeHTML}<div class="chip-id">${sid}</div><div class="chip-time">${fmtT(sh.start)}–${fmtT(sh.end)}</div>`;
   } else {
     chip.innerHTML=`${badgeHTML}<div class="chip-id"><b>${sid}</b></div><div class="chip-time">${sh.label}</div>`;
@@ -2640,7 +2918,11 @@ document.getElementById('btnToday').onclick=()=>{
 document.getElementById('btnClear').onclick=async ()=>{
   if(!window.isAdmin) return window.toast('🔒', 'Acceso denegado');
   const dates=getDates();
-  if(!confirm(`¿Limpiar ${dates.length} día(s)?`)) return;
+  if(!window.confirmCriticalAction({
+    title: 'Limpiar Horario',
+    message: `Se marcarán como libres ${dates.length} día(s) del rango visible.`,
+    impact: 'Modifica la programación publicada y puede cambiar lo que ven los empleados en TurnoSup.'
+  })) return;
   let count = 0;
   for(const d of dates) {
     const dStr = ds(d);
@@ -2814,7 +3096,11 @@ window.deleteEmployeeRules = async () => {
   const eid = document.getElementById('ruleEmpSelect').value;
   if (!eid) return;
   
-  if(!confirm('¿Estás seguro de que deseas borrar todas las reglas automáticas de este empleado?')) return;
+  if(!window.confirmCriticalAction({
+    title: 'Borrar Reglas Automáticas',
+    message: 'Se borrarán todas las reglas automáticas de este empleado.',
+    impact: 'El motor automático dejará de considerar esas restricciones en futuras programaciones.'
+  })) return;
   
   try {
     await window.deleteDoc(window.doc(window.db, 'rules', eid));
@@ -2885,6 +3171,11 @@ document.getElementById('btnPublish').onclick=async ()=>{
       return window.toast('✅', 'Borrador enviado al administrador para aprobación.');
     }
     const dates = Object.keys(window.draftSched);
+    if(!window.confirmCriticalAction({
+      title: 'Publicar Borrador',
+      message: `Se publicará un borrador con cambios para ${dates.length} día(s).`,
+      impact: 'Actualiza el calendario visible para empleados y DietSup en TurnoSup.'
+    })) return;
     let count = 0;
     for (const dStr of dates) {
       const updates = window.draftSched[dStr];
@@ -2905,6 +3196,11 @@ document.getElementById('btnPublish').onclick=async ()=>{
   const dates=getDates();
   const bad=dates.filter(d=>{ const s=getDayStatus(ds(d)); return !s.allOk&&s.unscheduled<window.EMPLOYEES.length; });
   if(bad.length) return window.toast('❌',`${bad.length} día(s) incompletos`);
+  if(!window.confirmCriticalAction({
+    title: 'Publicar Horario',
+    message: `Se notificará que el horario del rango visible está publicado.`,
+    impact: 'Los empleados y DietSup verán la programación como vigente en TurnoSup.'
+  })) return;
   window.notifyScheduleUpdate();
   window.toast('🚀',`Publicado con éxito. Se notificó a los empleados.`);
 };
@@ -2922,6 +3218,18 @@ buildLegend();
 setupDatePicker();
 initGestionForms();
 window.render();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').then(registration => registration.update());
+  });
+  let reloadingForUpdate = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if(reloadingForUpdate) return;
+    reloadingForUpdate = true;
+    window.location.reload();
+  });
+}
 </script>
 </body>
 </html>
