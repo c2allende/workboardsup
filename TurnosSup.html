@@ -953,6 +953,7 @@ function populateReqOpts() {
   let opts = `
     <option value="Libre">Libre</option>
     <option value="ENF">ENF</option>
+    <option value="Feriado(F)">Feriado(F)</option>
     <option value="Turno AM Cocina">Turno AM Cocina</option>
     <option value="Turno AM Centro">Turno AM Centro</option>
     <option value="Turno PM Centro">Turno PM Centro</option>
@@ -1332,10 +1333,9 @@ window.checkDateLock = () => {
     return;
   }
   
-  let isPublished = false;
-  if (window.globalSchedules && window.globalSchedules[reqDate] && Object.keys(window.globalSchedules[reqDate]).length > 0) {
-    isPublished = true;
-  }
+  const daySchedule = window.globalSchedules?.[reqDate] || {};
+  const currentShift = daySchedule[String(currentUserEid)] ?? daySchedule[currentUserEid];
+  const isPublished = !!currentShift && currentShift !== 'L';
   
   if (isPublished) {
     if(reqLock) {
