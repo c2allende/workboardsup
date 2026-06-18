@@ -311,7 +311,6 @@ body.viewer-mode .cell-day:hover .chip-empty{border-color:var(--border);color:rg
   .area-section{break-inside:avoid}
 }
 </style>
-<script src="./scheduling-engine.js"></script>
 </head>
 <body>
 
@@ -361,7 +360,6 @@ body.viewer-mode .cell-day:hover .chip-empty{border-color:var(--border);color:rg
     </div>
     <div class="h-controls-right">
       <span class="readonly-badge" id="readonlyBadge">🔒 Solo lectura</span>
-      <button class="btn btn-ghost" id="btnGenAuto" style="border: 1px solid var(--royal); color: var(--royal);">Generar Automático</button>
       <button class="btn btn-ghost" id="btnDiscardDraft" style="display:none; color: #ef4444;">Descartar Borrador</button>
       <button class="btn btn-ghost" id="btnClear">Limpiar</button>
       <button class="btn btn-ghost" onclick="window.print()">Imprimir</button>
@@ -757,9 +755,8 @@ body.viewer-mode .cell-day:hover .chip-empty{border-color:var(--border);color:rg
         ⚙️ Motor Automático (Scheduling Engine)
       </div>
       <div style="font-size:13px; color:var(--text); line-height:1.6; display:flex; flex-direction:column; gap:10px;">
-        <p><b>¿Qué hace?</b> El botón "Generar Automático" (en la sección Horario) acomoda los turnos de todos los empleados en segundos, garantizando la cobertura mínima de Cocina y Centro de Distribución. El resultado queda como borrador hasta que sea revisado y publicado.</p>
-        <p><b>Cobertura Global:</b> El sistema sabe que Cocina necesita 1 turno C1 y 1 turno C3 mínimo; y el Centro necesita combinaciones específicas de D1, D2 y A1.</p>
-        <p><b>Reglas por Empleado:</b> Para que el motor funcione bien, debes configurarle reglas a cada supervisor en la pestaña de <i>Gestión de Personal > Reglas de Motor Automático</i>. Puedes restringirles qué días no trabajan (Ej. "Libre todos los domingos"), limitar el máximo de días que trabajan a la semana, o prohibirles turnos específicos (Ej. "Prohibido turno C1").</p>
+        <p><b>Estado:</b> Pendiente para una versión futura. El generador automático está inhabilitado mientras se rediseña con una validación más inteligente.</p>
+        <p><b>Nota operativa:</b> La programación debe mantenerse manualmente desde el calendario hasta que el motor sea integrado nuevamente.</p>
         <p><b>Balance mensual:</b> A la derecha del calendario se resume el mes completo por supervisor: total de turnos, total de madrugadas 4:00/4:30, total de madrugadas 5:00/5:30 y participación en turnos 10:00 AM. Las barras de madrugadas usan meta 13 como 100%; la barra de 10:00 AM indica el porciento del total mensual asignado.</p>
       </div>
     </div>
@@ -898,10 +895,14 @@ function renderAccountList(list, records, fallbackText) {
   `).join('');
 }
 
+function cleanDietitianUsername(value) {
+  return String(value || '').trim().toLowerCase().replace(/^dietsup_?/, '').replace(/[^a-z0-9]/g, '');
+}
+
 function applyReadOnlyUi(isViewer, isDietSup = false) {
   document.body.classList.toggle('viewer-mode', isViewer);
   document.body.classList.toggle('dietsup-viewer', isDietSup);
-  ['btnGenAuto', 'btnDiscardDraft', 'btnClear', 'btnLoadSecDraft', 'btnPublish'].forEach(id => {
+  ['btnDiscardDraft', 'btnClear', 'btnLoadSecDraft', 'btnPublish'].forEach(id => {
     const control = document.getElementById(id);
     if(control) {
       control.disabled = isViewer;
@@ -1115,7 +1116,15 @@ window.listenDietitians = () => {
   if (unsubDietitians) unsubDietitians();
   unsubDietitians = onSnapshot(collection(db, 'dietitians'), snap => {
     let dietitians = [];
-    snap.forEach(d => dietitians.push({ id: d.id, ...d.data() }));
+    snap.forEach(d => {
+      const data = d.data();
+      const username = cleanDietitianUsername(data.username || d.id);
+      dietitians.push({ id: d.id, ...data, username });
+      if(data.username && data.username !== username) {
+        setDoc(doc(db, 'dietitians', d.id), { username }, { merge: true })
+          .catch(err => console.warn('No se pudo normalizar username de dietista', err));
+      }
+    });
     dietitians.sort((a,b) => (a.fullName || '').localeCompare(b.fullName || '', 'es'));
     window.DIETITIANS = dietitians;
     window.renderDietitianList();
@@ -2019,7 +2028,8 @@ window.registerSupervisor = async () => {
     await window.createUserWithEmailAndPassword(window.secondaryAuth, email, pass);
     await window.setDoc(window.doc(db, 'dietitians', cleanName), {
       fullName: fullName.trim(),
-      username: `dietsup_${cleanName}`,
+      username: cleanName,
+      employeeNumber: pass.trim(),
       email,
       createdAt: Date.now(),
       status: 'Activo'
@@ -2344,7 +2354,7 @@ window.renderDietitianList = function(){
     dietitians = [{
       id: 'prueba',
       fullName: 'DietSup Prueba',
-      username: 'dietsup_prueba',
+      username: 'prueba',
       email: 'dietsup_prueba@workboard.local',
       status: 'Activo'
     }];
@@ -2920,14 +2930,14 @@ document.getElementById('btnClear').onclick=async ()=>{
   const dates=getDates();
   if(!window.confirmCriticalAction({
     title: 'Limpiar Horario',
-    message: `Se marcarán como libres ${dates.length} día(s) del rango visible.`,
-    impact: 'Modifica la programación publicada y puede cambiar lo que ven los empleados en TurnoSup.'
+    message: `Se borrarán las asignaciones de ${dates.length} día(s) del rango visible.`,
+    impact: 'Elimina la programación publicada del rango para que TurnoSup no la muestre como asignada o bloqueada.'
   })) return;
   let count = 0;
   for(const d of dates) {
     const dStr = ds(d);
     const updates = {};
-    window.EMPLOYEES.forEach(e => updates[e.id] = 'L');
+    window.EMPLOYEES.forEach(e => updates[e.id] = window.deleteField());
     try { await window.setDoc(window.doc(window.db, 'schedules', dStr), updates, { merge: true }); } catch(e){}
     count++;
   }
@@ -2935,7 +2945,8 @@ document.getElementById('btnClear').onclick=async ()=>{
   window.toast('🗑️',`${count} días limpiados`);
 };
 /* ══════════════════════════════════════════════════════
-   MOTOR AUTOMATICO (SCHEDULING ENGINE)
+   BORRADORES MANUALES / SECRETARIA
+   Motor automatico pendiente para una version futura.
 ══════════════════════════════════════════════════════ */
 window.draftSched = null;
 window.rulesByEmployee = window.rulesByEmployee || {};
@@ -3121,34 +3132,6 @@ function buildExistingScheduleByDate() {
   });
   return byDate;
 }
-
-document.getElementById('btnGenAuto').onclick = () => {
-  if (!window.isAdmin) return window.toast('🔒', 'Acceso denegado');
-  if (!window.SchedulingEngine) return window.toast('❌', 'Motor no cargado');
-  
-  const res = window.SchedulingEngine.generate({
-    employees: window.EMPLOYEES,
-    existingSchedule: buildExistingScheduleByDate(),
-    requests: window.reqsData,
-    rulesByEmployee: window.rulesByEmployee,
-    globalRules: window.globalRules,
-    dateFrom: dateFrom,
-    dateTo: dateTo
-  });
-  
-  window.draftSched = res.draftSchedule;
-  
-  document.getElementById('btnDiscardDraft').style.display = 'inline-block';
-  document.getElementById('btnPublish').textContent = window.isSecretary ? 'Enviar para Aprobación' : 'Aprobar y Publicar';
-  
-  window.render();
-  window.toast('✨', 'Borrador generado. Revisa y publica.');
-  
-  if (res.diagnostics.hardViolations.length || res.diagnostics.warnings.length) {
-    console.warn("Diagnostics", res.diagnostics);
-    window.toast('⚠️', `Advertencias: ${res.diagnostics.warnings.length}`);
-  }
-};
 
 document.getElementById('btnDiscardDraft').onclick = () => {
   window.draftSched = null;

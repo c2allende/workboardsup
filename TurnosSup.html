@@ -305,7 +305,15 @@ const SHIFTS = {
 window.EMP_NAMES = {};
 window.EMP_AREAS = {};
 window.EMP_EMAILS = {};
+window.DIETITIANS = {};
+window.DIETITIAN_BY_EMPLOYEE = {};
+window.DIETITIAN_EMAILS = {};
 window.employeesLoaded = false;
+const DIETITIAN_DEFAULTS = {
+  '891129': { id:'01tcm0', fullName:'Tammy Colom Maldonado' },
+  '890062': { id:'01rvu0', fullName:'Ricardo Vera Umpierre' },
+  '890816': { id:'01mcm4', fullName:'Melinda Chapman Nartinez' }
+};
 onSnapshot(collection(db, 'employees'), snap => {
   let names = {};
   let areas = {};
@@ -327,6 +335,43 @@ onSnapshot(collection(db, 'employees'), snap => {
     }
     renderNotificationReminder();
   }
+});
+
+onSnapshot(collection(db, 'dietitians'), snap => {
+  let dietitians = {};
+  let byEmployee = {};
+  let byEmail = {};
+  snap.forEach(d => {
+    const data = d.data();
+    const cleanId = String(d.id || '').toLowerCase();
+    const username = String(data.username || cleanId).replace(/^dietsup_?/, '').toLowerCase();
+    const record = {
+      id: username || cleanId,
+      fullName: data.fullName || '',
+      employeeNumber: String(data.employeeNumber || '').trim(),
+      email: String(data.email || `dietsup_${username || cleanId}@workboard.local`).toLowerCase(),
+      status: data.status || 'Activo'
+    };
+    dietitians[record.id] = record;
+    if(record.employeeNumber) byEmployee[record.employeeNumber] = record;
+    if(record.email) byEmail[record.email] = record;
+  });
+  Object.entries(DIETITIAN_DEFAULTS).forEach(([employeeNumber, fallback]) => {
+    if(!byEmployee[employeeNumber]) {
+      const record = {
+        ...fallback,
+        employeeNumber,
+        email: `dietsup_${fallback.id}@workboard.local`,
+        status: 'Activo'
+      };
+      dietitians[record.id] = dietitians[record.id] || record;
+      byEmployee[employeeNumber] = record;
+      byEmail[record.email] = record;
+    }
+  });
+  window.DIETITIANS = dietitians;
+  window.DIETITIAN_BY_EMPLOYEE = byEmployee;
+  window.DIETITIAN_EMAILS = byEmail;
 });
 
 const DAYS_ES = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
@@ -372,6 +417,10 @@ function coerceEmployeeId(id) {
   return /^\d+$/.test(String(id)) ? parseInt(id) : String(id);
 }
 
+function cleanDietitianUsername(value) {
+  return String(value || '').trim().toLowerCase().replace(/^dietsup_?/, '').replace(/[^a-z0-9]/g, '');
+}
+
 async function getEmployeeRecord(id) {
   const cleanId = String(id || '').trim().toLowerCase();
   if(!cleanId) return null;
@@ -395,6 +444,55 @@ async function getEmployeeRecord(id) {
   };
 }
 
+async function getDietitianRecord(id) {
+  const cleanId = String(id || '').trim().toLowerCase();
+  if(!cleanId) return null;
+
+  const defaultRecord = DIETITIAN_DEFAULTS[cleanId];
+  if(defaultRecord) {
+    const saved = window.DIETITIANS[defaultRecord.id] || window.DIETITIAN_BY_EMPLOYEE[cleanId] || {};
+    return {
+      id: defaultRecord.id,
+      fullName: saved.fullName || defaultRecord.fullName,
+      employeeNumber: cleanId,
+      email: saved.email || `dietsup_${defaultRecord.id}@workboard.local`,
+      status: saved.status || 'Activo'
+    };
+  }
+
+  const localByEmployee = window.DIETITIAN_BY_EMPLOYEE[cleanId];
+  if(localByEmployee) return localByEmployee;
+
+  const cleanUser = cleanDietitianUsername(cleanId);
+  const localByUser = window.DIETITIANS[cleanUser];
+  if(localByUser) return localByUser;
+
+  let snap = await getDocs(query(collection(db, 'dietitians'), where('employeeNumber', '==', cleanId)));
+  if(!snap.empty) {
+    const first = snap.docs[0];
+    const data = first.data();
+    const userId = cleanDietitianUsername(data.username || first.id);
+    return {
+      id: userId,
+      fullName: data.fullName || '',
+      employeeNumber: String(data.employeeNumber || cleanId),
+      email: String(data.email || `dietsup_${userId}@workboard.local`).toLowerCase(),
+      status: data.status || 'Activo'
+    };
+  }
+
+  const docSnap = await getDoc(doc(db, 'dietitians', cleanUser));
+  if(!docSnap.exists()) return null;
+  const data = docSnap.data();
+  return {
+    id: cleanUser,
+    fullName: data.fullName || '',
+    employeeNumber: String(data.employeeNumber || ''),
+    email: String(data.email || `dietsup_${cleanUser}@workboard.local`).toLowerCase(),
+    status: data.status || 'Activo'
+  };
+}
+
 async function findEmployeeByEmail(email) {
   const cleanEmail = String(email || '').trim().toLowerCase();
   if(!cleanEmail) return null;
@@ -408,6 +506,26 @@ async function findEmployeeByEmail(email) {
   if(snap.empty) return null;
   const first = snap.docs[0];
   return { id: first.id, ...first.data() };
+}
+
+async function findDietitianByEmail(email) {
+  const cleanEmail = String(email || '').trim().toLowerCase();
+  if(!cleanEmail) return null;
+
+  const local = window.DIETITIAN_EMAILS[cleanEmail];
+  if(local) return local;
+
+  const snap = await getDocs(query(collection(db, 'dietitians'), where('email', '==', cleanEmail)));
+  if(snap.empty) return null;
+  const first = snap.docs[0];
+  const data = first.data();
+  return {
+    id: cleanDietitianUsername(data.username || first.id),
+    fullName: data.fullName || '',
+    employeeNumber: String(data.employeeNumber || ''),
+    email: cleanEmail,
+    status: data.status || 'Activo'
+  };
 }
 
 function setNotificationReminderStatus(message, enabled) {
@@ -531,18 +649,32 @@ window.dismissUpdateAlert = () => {
 onAuthStateChanged(auth, async user => {
   let validUser = false;
   if(user) {
+    currentUserRole = 'employee';
+    currentUserEid = null;
+    currentUserName = '';
     const userEmail = String(user.email || '').toLowerCase();
     let idStr = Object.keys(window.EMP_EMAILS || {}).find(k => String(window.EMP_EMAILS[k] || '').toLowerCase() === userEmail);
     if(!idStr) {
       const employeeRecord = await findEmployeeByEmail(userEmail);
       if(employeeRecord) idStr = employeeRecord.id;
     }
-    if(idStr) currentUserEid = coerceEmployeeId(idStr);
-    else if(user.email.startsWith('emp') && user.email.endsWith('@workboard.local')) currentUserEid = parseInt(user.email.replace('emp','').replace('@workboard.local',''));
-    else if(user.email.startsWith('dietsup_') && user.email.endsWith('@workboard.local')) {
+    if(idStr) {
+      currentUserEid = coerceEmployeeId(idStr);
+    } else if(user.email.startsWith('emp') && user.email.endsWith('@workboard.local')) {
+      currentUserEid = parseInt(user.email.replace('emp','').replace('@workboard.local',''));
+    } else if(user.email.startsWith('dietsup_') && user.email.endsWith('@workboard.local')) {
+      const dietId = cleanDietitianUsername(user.email.split('@')[0]);
+      const dietitianRecord = await getDietitianRecord(dietId);
       currentUserRole = 'dietista';
-      currentUserEid = user.email.split('@')[0];
-      currentUserName = 'DietSup ' + currentUserEid.replace('dietsup_', '');
+      currentUserEid = dietId;
+      currentUserName = dietitianRecord?.fullName || ('DietSup ' + dietId);
+    } else {
+      const dietitianRecord = await findDietitianByEmail(userEmail);
+      if(dietitianRecord) {
+        currentUserRole = 'dietista';
+        currentUserEid = dietitianRecord.id;
+        currentUserName = dietitianRecord.fullName || ('DietSup ' + dietitianRecord.id);
+      }
     }
     
     if(currentUserEid) validUser = true;
@@ -611,17 +743,21 @@ window.login = async () => {
   if(!id||!pass) return toast('Completa los campos');
   
   const isDietSupLogin = id.startsWith('dietsup_') || id.startsWith('dietsup');
-  const cleanDietSupId = id.replace(/^dietsup_?/, '').replace(/[^a-z0-9]/g, '');
+  const cleanDietSupId = cleanDietitianUsername(id);
   const btn=document.getElementById('btnLogin'); btn.textContent='...';
   try{
     let email = `dietsup_${cleanDietSupId}@workboard.local`;
-    if(!isDietSupLogin) {
+    if(isDietSupLogin) {
+      const dietitianRecord = await getDietitianRecord(cleanDietSupId);
+      if(dietitianRecord?.email) email = dietitianRecord.email;
+    } else {
       const employeeRecord = await getEmployeeRecord(id);
-      if(!employeeRecord) {
+      const dietitianRecord = employeeRecord ? null : await getDietitianRecord(id);
+      if(!employeeRecord && !dietitianRecord) {
         btn.textContent='Entrar';
         return toast('Número de empleado inválido');
       }
-      email = employeeRecord.email;
+      email = employeeRecord?.email || dietitianRecord.email;
     }
     await signInWithEmailAndPassword(auth, email, pass);
   } catch(e) { toast('Credenciales incorrectas'); }
@@ -637,15 +773,31 @@ window.register = async () => {
   const btn=document.getElementById('btnReg'); btn.textContent='...';
   try{
     const employeeRecord = await getEmployeeRecord(id);
-    if(!employeeRecord) {
+    const dietitianRecord = employeeRecord ? null : await getDietitianRecord(id);
+    if(!employeeRecord && !dietitianRecord) {
       btn.textContent='Registrarme';
       return toast('Número de empleado inválido');
     }
-    // Optimistic update to prevent onAuthStateChanged from signing out immediately
-    window.EMP_EMAILS[id] = email.toLowerCase();
+    const cleanEmail = email.toLowerCase();
     
-    await createUserWithEmailAndPassword(auth, email, pass);
-    await setDoc(doc(db, 'employees', String(id)), { email: email.toLowerCase() }, { merge: true });
+    if(dietitianRecord) {
+      // Optimistic update to prevent onAuthStateChanged from signing out immediately
+      window.DIETITIAN_EMAILS[cleanEmail] = { ...dietitianRecord, email: cleanEmail };
+      await createUserWithEmailAndPassword(auth, cleanEmail, pass);
+      await setDoc(doc(db, 'dietitians', dietitianRecord.id), {
+        fullName: dietitianRecord.fullName || '',
+        username: dietitianRecord.id,
+        employeeNumber: String(id),
+        email: cleanEmail,
+        status: 'Activo',
+        registeredAt: Date.now()
+      }, { merge: true });
+    } else {
+      // Optimistic update to prevent onAuthStateChanged from signing out immediately
+      window.EMP_EMAILS[id] = cleanEmail;
+      await createUserWithEmailAndPassword(auth, cleanEmail, pass);
+      await setDoc(doc(db, 'employees', String(id)), { email: cleanEmail }, { merge: true });
+    }
     toast('¡Registro exitoso!');
   } catch(e) { 
     toast('El empleado/correo ya está registrado o hay un error'); 
@@ -657,9 +809,10 @@ window.forgotPassword = async () => {
   const id = prompt("Ingresa tu Número de Empleado para recuperar la contraseña:");
   if(!id) return;
   const employeeRecord = await getEmployeeRecord(id);
-  if(!employeeRecord) return toast('Número de empleado inválido');
+  const dietitianRecord = employeeRecord ? null : await getDietitianRecord(id);
+  if(!employeeRecord && !dietitianRecord) return toast('Número de empleado inválido');
   
-  const email = employeeRecord.email;
+  const email = employeeRecord?.email || dietitianRecord.email;
   if(!email || email.includes('@workboard.local')) {
     return toast('No tienes un correo personal registrado. Contacta al administrador.');
   }

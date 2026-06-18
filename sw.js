@@ -27,10 +27,11 @@ firebase.initializeApp({
 
 firebase.messaging();
 
-const CACHE_NAME = 'workboard-cache-v86';
+const CACHE_NAME = 'workboard-cache-v88';
 
 const APP_ASSETS = [
   '/',
+  '/index.html',
   '/TurnosSup',
   '/TurnosSup.html',
   '/programa-oficial-jun-2026.js',
@@ -71,10 +72,10 @@ self.addEventListener('fetch', event => {
       fetch(request)
         .then(response => {
           const copy = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put('/', copy));
+          caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
           return response;
         })
-        .catch(() => caches.match('/') || caches.match('/TurnosSup') || caches.match('/TurnosSup.html'))
+        .catch(() => caches.match(request) || caches.match('/index.html') || caches.match('/') || caches.match('/TurnosSup') || caches.match('/TurnosSup.html'))
     );
     return;
   }
