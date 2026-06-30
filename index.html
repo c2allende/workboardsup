@@ -1741,6 +1741,20 @@ window.handleExcelUpload = async function(event) {
        return window.toast('❌', 'No se reconoció el formato de las fechas (Ej. 28-Jun-26)');
     }
 
+    function mapExcelShift(shiftStr, empId) {
+      if(!shiftStr) return null;
+      const s = shiftStr.replace(/\s+/g, '').toUpperCase();
+      
+      if(s === '4/12' || s === '4:00/12:00') return 'C1';
+      if(s === '5/1' || s === '5:00/1:00') return empId === '890232' ? 'A1' : 'C2';
+      if(s === '6/2' || s === '6:00/2:00') return 'C3';
+      if(s === '4:30/12:30') return 'D1';
+      if(s === '10/6' || s === '10:00/6:00') return 'D2';
+      if(s === '4/2' || s === '4:00/2:00' || s === 'CE') return 'CE';
+      
+      return shiftStr; // Return original if no mapping found (e.g. L, V, ENF)
+    }
+
     const schedules = {};
     for(let c=1; c<dates.length; c++) {
        if(dates[c]) schedules[dates[c]] = {};
@@ -1760,7 +1774,10 @@ window.handleExcelUpload = async function(event) {
                const dateStr = dates[c];
                let shift = String(row1[c] || '').trim();
                if(dateStr && shift && shift !== '***' && shift !== 'ALM' && shift !== 'null' && shift !== 'undefined') {
-                  schedules[dateStr][empId] = shift;
+                  const mappedShift = mapExcelShift(shift, empId);
+                  if (mappedShift) {
+                     schedules[dateStr][empId] = mappedShift;
+                  }
                }
             }
          }
