@@ -875,7 +875,7 @@ window.confirmCriticalAction = function({ title, message, impact, confirmLabel =
   return window.confirm(`${title}\n\n${message}\n\nImpacto: ${impact}\n\nPara continuar selecciona OK. Si no estás seguro, selecciona Cancelar.`);
 };
 
-function renderAccountList(list, records, fallbackText) {
+window.renderAccountList = function renderAccountList(list, records, fallbackText) {
   if(!list) return;
   if(!records.length) {
     list.innerHTML = `<div style="color:var(--muted);font-size:12px;text-align:center;">${fallbackText}</div>`;
@@ -922,6 +922,7 @@ onAuthStateChanged(auth, async user => {
     window.isViewer = false;
     window.isSecretary = false;
     applyReadOnlyUi(false);
+    stopRealtimeListeners();
     loginOverlay.style.display = 'flex';
     document.querySelectorAll('.tab-btn').forEach(b => b.style.display = 'none');
     return;
@@ -949,11 +950,13 @@ onAuthStateChanged(auth, async user => {
   const role = USER_ROLES[username];
   const adminLookupId = username.replace(/^(admin_|dietsup_|sup_|sec_)/, '');
   let alternateAdmin = null;
-  try {
-    const adminSnap = await getDoc(doc(db, 'adminAlternates', adminLookupId));
-    if(adminSnap.exists() && adminSnap.data().status !== 'Inactivo') alternateAdmin = adminSnap.data();
-  } catch(e) {
-    console.warn('No se pudo verificar administrador alterno', e);
+  if (!role && username.startsWith('admin_')) {
+    try {
+      const adminSnap = await getDoc(doc(db, 'adminAlternates', adminLookupId));
+      if(adminSnap.exists() && adminSnap.data().status !== 'Inactivo') alternateAdmin = adminSnap.data();
+    } catch(e) {
+      console.warn('No se pudo verificar administrador alterno', e);
+    }
   }
 
   if (user.email === 'carmelo.allende@gmail.com' || role === 'gerente' || alternateAdmin) {
@@ -1017,6 +1020,7 @@ onAuthStateChanged(auth, async user => {
     window.toast('👁️', 'Sesión iniciada (Rol no especificado)');
   }
   
+  startRealtimeListeners();
   btnHeader.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Salir';
 });
 
@@ -1052,6 +1056,7 @@ let unsubEmp = null;
 let unsubDietitians = null;
 let unsubSecretaries = null;
 let unsubAlternateAdmins = null;
+let realtimeListenersStarted = false;
 window.listenEmployees = () => {
   if (unsubEmp) unsubEmp();
   unsubEmp = onSnapshot(collection(db, 'employees'), async snap => {
@@ -1239,15 +1244,32 @@ window.listenRequests = () => {
   }, err => console.error(err));
 };
 
-window.listenEmployees();
-window.listenDietitians();
-window.listenSecretaries();
-window.listenAlternateAdmins();
-window.listenSchedule();
-window.listenRequests();
-if(window.listenCustomShifts) window.listenCustomShifts();
-if(window.listenConfig) window.listenConfig();
-if(window.listenRules) window.listenRules();
+function startRealtimeListeners() {
+  if (realtimeListenersStarted) return;
+  realtimeListenersStarted = true;
+  window.listenEmployees();
+  if (window.isAdmin && !window.isSecretary) {
+    window.listenDietitians();
+    window.listenSecretaries();
+    window.listenAlternateAdmins();
+  }
+  window.listenSchedule();
+  window.listenRequests();
+  if(window.listenCustomShifts) window.listenCustomShifts();
+  if(window.listenConfig) window.listenConfig();
+  if(window.listenRules) window.listenRules();
+}
+
+function stopRealtimeListeners() {
+  realtimeListenersStarted = false;
+  if (unsubEmp) { unsubEmp(); unsubEmp = null; }
+  if (unsubDietitians) { unsubDietitians(); unsubDietitians = null; }
+  if (unsubSecretaries) { unsubSecretaries(); unsubSecretaries = null; }
+  if (unsubAlternateAdmins) { unsubAlternateAdmins(); unsubAlternateAdmins = null; }
+  if (unsubSch) { unsubSch(); unsubSch = null; }
+  if (window.unsubChat) { window.unsubChat(); window.unsubChat = null; }
+  if (unsubReq) { unsubReq(); unsubReq = null; }
+}
 </script>
 
 <script>
@@ -1667,6 +1689,14 @@ window.handleExcelUpload = async function(event) {
         const mon = monthMap[m[2].toLowerCase()] || '01';
         let y = parseInt(m[3]);
         y = y < 50 ? 2000 + y : 1900 + y;
+        return `${y}-${mon}-${d}`;
+      }
+      const m2 = String(str).match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+      if(m2) {
+        const mon = m2[1].padStart(2, '0');
+        const d = m2[2].padStart(2, '0');
+        let y = parseInt(m2[3]);
+        if(y < 100) { y = y < 50 ? 2000 + y : 1900 + y; }
         return `${y}-${mon}-${d}`;
       }
       if(String(str).match(/^\d{4}-\d{2}-\d{2}$/)) return String(str);
@@ -2361,7 +2391,7 @@ window.renderDietitianList = function(){
       status: 'Activo'
     }];
   }
-  renderAccountList(list, dietitians, 'No hay dietistas inscritos.');
+  window.renderAccountList(list, dietitians, 'No hay dietistas inscritos.');
 }
 
 window.renderSecretaryList = function(){
@@ -2376,13 +2406,13 @@ window.renderSecretaryList = function(){
       status: 'Activo'
     }];
   }
-  renderAccountList(list, secretaries, 'No hay secretarias inscritas.');
+  window.renderAccountList(list, secretaries, 'No hay secretarias inscritas.');
 }
 
 window.renderAlternateAdminList = function(){
   const list = document.getElementById('alternateAdminList');
   const admins = [...(window.ALTERNATE_ADMINS || [])];
-  renderAccountList(list, admins, 'No hay administradores alternos inscritos.');
+  window.renderAccountList(list, admins, 'No hay administradores alternos inscritos.');
 }
 
 function buildGrid(dates){

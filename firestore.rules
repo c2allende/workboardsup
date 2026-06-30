@@ -1,0 +1,98 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function email() {
+      return signedIn() ? request.auth.token.email.lower() : '';
+    }
+
+    function username() {
+      return email().split('@')[0];
+    }
+
+    function isManager() {
+      return email() in [
+        'carmelo.allende@gmail.com',
+        '01cam1@workboard.local',
+        '01mqc0@workboard.local'
+      ] || username().matches('admin_.*');
+    }
+
+    function isScheduler() {
+      return isManager() || username() == '01jms3' || username().matches('sec_.*');
+    }
+
+
+    // The login flow looks up employees and dietitians before Firebase Auth can sign in.
+    match /employees/{employeeId} {
+      allow get, list: if true;
+      allow create, update: if signedIn();
+      allow delete: if isManager();
+    }
+
+    match /dietitians/{dietitianId} {
+      allow get, list: if true;
+      allow create, update: if signedIn();
+      allow delete: if isManager();
+    }
+
+    match /config/{configId} {
+      allow get, list: if configId in ['system', 'customShifts'];
+      allow create, update, delete: if isScheduler();
+    }
+
+    match /schedules/{dateId} {
+      allow read: if signedIn();
+      allow create, update, delete: if isScheduler();
+    }
+
+    match /requests/{requestId} {
+      allow read: if signedIn();
+      allow create: if signedIn();
+      allow update, delete: if isScheduler();
+    }
+
+    match /messages/{messageId} {
+      allow read, create: if signedIn();
+      allow update, delete: if isScheduler();
+    }
+
+    match /rules/{ruleId} {
+      allow read: if signedIn();
+      allow create, update, delete: if isScheduler();
+    }
+
+    match /metadata/{metadataId} {
+      allow read: if signedIn();
+      allow create, update, delete: if isScheduler();
+    }
+
+    match /secretaries/{secretaryId} {
+      allow read: if isManager();
+      allow create, update, delete: if isManager();
+    }
+
+    match /adminAlternates/{adminId} {
+      allow read: if isManager();
+      allow create, update, delete: if isManager();
+    }
+
+    match /notificationDevices/{deviceId} {
+      allow read: if isScheduler();
+      allow create, update: if signedIn();
+      allow delete: if isScheduler();
+    }
+
+    match /notificationDeliveries/{deliveryId} {
+      allow read: if isScheduler();
+      allow write: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -43,6 +43,9 @@ for (const day of Object.values(result.draftSchedule)) {
 const indexHtml = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
 const mobileHtml = fs.readFileSync(path.join(__dirname, '..', 'TurnosSup.html'), 'utf8');
 const firebaseConfig = fs.readFileSync(path.join(__dirname, '..', 'firebase.json'), 'utf8');
+const firebaseJson = JSON.parse(firebaseConfig);
+const firebaseRc = fs.readFileSync(path.join(__dirname, '..', '.firebaserc'), 'utf8');
+const firestoreRules = fs.readFileSync(path.join(__dirname, '..', 'firestore.rules'), 'utf8');
 const serviceWorker = fs.readFileSync(path.join(__dirname, '..', 'sw.js'), 'utf8');
 const pilotFunction = fs.readFileSync(path.join(__dirname, '..', 'functions', 'index.js'), 'utf8');
 
@@ -67,6 +70,26 @@ assert.match(firebaseConfig, /"\*\*\/\*\.xlsm"/);
 assert.match(firebaseConfig, /"usuarios\.md"/);
 assert.match(firebaseConfig, /"source": "functions"/);
 assert.match(firebaseConfig, /"functions\/\*\*"/);
+
+// Operational guardrails: these checks prevent the Firebase outage class we fixed.
+assert.equal(firebaseJson.firestore.rules, 'firestore.rules');
+assert.equal(firebaseJson.hosting.site, 'workboard-cocina');
+assert.ok(firebaseJson.hosting.predeploy.includes('node --test tests/regression.test.js'));
+assert.match(firebaseRc, /"default":\s*"workboard-carmelo"/);
+assert.match(firestoreRules, /match \/employees\/\{employeeId\}/);
+assert.match(firestoreRules, /match \/dietitians\/\{dietitianId\}/);
+assert.match(firestoreRules, /allow get, list: if true;/);
+assert.match(firestoreRules, /match \/schedules\/\{dateId\}/);
+assert.match(firestoreRules, /allow read: if signedIn\(\);/);
+assert.match(indexHtml, /window\.renderAccountList = function renderAccountList/);
+assert.match(indexHtml, /function startRealtimeListeners\(\)/);
+assert.match(indexHtml, new RegExp("stopRealtimeListeners\\(\\);\\s*loginOverlay\\.style\\.display = 'flex'"));
+assert.match(indexHtml, new RegExp("startRealtimeListeners\\(\\);\\s*btnHeader\\.innerHTML"));
+assert.match(indexHtml, /if \(window\.isAdmin && !window\.isSecretary\)/);
+assert.match(indexHtml, /username\.startsWith\('admin_'\)/);
+assert.doesNotMatch(indexHtml, new RegExp("\\nwindow\\.listenEmployees\\(\\);\\s*window\\.listenDietitians\\(\\);"));
+assert.equal((indexHtml.match(/window\.renderAccountList\(list,/g) || []).length, 3);
+assert.doesNotMatch(indexHtml, /(?<!window\.)(?<!function )renderAccountList\(list,/);
 assert.match(mobileHtml, /notificationDevices/);
 assert.doesNotMatch(mobileHtml, /Este piloto está limitado a Empleado Prueba/);
 assert.match(mobileHtml, /window\.enableShiftReminders/);

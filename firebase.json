@@ -2,6 +2,9 @@
   "functions": {
     "source": "functions"
   },
+  "firestore": {
+    "rules": "firestore.rules"
+  },
   "hosting": {
     "site": "workboard-cocina",
     "public": ".",
@@ -39,6 +42,9 @@
           }
         ]
       }
+    ],
+    "predeploy": [
+      "node --test tests/regression.test.js"
     ]
   }
 }
