@@ -1226,6 +1226,13 @@ window.listenRequests = () => {
         </div>`;
       }
 
+      const sid = typeof getShift === 'function' ? getShift(r.eid, r.date) : null;
+      const isCovered = typeof window.isReqCovered === 'function' ? window.isReqCovered(r, sid) : (r.status === 'Aprobada');
+      let statusHtml = `<div class="req-status ${r.status==='pending'||r.status==='Pendiente'?'pend':''}">${r.status==='pending'?'Pendiente':requestStatus}</div>`;
+      if (isCovered) {
+        statusHtml = `<div class="req-status" style="background:rgba(16,185,129,.15);color:#10b981;border:1px solid rgba(16,185,129,.3);">Programada ✓</div>`;
+      }
+
       html += `<div class="req-card">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;">
           <div class="req-hdr"><b>${empName}</b> ${badgeHtml} <div style="font-size:12px; margin-top:2px;">Solicita: ${requestDate}</div></div>
@@ -1234,7 +1241,7 @@ window.listenRequests = () => {
         <div class="req-note">${requestNote}</div>
         ${actionsHtml}
         <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:8px;">
-          <div class="req-status ${r.status==='pending'||r.status==='Pendiente'?'pend':''}">${r.status==='pending'?'Pendiente':requestStatus}</div>
+          ${statusHtml}
           <div style="font-size:9.5px; color:var(--muted);">Registrado: ${createdStr}</div>
         </div>
       </div>`;
@@ -1356,6 +1363,56 @@ function getShift(eid,dateStr){
   return window.sched[eid]?.[dateStr] ?? null;
 }
 window.setShift = function(eid,dateStr,sid){ if(!window.sched[eid]) window.sched[eid]={}; window.sched[eid][dateStr]=sid }
+
+window.resolveReqTarget = function(note) {
+  if (!note) return '';
+  const map = {
+    'Libre': 'L', 'Dia Libre (L)': 'L', 'L': 'L',
+    'Feriado': 'F', 'Feriado(F)': 'F', 'F': 'F',
+    'Licencia Regular': 'LR', 'Licencia Regular (LR)': 'LR', 'LR': 'LR',
+    'Enfermedad': 'ENF', 'Enfermedad(ENF)': 'ENF', 'ENF': 'ENF',
+    'Vacaciones': 'V', 'Vacaciones(V)': 'V', 'V': 'V',
+    'Turno AM Cocina': 'C1', 'Turno AM Cocina(AM-C)': 'C1', 'Turnos AM Cocina': 'C1', 'Turnos AM Cocina(AM-C)': 'C1', 'AM-C': 'C1',
+    'Turno PM Cocina': 'C3', 'Turno PM Cocina(PM-C)': 'C3', 'Turnos PM Cocina': 'C3', 'Turnos PM Cocina(PM-C)': 'C3', 'PM-C': 'C3',
+    'Turno AM Centro': 'D1', 'Turno AM Centro Distribucion': 'D1', 'Turno AM Centro Distribucion(AM-CD)': 'D1',
+    'Turnos AM en Centro de Distribucion (AM-CD)': 'D1', 'Turno AM en Centro de Distribucion (AM-CD)': 'D1',
+    'Turnos AM en Centro de Distribución (AM-CD)': 'D1', 'Turno AM en Centro de Distribución (AM-CD)': 'D1', 'AM-CD': 'D1',
+    'Turno PM Centro': 'D2', 'Turno PM Centro Distribucion': 'D2', 'Turno PM Centro Distribucion(PM-CD)': 'D2',
+    'Turnos PM en Centro de Distribucion (PM-CD)': 'D2', 'Turno PM en Centro de Distribucion (PM-CD)': 'D2',
+    'Turnos PM en Centro de Distribución (PM-CD)': 'D2', 'Turno PM en Centro de Distribución (PM-CD)': 'D2', 'PM-CD': 'D2',
+    'Tarea Especial': 'E1', 'Tarea Especial(TEsp)': 'E1', 'TEsp': 'E1'
+  };
+  let str = String(note || '').trim();
+  if (map[str]) return map[str];
+  if (str.includes('(') && str.includes(')')) {
+    let ext = str.split('(')[1].split(')')[0].trim();
+    if (map[ext]) return map[ext];
+    return ext;
+  }
+  return str;
+};
+
+window.isReqCovered = function(req, sid) {
+  if (!req || !sid || sid === '?' || sid === '') return false;
+  if (req.status === 'Aprobada') return true;
+  
+  let target = window.resolveReqTarget(req.note);
+  if (!target) return false;
+  target = target.toUpperCase();
+  
+  // Ojo con petición ENF que puede ser cubierta con Libre (L)
+  if (target === 'ENF' || String(req.note).toLowerCase().includes('enfermedad') || String(req.note).toLowerCase().includes('enf')) {
+    return sid === 'ENF' || sid === 'L';
+  }
+  if (target === 'L' || target === 'LIBRE') {
+    return sid === 'L' || sid === 'F' || sid === 'V' || sid === 'Vac' || sid === 'LR';
+  }
+  if (target === 'V' || target === 'VAC' || target === 'VACACIONES') {
+    return sid === 'V' || sid === 'Vac' || sid === 'L';
+  }
+  
+  return sid === target;
+};
 
 function thisSunday(){ const d=new Date(); d.setDate(d.getDate()-d.getDay()); return d }
 function addDays(d,n){ const r=new Date(d); r.setDate(r.getDate()+n); return r }
@@ -1834,55 +1891,7 @@ window.approveReq = async (reqId, isApproved) => {
     updateData[req.eid] = currentTargetShift;
     updateData[req.targetEid] = currentSelfShift;
   } else {
-    const requestCodes = {
-      'Libre': 'L',
-      'Dia Libre (L)': 'L',
-      'L': 'L',
-      'Feriado': 'F',
-      'Feriado(F)': 'F',
-      'F': 'F',
-      'Licencia Regular': 'LR',
-      'Licencia Regular (LR)': 'LR',
-      'LR': 'LR',
-      'Enfermedad': 'ENF',
-      'Enfermedad(ENF)': 'ENF',
-      'ENF': 'ENF',
-      'Vacaciones': 'V',
-      'Vacaciones(V)': 'V',
-      'V': 'V',
-      'Turno AM Cocina': 'C1',
-      'Turno AM Cocina(AM-C)': 'C1',
-      'Turnos AM Cocina': 'C1',
-      'Turnos AM Cocina(AM-C)': 'C1',
-      'AM-C': 'C1',
-      'Turno PM Cocina': 'C3',
-      'Turno PM Cocina(PM-C)': 'C3',
-      'Turnos PM Cocina': 'C3',
-      'Turnos PM Cocina(PM-C)': 'C3',
-      'PM-C': 'C3',
-      'Turno AM Centro': 'D1',
-      'Turno AM Centro Distribucion': 'D1',
-      'Turno AM Centro Distribucion(AM-CD)': 'D1',
-      'Turnos AM en Centro de Distribucion (AM-CD)': 'D1',
-      'Turno AM en Centro de Distribucion (AM-CD)': 'D1',
-      'Turnos AM en Centro de Distribución (AM-CD)': 'D1',
-      'Turno AM en Centro de Distribución (AM-CD)': 'D1',
-      'AM-CD': 'D1',
-      'Turno PM Centro': 'D2',
-      'Turno PM Centro Distribucion': 'D2',
-      'Turno PM Centro Distribucion(PM-CD)': 'D2',
-      'Turnos PM en Centro de Distribucion (PM-CD)': 'D2',
-      'Turno PM en Centro de Distribucion (PM-CD)': 'D2',
-      'Turnos PM en Centro de Distribución (PM-CD)': 'D2',
-      'Turno PM en Centro de Distribución (PM-CD)': 'D2',
-      'PM-CD': 'D2',
-      'Tarea Especial': 'E1',
-      'Tarea Especial(TEsp)': 'E1',
-      'TEsp': 'E1'
-    };
-    let code = String(requestCodes[req.note] || req.note || '').trim();
-    if(code.includes('(') && code.includes(')')) code = code.split('(')[1].split(')')[0].trim();
-    code = requestCodes[code] || code;
+    let code = window.resolveReqTarget(req.note);
     if (!resolveShift(code)) return window.toast('❌', 'La petición no corresponde a un turno válido');
     updateData[req.eid] = code;
   }
@@ -2742,7 +2751,14 @@ function buildChip(eid,dateStr,size,compactViewer=false){
   }
   
   const req = window.reqsData?.find(r => r.eid == eid && r.date === dateStr);
-  const badgeHTML = req ? `<div style="position:absolute;top:-4px;right:-4px;background:#f59e0b;color:#000;border-radius:50%;width:12px;height:12px;font-size:9px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 4px rgba(0,0,0,0.5);">🔔</div>` : '';
+  let badgeHTML = '';
+  if (req) {
+    const covered = window.isReqCovered(req, sid);
+    const bg = covered ? '#10b981' : '#f59e0b';
+    const fg = covered ? '#ffffff' : '#000000';
+    const title = covered ? 'Petición atendida y programada' : 'Petición pendiente de programar';
+    badgeHTML = `<div title="${title}" style="position:absolute;top:-4px;right:-4px;background:${bg};color:${fg};border-radius:50%;width:13px;height:13px;font-size:9px;font-weight:bold;display:flex;align-items:center;justify-content:center;box-shadow:0 0 4px rgba(0,0,0,0.5);z-index:2;">${covered ? '✓' : '🔔'}</div>`;
+  }
 
   if(sid===null){ const e=el('div',`chip-empty${size?' '+size:''}`); e.style.position='relative'; e.innerHTML='+'+badgeHTML; return e; }
 
@@ -2792,9 +2808,14 @@ function buildPopBody(){
 
   const req = window.reqsData?.find(r => r.eid == eid && r.date === dateStr);
   if (req) {
+    const covered = window.isReqCovered(req, cur);
     const rBox = el('div');
-    rBox.style.cssText = 'background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);border-radius:8px;padding:8px;margin-bottom:8px;color:#fbbf24;';
-    rBox.innerHTML = `<div style="font-size:10px;font-weight:700;margin-bottom:3px;display:flex;align-items:center;gap:4px;"><span>🔔</span> PETICIÓN DEL EMPLEADO</div><div style="font-size:11px;color:var(--text);">${escapeHtml(req.note)}</div>`;
+    const bg = covered ? 'rgba(16,185,129,.15)' : 'rgba(245,158,11,.15)';
+    const bd = covered ? 'rgba(16,185,129,.3)' : 'rgba(245,158,11,.3)';
+    const fg = covered ? '#10b981' : '#fbbf24';
+    const statusLbl = covered ? ' (PROGRAMADA)' : '';
+    rBox.style.cssText = `background:${bg};border:1px solid ${bd};border-radius:8px;padding:8px;margin-bottom:8px;color:${fg};`;
+    rBox.innerHTML = `<div style="font-size:10px;font-weight:700;margin-bottom:3px;display:flex;align-items:center;gap:4px;"><span>${covered ? '✓' : '🔔'}</span> PETICIÓN DEL EMPLEADO${statusLbl}</div><div style="font-size:11px;color:var(--text);">${escapeHtml(req.note)}</div>`;
     body.appendChild(rBox);
   }
 
