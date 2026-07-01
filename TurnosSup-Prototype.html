@@ -298,7 +298,12 @@ onSnapshot(collection(db, 'employees'), snap => {
   let areas = {};
   let emails = {};
   snap.forEach(d => {
-    names[d.id] = d.data().name;
+    let empName = d.data().name;
+    if (d.id === '891260' || (empName && empName.includes('Sisto'))) {
+      empName = 'Sixto Sierra';
+      setDoc(doc(db, 'employees', d.id), { name: empName }, { merge: true }).catch(()=>{});
+    }
+    names[d.id] = empName;
     areas[d.id] = d.data().area;
     emails[d.id] = d.data().email || `emp${d.id}@workboard.local`;
   });

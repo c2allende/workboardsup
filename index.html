@@ -1067,7 +1067,14 @@ window.listenEmployees = () => {
       return;
     }
     let emps = [];
-    snap.forEach(d => emps.push(d.data()));
+    snap.forEach(d => {
+      let ed = d.data();
+      if (d.id === '891260' || (ed.name && ed.name.includes('Sisto'))) {
+        ed.name = 'Sixto Sierra';
+        setDoc(doc(db, 'employees', d.id), { name: 'Sixto Sierra' }, { merge: true }).catch(()=>{});
+      }
+      emps.push(ed);
+    });
     const CUSTOM_ORDER = {
       889961: 1,  // Victor
       889553: 2,  // Andres
