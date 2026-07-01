@@ -955,8 +955,8 @@ function populateReqOpts() {
     <option value="ENF">ENF</option>
     <option value="Feriado(F)">Feriado(F)</option>
     <option value="Turno AM Cocina">Turno AM Cocina</option>
-    <option value="Turno AM Centro">Turno AM Centro</option>
-    <option value="Turno PM Centro">Turno PM Centro</option>
+    <option value="Turnos AM en Centro de Distribucion (AM-CD)">Turnos AM en Centro de Distribucion (AM-CD)</option>
+    <option value="Turnos PM en Centro de Distribucion (PM-CD)">Turnos PM en Centro de Distribucion (PM-CD)</option>
     <option value="Otro">Otro (Escribir)...</option>
   `;
   
@@ -971,8 +971,8 @@ function renderChat(msgs) {
   
   // Filtrar mensajes de "Empleado Prueba" para que no lo vean otros usuarios
   msgs = msgs.filter(m => {
-    const name = window.EMP_NAMES[m.eid] || m.name || '';
-    return name !== 'Empleado Prueba' || parseInt(m.eid) === currentUserEid || m.eid === 'admin';
+    const name = (window.EMP_NAMES[m.eid] || m.name || '').trim().toLowerCase();
+    return name !== 'empleado prueba' || parseInt(m.eid) === currentUserEid || m.eid === 'admin';
   });
   
   if(!msgs.length) {
@@ -1135,8 +1135,8 @@ window.renderGlobalSchedule = () => {
     
     // Ocultar Empleado Prueba de los demás
     eids = eids.filter(eid => {
-      const name = window.EMP_NAMES[eid] || '';
-      return currentUserRole === 'dietista' || name !== 'Empleado Prueba' || parseInt(eid) === currentUserEid;
+      const name = (window.EMP_NAMES[eid] || '').trim().toLowerCase();
+      return name !== 'empleado prueba' || parseInt(eid) === currentUserEid;
     });
     
     const sortOrder = { 'C1': 1, 'CE': 2, 'C2': 3, 'C3': 4, 'D1': 5, 'A1': 6, 'E1': 7, 'D2': 8 };

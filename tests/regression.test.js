@@ -58,6 +58,8 @@ assert.match(indexHtml, /window\.EMPLOYEES\.forEach\(e => updates\[e\.id\] = win
 assert.match(indexHtml, /getDocs, query, onSnapshot/);
 assert.match(indexHtml, /'Turno AM Cocina': 'C1'/);
 assert.match(indexHtml, /'Feriado\(F\)': 'F'/);
+assert.match(indexHtml, /'AM-CD': 'D1'/);
+assert.match(indexHtml, /'Turnos AM en Centro de Distribucion \(AM-CD\)': 'D1'/);
 assert.match(indexHtml, /escapeHtml\(m\.text\)/);
 assert.match(mobileHtml, /const isToday = dateStr === ds\(today\)/);
 assert.doesNotMatch(mobileHtml, /id === '890000'/);
@@ -149,6 +151,8 @@ assert.match(indexHtml, /Administrador Alterno/);
 assert.match(indexHtml, /Balance mensual/);
 assert.match(pilotFunction, /sendPilotShiftReminders/);
 assert.match(pilotFunction, /devicesByEmployee/);
-assert.doesNotMatch(pilotFunction, /PILOT_EMPLOYEE_NAME/);
+assert.match(indexHtml, /const isPrueba = e => \(e\?\.name \|\| ''\)\.trim\(\)\.toLowerCase\(\) === 'empleado prueba'/);
+assert.doesNotMatch(mobileHtml, /currentUserRole === 'dietista' \|\| name !== 'Empleado Prueba'/);
 
 console.log('Regression checks passed');
+

@@ -577,9 +577,9 @@ body.viewer-mode .cell-day:hover .chip-empty{border-color:var(--border);color:rg
           <option value="Feriado(F)">Feriado(F)</option>
           <option value="Licencia Regular (LR)">Licencia Regular (LR)</option>
           <option value="Turno AM Cocina(AM-C)">Turno AM Cocina(AM-C)</option>
-          <option value="Turno AM Centro Distribucion(AM-CD)">Turno AM Centro Distribucion(AM-CD)</option>
+          <option value="Turnos AM en Centro de Distribucion (AM-CD)">Turnos AM en Centro de Distribucion (AM-CD)</option>
           <option value="Turno PM Cocina(PM-C)">Turno PM Cocina(PM-C)</option>
-          <option value="Turno PM Centro Distribucion(PM-CD)">Turno PM Centro Distribucion(PM-CD)</option>
+          <option value="Turnos PM en Centro de Distribucion (PM-CD)">Turnos PM en Centro de Distribucion (PM-CD)</option>
           <option value="Enfermedad(ENF)">Enfermedad(ENF)</option>
           <option value="Tarea Especial(TEsp)">Tarea Especial(TEsp)</option>
           <option value="other">Otro / Añadir nuevo...</option>
@@ -1837,15 +1837,52 @@ window.approveReq = async (reqId, isApproved) => {
     const requestCodes = {
       'Libre': 'L',
       'Dia Libre (L)': 'L',
+      'L': 'L',
       'Feriado': 'F',
       'Feriado(F)': 'F',
+      'F': 'F',
+      'Licencia Regular': 'LR',
+      'Licencia Regular (LR)': 'LR',
+      'LR': 'LR',
+      'Enfermedad': 'ENF',
+      'Enfermedad(ENF)': 'ENF',
+      'ENF': 'ENF',
+      'Vacaciones': 'V',
+      'Vacaciones(V)': 'V',
+      'V': 'V',
       'Turno AM Cocina': 'C1',
       'Turno AM Cocina(AM-C)': 'C1',
+      'Turnos AM Cocina': 'C1',
+      'Turnos AM Cocina(AM-C)': 'C1',
+      'AM-C': 'C1',
+      'Turno PM Cocina': 'C3',
+      'Turno PM Cocina(PM-C)': 'C3',
+      'Turnos PM Cocina': 'C3',
+      'Turnos PM Cocina(PM-C)': 'C3',
+      'PM-C': 'C3',
       'Turno AM Centro': 'D1',
-      'Turno PM Centro': 'D2'
+      'Turno AM Centro Distribucion': 'D1',
+      'Turno AM Centro Distribucion(AM-CD)': 'D1',
+      'Turnos AM en Centro de Distribucion (AM-CD)': 'D1',
+      'Turno AM en Centro de Distribucion (AM-CD)': 'D1',
+      'Turnos AM en Centro de Distribución (AM-CD)': 'D1',
+      'Turno AM en Centro de Distribución (AM-CD)': 'D1',
+      'AM-CD': 'D1',
+      'Turno PM Centro': 'D2',
+      'Turno PM Centro Distribucion': 'D2',
+      'Turno PM Centro Distribucion(PM-CD)': 'D2',
+      'Turnos PM en Centro de Distribucion (PM-CD)': 'D2',
+      'Turno PM en Centro de Distribucion (PM-CD)': 'D2',
+      'Turnos PM en Centro de Distribución (PM-CD)': 'D2',
+      'Turno PM en Centro de Distribución (PM-CD)': 'D2',
+      'PM-CD': 'D2',
+      'Tarea Especial': 'E1',
+      'Tarea Especial(TEsp)': 'E1',
+      'TEsp': 'E1'
     };
-    let code = String(requestCodes[req.note] || req.note || '');
-    if(code.includes('(') && code.includes(')')) code = code.split('(')[1].split(')')[0];
+    let code = String(requestCodes[req.note] || req.note || '').trim();
+    if(code.includes('(') && code.includes(')')) code = code.split('(')[1].split(')')[0].trim();
+    code = requestCodes[code] || code;
     if (!resolveShift(code)) return window.toast('❌', 'La petición no corresponde a un turno válido');
     updateData[req.eid] = code;
   }
@@ -2257,9 +2294,11 @@ function monthlyShiftSummary(eid,monthDates){
    LÓGICA DE COBERTURA
 ══════════════════════════════════════════════════════ */
 function getDayStatus(dateStr){
-  const unscheduled=window.EMPLOYEES.filter(e=>getShift(e.id,dateStr)===null && (e.id !== 'GA' || window.gaEnabled)).length;
+  const isPrueba = e => (e?.name || '').trim().toLowerCase() === 'empleado prueba';
+  const unscheduled=window.EMPLOYEES.filter(e=>getShift(e.id,dateStr)===null && (e.id !== 'GA' || window.gaEnabled) && !isPrueba(e)).length;
   const cnt={};
   window.EMPLOYEES.forEach(e=>{
+    if (isPrueba(e)) return;
     const sid=getShift(e.id,dateStr);
     if(sid && WORK_IDS.has(sid)) cnt[sid]=(cnt[sid]||0)+1;
   });
@@ -2273,7 +2312,7 @@ function getDayStatus(dateStr){
   const centroOk   = optA||optB;
 
   const issues=[];
-  const EXPECTED_EMPS = window.EMPLOYEES.filter(e => e.id !== 'GA' || window.gaEnabled).length;
+  const EXPECTED_EMPS = window.EMPLOYEES.filter(e => (e.id !== 'GA' || window.gaEnabled) && !isPrueba(e)).length;
   if(unscheduled>0) issues.push(`${unscheduled} sin asignar`);
   if(!cocinaOk){ if(c1<1) issues.push('Falta C1'); if(c3<1) issues.push('Falta C3'); }
   if(!centroOk) issues.push(`Necesita D1×2+D2 ó A1+D1+D2`);
@@ -2282,9 +2321,10 @@ function getDayStatus(dateStr){
 }
 
 function getDayStatusArea(dateStr, area){
+  const isPrueba = e => (e?.name || '').trim().toLowerCase() === 'empleado prueba';
   let empIds = [];
-  if (area === 'cocina') empIds = window.EMPLOYEES.filter(e => e.area === 'cocina').map(e => e.id);
-  else if (area === 'centro') empIds = window.EMPLOYEES.filter(e => e.area === 'centro').map(e => e.id);
+  if (area === 'cocina') empIds = window.EMPLOYEES.filter(e => e.area === 'cocina' && !isPrueba(e)).map(e => e.id);
+  else if (area === 'centro') empIds = window.EMPLOYEES.filter(e => e.area === 'centro' && !isPrueba(e)).map(e => e.id);
   
   const unscheduled = empIds.filter(id=>getShift(id,dateStr)===null && (id !== 'GA' || window.gaEnabled)).length;
   const expectedTotal = empIds.filter(id => id !== 'GA' || window.gaEnabled).length;
@@ -2292,6 +2332,7 @@ function getDayStatusArea(dateStr, area){
   const cnt={};
   // Count shifts from ALL employees to allow flexible supervisors to contribute to coverage
   window.EMPLOYEES.forEach(e => {
+    if (isPrueba(e)) return;
     const sid=getShift(e.id,dateStr);
     if(sid && WORK_IDS.has(sid)) cnt[sid]=(cnt[sid]||0)+1;
   });
