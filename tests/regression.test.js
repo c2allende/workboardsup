@@ -106,7 +106,7 @@ assert.match(pilotFunction, /reminderEnabled/);
 assert.match(pilotFunction, /reminderEnabled === false/);
 assert.match(pilotFunction, /no devices enabled for the current activation/);
 assert.match(serviceWorker, /firebase\.messaging\(\)/);
-assert.match(serviceWorker, /workboard-cache-v90/);
+assert.match(serviceWorker, /workboard-cache-v91/);
 assert.match(serviceWorker, /'\/index\.html'/);
 assert.match(serviceWorker, /cache\.put\(request, copy\)/);
 assert.match(mobileHtml, /getEmployeeRecord/);

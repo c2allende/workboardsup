@@ -27,7 +27,7 @@ firebase.initializeApp({
 
 firebase.messaging();
 
-const CACHE_NAME = 'workboard-cache-v90';
+const CACHE_NAME = 'workboard-cache-v91';
 
 const APP_ASSETS = [
   '/',
