@@ -328,6 +328,12 @@ onSnapshot(collection(db, 'employees'), snap => {
     areas[d.id] = d.data().area;
     emails[d.id] = d.data().email || `emp${d.id}@workboard.local`;
   });
+  if (typeof SUPERVISOR_ACCOUNT_MAPPING !== 'undefined') {
+    Object.entries(SUPERVISOR_ACCOUNT_MAPPING).forEach(([k, v]) => {
+      emails[k] = v.email;
+      if (!names[k]) names[k] = v.name;
+    });
+  }
   window.EMP_NAMES = names;
   window.EMP_AREAS = areas;
   window.EMP_EMAILS = emails;
@@ -426,9 +432,37 @@ function cleanDietitianUsername(value) {
   return String(value || '').trim().toLowerCase().replace(/^dietsup_?/, '').replace(/[^a-z0-9]/g, '');
 }
 
+const SUPERVISOR_ACCOUNT_MAPPING = {
+  '889961': { username: '01vvt0', email: '01vvt0@workboard.local', name: 'Victor Vazquez Tirado' },
+  '889553': { username: '01arm5', email: '01arm5@workboard.local', name: 'Andres Rivera Maldonado' },
+  '890987': { username: '01eyc0', email: '01eyc0@workboard.local', name: 'Ernix E. Yace Chinea' },
+  '890791': { username: '01ldm0', email: '01ldm0@workboard.local', name: 'Lillian Y. Diaz Mendez' },
+  '891945': { username: 'crr2', email: 'crr2@workboard.local', name: 'Carlos A. Rivera Rivera' },
+  '891149': { username: '01cba0', email: '01cba0@workboard.local', name: 'Carolynn Betancourt Acosta' },
+  '889982': { username: '01anh0', email: '01anh0@workboard.local', name: 'Alvin Nieves Huertas' },
+  '891260': { username: '01ssg0', email: '01ssg0@workboard.local', name: 'Sixto Sierras Gonzàlez' },
+  '890232': { username: '01abr3', email: '01abr3@workboard.local', name: 'Angel Baez Rivera' },
+  '889255': { username: '01jms3', email: '01jms3@workboard.local', name: 'Jacqueline Marrero Saez' },
+  '891900': { username: '01mqc0', email: '01mqc0@workboard.local', name: 'Mayte Quiñones Cruz' }
+};
+
 async function getEmployeeRecord(id) {
   const cleanId = String(id || '').trim().toLowerCase();
   if(!cleanId) return null;
+
+  if (typeof SUPERVISOR_ACCOUNT_MAPPING !== 'undefined') {
+    const supEntry = SUPERVISOR_ACCOUNT_MAPPING[cleanId] || 
+      Object.values(SUPERVISOR_ACCOUNT_MAPPING).find(v => v.username === cleanId || v.email === cleanId);
+    if (supEntry) {
+      const empId = Object.keys(SUPERVISOR_ACCOUNT_MAPPING).find(k => SUPERVISOR_ACCOUNT_MAPPING[k] === supEntry);
+      return {
+        id: empId,
+        name: supEntry.name,
+        email: supEntry.email
+      };
+    }
+  }
+
   const localName = window.EMP_NAMES[cleanId];
   const localEmail = window.EMP_EMAILS[cleanId];
   if(localName || localEmail) {
@@ -453,13 +487,21 @@ async function getDietitianRecord(id) {
   const cleanId = String(id || '').trim().toLowerCase();
   if(!cleanId) return null;
 
-  const defaultRecord = DIETITIAN_DEFAULTS[cleanId];
+  let defaultRecord = DIETITIAN_DEFAULTS[cleanId];
+  let defaultEmpNum = cleanId;
+  if (!defaultRecord) {
+    const found = Object.entries(DIETITIAN_DEFAULTS).find(([k, v]) => v.id === cleanId || v.id === cleanDietitianUsername(cleanId));
+    if (found) {
+      defaultEmpNum = found[0];
+      defaultRecord = found[1];
+    }
+  }
   if(defaultRecord) {
-    const saved = window.DIETITIANS[defaultRecord.id] || window.DIETITIAN_BY_EMPLOYEE[cleanId] || {};
+    const saved = window.DIETITIANS[defaultRecord.id] || window.DIETITIAN_BY_EMPLOYEE[defaultEmpNum] || {};
     return {
       id: defaultRecord.id,
       fullName: saved.fullName || defaultRecord.fullName,
-      employeeNumber: cleanId,
+      employeeNumber: defaultEmpNum,
       email: saved.email || `dietsup_${defaultRecord.id}@workboard.local`,
       status: saved.status || 'Activo'
     };
@@ -501,6 +543,14 @@ async function getDietitianRecord(id) {
 async function findEmployeeByEmail(email) {
   const cleanEmail = String(email || '').trim().toLowerCase();
   if(!cleanEmail) return null;
+
+  if (typeof SUPERVISOR_ACCOUNT_MAPPING !== 'undefined') {
+    const supKey = Object.keys(SUPERVISOR_ACCOUNT_MAPPING).find(k => 
+      SUPERVISOR_ACCOUNT_MAPPING[k].email.toLowerCase() === cleanEmail ||
+      `${SUPERVISOR_ACCOUNT_MAPPING[k].username}@workboard.local`.toLowerCase() === cleanEmail
+    );
+    if (supKey) return { id: supKey, name: SUPERVISOR_ACCOUNT_MAPPING[supKey].name, email: SUPERVISOR_ACCOUNT_MAPPING[supKey].email };
+  }
 
   const localId = Object.keys(window.EMP_EMAILS || {}).find(k =>
     String(window.EMP_EMAILS[k] || '').toLowerCase() === cleanEmail

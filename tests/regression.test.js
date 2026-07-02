@@ -98,6 +98,7 @@ assert.doesNotMatch(indexHtml, /(?<!window\.)(?<!function )renderAccountList\(li
 assert.match(mobileHtml, /notificationDevices/);
 assert.doesNotMatch(mobileHtml, /Este piloto está limitado a Empleado Prueba/);
 assert.match(mobileHtml, /window\.enableShiftReminders/);
+assert.match(mobileHtml, /SUPERVISOR_ACCOUNT_MAPPING/);
 assert.match(mobileHtml, /window\.reminderEnabled/);
 assert.match(indexHtml, /toggleReminderFeature/);
 assert.match(indexHtml, /reminderActivationId = Date\.now\(\)/);
@@ -105,7 +106,7 @@ assert.match(pilotFunction, /reminderEnabled/);
 assert.match(pilotFunction, /reminderEnabled === false/);
 assert.match(pilotFunction, /no devices enabled for the current activation/);
 assert.match(serviceWorker, /firebase\.messaging\(\)/);
-assert.match(serviceWorker, /workboard-cache-v89/);
+assert.match(serviceWorker, /workboard-cache-v90/);
 assert.match(serviceWorker, /'\/index\.html'/);
 assert.match(serviceWorker, /cache\.put\(request, copy\)/);
 assert.match(mobileHtml, /getEmployeeRecord/);
