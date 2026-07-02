@@ -1,21 +1,21 @@
-# Recordatorios de turno
+# Recordatorios y Avisos de turno
 
 El sistema registra los teléfonos autorizados y notifica individualmente a cada
-empleado según su horario en Firestore.
+empleado según su horario en Firestore, y envía alertas automáticas cuando se publica un nuevo programa o se realiza algún cambio en los turnos.
 
 ## Flujo
 
 1. El empleado inicia sesión en `/TurnosSup` desde su teléfono.
 2. Administración activa **Recordatorios de Turno** desde `index.html`.
-3. La tarjeta **Recordatorio de turno** aparece para cada empleado autenticado.
+3. La tarjeta **Recordatorio de turno** aparece para cada empleado autenticado, explicando que se enviarán recordatorios y alertas de cambio.
 4. Al pulsar **Activar avisos**, el teléfono solicita permiso y guarda su token
    FCM en `notificationDevices`.
-5. La función `sendPilotShiftReminders` se ejecuta cada 15 minutos.
-6. Si encuentra un turno cuyo inicio será dentro de 24 horas, envía un aviso y
-   registra el resultado en `notificationDeliveries` para evitar duplicados.
+5. La función `sendPilotShiftReminders` se ejecuta cada 15 minutos para recordar turnos 24 horas antes.
+6. La función `sendScheduleUpdateNotifications` se ejecuta automáticamente cada vez que administración publica un horario o guarda una modificación en `metadata/updates`.
+7. Ambas funciones registran los envíos en `notificationDeliveries` para evitar duplicados en caso de reintentos.
 
-Al apagar **Recordatorios de Turno** desde Administración, la función deja de
-enviar avisos inmediatamente. Al volver a encenderlos se crea un ciclo nuevo:
+Al apagar **Recordatorios de Turno** desde Administración, el sistema deja de
+enviar recordatorios y alertas de publicación inmediatamente. Al volver a encenderlos se crea un ciclo nuevo:
 los teléfonos anteriores quedan pausados y cada empleado debe activar los avisos
 nuevamente.
 
@@ -31,7 +31,7 @@ facturación habilitada.
 cd functions
 npm test
 cd ..
-firebase deploy --only functions:sendPilotShiftReminders,hosting
+firebase deploy --only functions:sendPilotShiftReminders,functions:sendScheduleUpdateNotifications,hosting
 ```
 
 ## Prueba en teléfono

@@ -105,7 +105,7 @@ assert.match(pilotFunction, /reminderEnabled/);
 assert.match(pilotFunction, /reminderEnabled === false/);
 assert.match(pilotFunction, /no devices enabled for the current activation/);
 assert.match(serviceWorker, /firebase\.messaging\(\)/);
-assert.match(serviceWorker, /workboard-cache-v88/);
+assert.match(serviceWorker, /workboard-cache-v89/);
 assert.match(serviceWorker, /'\/index\.html'/);
 assert.match(serviceWorker, /cache\.put\(request, copy\)/);
 assert.match(mobileHtml, /getEmployeeRecord/);
@@ -154,6 +154,7 @@ assert.match(indexHtml, /Administrador Alterno/);
 assert.match(indexHtml, /Balance mensual/);
 assert.match(pilotFunction, /sendPilotShiftReminders/);
 assert.match(pilotFunction, /devicesByEmployee/);
+assert.match(pilotFunction, /sendScheduleUpdateNotifications/);
 assert.match(indexHtml, /const isPrueba = e => \(e\?\.name \|\| ''\)\.trim\(\)\.toLowerCase\(\) === 'empleado prueba'/);
 assert.doesNotMatch(mobileHtml, /currentUserRole === 'dietista' \|\| name !== 'Empleado Prueba'/);
 

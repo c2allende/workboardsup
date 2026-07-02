@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { getCandidateDates, getReminderCandidate, groupNotificationDevices } = require('./pilot-core');
+const { getCandidateDates, getReminderCandidate, groupNotificationDevices, shouldSendScheduleUpdate } = require('./pilot-core');
 
 test('returns a reminder exactly 24 hours before a work shift', () => {
   const candidate = getReminderCandidate({
@@ -49,4 +49,11 @@ test('groups unique registered phones by employee', () => {
     ['10', { employeeName: 'Ana', tokens: ['phone-a', 'phone-b'] }],
     ['20', { employeeName: 'Luis', tokens: ['phone-c'] }]
   ]);
+});
+
+test('validates when schedule update notifications should be sent', () => {
+  assert.equal(shouldSendScheduleUpdate({ beforeTime: 1000, afterTime: 2000, config: {} }), true);
+  assert.equal(shouldSendScheduleUpdate({ beforeTime: 2000, afterTime: 1000, config: {} }), false);
+  assert.equal(shouldSendScheduleUpdate({ beforeTime: 1000, afterTime: 2000, config: { reminderEnabled: false } }), false);
+  assert.equal(shouldSendScheduleUpdate({ beforeTime: 0, afterTime: 2000, config: { reminderEnabled: true } }), true);
 });

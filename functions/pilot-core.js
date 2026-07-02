@@ -51,4 +51,11 @@ function groupNotificationDevices(devices) {
   return devicesByEmployee;
 }
 
-module.exports = { SHIFT_STARTS, TIME_ZONE, getCandidateDates, getReminderCandidate, groupNotificationDevices };
+function shouldSendScheduleUpdate({ beforeTime, afterTime, config }) {
+  if (config && config.reminderEnabled === false) return false;
+  const after = Number(afterTime) || 0;
+  const before = Number(beforeTime) || 0;
+  return after > 0 && after > before;
+}
+
+module.exports = { SHIFT_STARTS, TIME_ZONE, getCandidateDates, getReminderCandidate, groupNotificationDevices, shouldSendScheduleUpdate };

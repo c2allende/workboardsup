@@ -171,7 +171,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 <div id="viewHorario" class="view">
   <div id="notificationReminderCard" class="card" style="display:none; margin-bottom:12px; border:1px solid var(--royal);">
     <div style="font-family:'Outfit';font-size:16px;font-weight:700;color:var(--royal);margin-bottom:6px;">Recordatorio de turno</div>
-    <div id="notificationReminderStatus" style="font-size:13px;color:var(--muted);line-height:1.4;margin-bottom:12px;">Activa un aviso 24 horas antes de tu turno.</div>
+    <div id="notificationReminderStatus" style="font-size:13px;color:var(--muted);line-height:1.4;margin-bottom:12px;">Activa avisos para recibir recordatorios 24 horas antes de tu turno y alertas cuando se publique o modifique el horario.</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
       <button class="btn" id="btnEnableNotifications" style="width:auto;background:var(--royal);color:#fff;" onclick="enableShiftReminders()">Activar avisos</button>
       <button class="btn-ghost" id="btnTestNotification" style="display:none;padding:10px 14px;border:1px solid var(--border);" onclick="testShiftReminder()">Probar ahora</button>
@@ -569,7 +569,7 @@ function renderNotificationReminder() {
   }
 
   card.style.display = 'block';
-  setNotificationReminderStatus('Activa un aviso 24 horas antes de tu turno.', false);
+  setNotificationReminderStatus('Activa avisos para recibir recordatorios 24 horas antes de tu turno y alertas cuando se publique o modifique el horario.', false);
 }
 
 async function ensureForegroundNotificationListener() {
